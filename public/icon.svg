@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="70%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+    <linearGradient id="brainGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="neuralCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <filter id="superGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Outer Squircle Badge -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGlow)" stroke="#f59e0b" stroke-width="8" stroke-opacity="0.4" />
+
+  <!-- Quantum Neural Energy Field -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 8" opacity="0.3" />
+  <circle cx="256" cy="256" r="130" fill="none" stroke="#f59e0b" stroke-width="2" opacity="0.2" />
+
+  <!-- Super Brain Neural Network Geometry -->
+  <g filter="url(#superGlow)">
+    <!-- Left Hemisphere -->
+    <path d="M 236 120 C 180 120 140 160 140 210 C 140 230 148 248 160 262 C 145 280 140 305 150 330 C 162 360 195 385 236 392 L 236 120 Z" 
+          fill="none" stroke="url(#brainGold)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Right Hemisphere (Quantum/Digital circuits) -->
+    <path d="M 276 120 C 332 120 372 160 372 210 C 372 230 364 248 352 262 C 367 280 372 305 362 330 C 350 360 317 385 276 392 L 276 120 Z" 
+          fill="none" stroke="url(#neuralCyan)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Brain Convolution Waves (Left) -->
+    <path d="M 175 210 C 200 200 215 225 236 215" fill="none" stroke="url(#brainGold)" stroke-width="8" stroke-linecap="round" />
+    <path d="M 165 275 C 190 265 210 290 236 280" fill="none" stroke="url(#brainGold)" stroke-width="8" stroke-linecap="round" />
+    <path d="M 190 340 C 210 330 220 350 236 345" fill="none" stroke="url(#brainGold)" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Circuit Synaptic Connections (Right) -->
+    <path d="M 276 170 L 315 170 L 335 195 L 360 195" fill="none" stroke="url(#neuralCyan)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 276 250 L 310 250 L 330 230 L 365 230" fill="none" stroke="url(#neuralCyan)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 276 320 L 320 320 L 340 345" fill="none" stroke="url(#neuralCyan)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Synaptic Core Nodes -->
+    <circle cx="360" cy="195" r="9" fill="#38bdf8" />
+    <circle cx="365" cy="230" r="9" fill="#38bdf8" />
+    <circle cx="340" cy="345" r="9" fill="#818cf8" />
+    <circle cx="315" cy="170" r="6" fill="#ffffff" />
+    <circle cx="310" cy="250" r="6" fill="#ffffff" />
+
+    <!-- Central Singularity Spark / Core of Superintelligence -->
+    <circle cx="256" cy="256" r="22" fill="#ffffff" filter="url(#superGlow)" />
+    <circle cx="256" cy="256" r="14" fill="#fbbf24" />
+    <polygon points="256,224 262,250 288,256 262,262 256,288 250,262 224,256 250,250" fill="#ffffff" />
+  </g>
+
+  <!-- Crown of Intelligence Nodes -->
+  <circle cx="256" cy="96" r="10" fill="#fbbf24" filter="url(#superGlow)" />
+  <line x1="256" y1="106" x2="256" y2="120" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" />
+  <circle cx="190" cy="108" r="7" fill="#f59e0b" />
+  <circle cx="322" cy="108" r="7" fill="#38bdf8" />
+</svg>

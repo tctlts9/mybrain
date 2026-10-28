@@ -17,7 +17,7 @@
 
 ## 📱 Cấu Trúc 3 Tab
 
-1. **Tab XAUUSD**: Quản trị và phân tích thị trường Vàng (Spot Gold / USD).
+1. **Tab Tính nhẩm Siêu trí tuệ**: Không gian rèn luyện phản xạ tính toán và tư duy số học Super Brain.
 2. **Tab Prop Firm**: Giám sát tài khoản Quỹ cấp vốn (FTMO, Funding Pips, FundedNext...) và quy tắc sụt giảm vốn (*Drawdown*).
 3. **Tab Backcom**: Quản lý và đối soát hoàn phí hoa hồng (*Rebate / Cashback Commission*) từ các sàn giao dịch.
 

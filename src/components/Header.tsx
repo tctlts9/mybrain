@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabType } from '../types/dashboard';
-import { Activity, ShieldCheck, Coins } from 'lucide-react';
+import { Brain, ShieldCheck, Coins } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
@@ -79,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
               }`}
             >
-              <Activity className="w-4 h-4 text-amber-400" />
+              <Brain className="w-4 h-4 text-amber-400" />
               <span>{t.tabXauusd}</span>
             </button>
 
@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                 }`}
               >
-                {activeTab === 'xauusd' && <Activity className="w-3.5 h-3.5 text-amber-400 animate-pulse" />}
+                {activeTab === 'xauusd' && <Brain className="w-3.5 h-3.5 text-amber-400 animate-pulse" />}
                 {activeTab === 'propfirm' && <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />}
                 {activeTab === 'backcom' && <Coins className="w-3.5 h-3.5 text-emerald-400" />}
                 <span className="tracking-tight text-[11px]">{getTabLabel(activeTab)}</span>

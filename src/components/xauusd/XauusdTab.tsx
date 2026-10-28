@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Clock } from 'lucide-react';
+import { Brain, Clock } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const XauusdTab: React.FC = () => {
@@ -12,7 +12,7 @@ export const XauusdTab: React.FC = () => {
       <div className="w-full max-w-xl rounded-3xl border-2 border-dashed border-slate-800 bg-slate-900/30 p-8 sm:p-14 text-center">
         {/* Icon */}
         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mx-auto mb-5 shadow-sm">
-          <Activity className="w-8 h-8" />
+          <Brain className="w-8 h-8" />
         </div>
 
         {/* Status Badge */}
@@ -23,7 +23,7 @@ export const XauusdTab: React.FC = () => {
 
         {/* Title */}
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-          XAUUSD
+          {isVi ? 'Tính nhẩm Siêu trí tuệ' : 'Super Mental Math'}
         </h2>
 
         {/* Description */}

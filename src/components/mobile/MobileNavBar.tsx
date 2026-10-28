@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabType } from '../../types/dashboard';
-import { Activity, ShieldCheck, Coins } from 'lucide-react';
+import { Brain, ShieldCheck, Coins } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface MobileNavBarProps {
@@ -26,7 +26,7 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Activity className={`w-5 h-5 transition-transform ${activeTab === 'xauusd' ? 'scale-110 text-amber-400' : ''}`} />
+          <Brain className={`w-5 h-5 transition-transform ${activeTab === 'xauusd' ? 'scale-110 text-amber-400' : ''}`} />
           <span className="text-[10px] mt-1 tracking-tight">{t.mobileXauusd}</span>
           {activeTab === 'xauusd' && (
             <span className="w-1 h-1 bg-amber-400 rounded-full mt-0.5"></span>

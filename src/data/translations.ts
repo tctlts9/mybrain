@@ -106,7 +106,7 @@ export const translations: Record<Language, Translations> = {
     // Navigation & Header
     brandTitle: 'MY BRAIN',
     brandSubtitle: 'ACADEMY',
-    tabXauusd: 'XAUUSD',
+    tabXauusd: 'Tính nhẩm Siêu trí tuệ',
     tabPropfirm: 'Prop Firm',
     tabBackcom: 'Backcom',
     systemOnline: 'Hệ thống Trực tuyến',
@@ -116,13 +116,13 @@ export const translations: Record<Language, Translations> = {
     switchToEn: 'English',
 
     // Mobile Bottom Bar
-    mobileXauusd: 'XAUUSD',
+    mobileXauusd: 'Tính nhẩm',
     mobilePropfirm: 'Prop Firm',
     mobileBackcom: 'Backcom',
 
     // XAUUSD Tab
-    xauusdTitle: 'Phân Tích XAUUSD & Thị Trường Vàng',
-    xauusdDesc: 'Không gian làm việc chuyên sâu cho giao dịch Vàng (XAUUSD): Dữ liệu thị trường thời gian thực, phiên giao dịch (Á, Âu, Mỹ), lịch kinh tế và nhật ký lệnh.',
+    xauusdTitle: 'Tính Nhẩm Siêu Trí Tuệ',
+    xauusdDesc: 'Không gian rèn luyện và phát triển kỹ năng tính nhẩm siêu tốc, phản xạ não bộ và phương pháp tư duy số học Super Brain.',
     xauusdCardReady: 'Phân hệ XAUUSD đã sẵn sàng. Bạn có thể thêm biểu đồ, công cụ đo lường và dữ liệu trực tiếp tại đây.',
     xauusdFeature1Title: 'Phiên Giao Dịch & Killzone',
     xauusdFeature1Desc: 'Theo dõi thời gian hoạt động và biến động của phiên Sydney, Tokyo, London và New York.',
@@ -206,7 +206,7 @@ export const translations: Record<Language, Translations> = {
     // Navigation & Header
     brandTitle: 'MY BRAIN',
     brandSubtitle: 'ACADEMY',
-    tabXauusd: 'XAUUSD',
+    tabXauusd: 'Super Mental Math',
     tabPropfirm: 'Prop Firm',
     tabBackcom: 'Backcom',
     systemOnline: 'System Online',
@@ -216,13 +216,13 @@ export const translations: Record<Language, Translations> = {
     switchToEn: 'English',
 
     // Mobile Bottom Bar
-    mobileXauusd: 'XAUUSD',
+    mobileXauusd: 'Mental Math',
     mobilePropfirm: 'Prop Firm',
     mobileBackcom: 'Backcom',
 
     // XAUUSD Tab
-    xauusdTitle: 'XAUUSD & Gold Market Analytics',
-    xauusdDesc: 'Professional workspace for Gold (XAUUSD) trading: Real-time market metrics, trading sessions (Asia, London, New York), macroeconomic calendar, and trade journal.',
+    xauusdTitle: 'Super Mental Math',
+    xauusdDesc: 'High-speed mental math training, brain agility development, and advanced cognitive arithmetic methodology.',
     xauusdCardReady: 'XAUUSD module is ready. You can add your charts, measurement indicators, and real-time data feeds here.',
     xauusdFeature1Title: 'Trading Sessions & Killzones',
     xauusdFeature1Desc: 'Monitor active market hours and volatility across Sydney, Tokyo, London, and New York.',

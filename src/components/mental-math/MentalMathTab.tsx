@@ -23,7 +23,7 @@ export const MentalMathTab: React.FC = () => {
 
         {/* Title */}
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-          Mental Math
+          {isVi ? 'Tính Nhẩm' : 'Mental Math'}
         </h2>
 
         {/* Description */}

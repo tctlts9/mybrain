@@ -22,6 +22,8 @@ export interface Translations {
 
   // Footer & Common Actions
   copyright: string;
+  footerQuoteLine1: string;
+  footerQuoteLine2: string;
   installApp: string;
   youtube: string;
   email: string;
@@ -82,17 +84,19 @@ export const translations: Record<Language, Translations> = {
     switchToEn: 'English',
 
     // Tabs
-    tabMentalMath: 'Mental Math',
-    tabLociJourney: 'Hành trình ký ức Loci',
-    mobileMentalMath: 'Mental Math',
-    mobileLociJourney: 'Ký ức Loci',
+    tabMentalMath: 'Tính Nhẩm',
+    tabLociJourney: 'Ký Ức Loci',
+    mobileMentalMath: 'Tính Nhẩm',
+    mobileLociJourney: 'Ký Ức Loci',
 
     // Content
-    mentalMathTitle: 'Mental Math',
+    mentalMathTitle: 'Tính Nhẩm',
     mentalMathDesc: 'Học viện huấn luyện não bộ, rèn luyện kỹ năng tính nhẩm siêu trí tuệ và phương pháp tư duy số học Super Brain.',
 
     // Footer & Common Actions
     copyright: 'Bản quyền © 2026 MY BRAIN ACADEMY',
+    footerQuoteLine1: 'Chuyên môn không bằng kỹ năng',
+    footerQuoteLine2: 'Tôi hy vọng các em có thể xây dựng cho mình kỹ năng cần thiết nhất',
     installApp: 'Cài Đặt App',
     youtube: 'Youtube',
     email: 'Email',
@@ -152,9 +156,9 @@ export const translations: Record<Language, Translations> = {
 
     // Tabs
     tabMentalMath: 'Mental Math',
-    tabLociJourney: 'Loci Memory Journey',
+    tabLociJourney: 'Loci Memory',
     mobileMentalMath: 'Mental Math',
-    mobileLociJourney: 'Loci Journey',
+    mobileLociJourney: 'Loci Memory',
 
     // Content
     mentalMathTitle: 'Mental Math',
@@ -162,6 +166,8 @@ export const translations: Record<Language, Translations> = {
 
     // Footer & Common Actions
     copyright: 'Copyright © 2026 MY BRAIN ACADEMY',
+    footerQuoteLine1: 'Skill outweighs pure expertise',
+    footerQuoteLine2: 'I hope you can build for yourself the most essential skills',
     installApp: 'Install App',
     youtube: 'Youtube',
     email: 'Email',

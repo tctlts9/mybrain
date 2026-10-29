@@ -18,7 +18,7 @@
 ## 📱 Cấu Trúc 2 Tab
 
 1. **Tab Mental Math**: Không gian huấn luyện phản xạ tính nhẩm và tư duy não bộ Super Brain.
-2. **Tab Hành trình ký ức Loci**: Không gian rèn luyện phương pháp ghi nhớ không gian Method of Loci / Cung điện ký ức (nội dung sẽ thiết kế và bổ sung sau).
+2. **Tab Loci Memory**: Không gian rèn luyện phương pháp ghi nhớ không gian Method of Loci / Cung điện ký ức (nội dung sẽ thiết kế và bổ sung sau).
 
 ---
 

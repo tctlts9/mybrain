@@ -73,15 +73,26 @@ function DashboardApp() {
         onClose={() => setIsInstallModalOpen(false)}
       />
 
-      {/* Clean Professional Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-5 text-xs text-slate-400 mb-16 md:mb-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="font-medium text-slate-400">{t.copyright}</span>
+      {/* Compact Professional Footer */}
+      <footer className="border-t border-slate-900 bg-slate-950 py-3 text-xs text-slate-400 mb-16 md:mb-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* 2 Dòng text & Copyright 2026 chuyên nghiệp */}
+          <div className="flex flex-col text-center md:text-left gap-0.5">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider text-slate-400 bg-slate-900/90 border border-slate-800 shadow-xs">
+                Copyright © 2026
+              </span>
+              <span className="font-semibold text-amber-300 text-xs sm:text-sm tracking-wide">
+                {t.footerQuoteLine1}
+              </span>
+            </div>
+            <span className="text-slate-400 text-[11px] sm:text-xs italic">
+              {t.footerQuoteLine2}
+            </span>
           </div>
 
           {/* Action Buttons: Install App, Youtube, Email, Buy coffee */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
             {!isInstalled && (
               <button
                 onClick={() => setIsInstallModalOpen(true)}

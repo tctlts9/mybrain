@@ -89,8 +89,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Action: Active Tab Badge (Thể hiện trên header) & Clean Language Toggle */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Active Tab Badge (Thể hiện trên Header) */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 shadow-sm">
+            {/* Active Tab Badge (Ẩn trên Web và Tablet vì đã có menu ở giữa) */}
+            <div className="md:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 shadow-sm">
               <span className="text-slate-500 font-normal hidden xs:inline">Tab:</span>
               {activeTab === 'mental-math' ? (
                 <span className="text-amber-400 font-semibold flex items-center gap-1">

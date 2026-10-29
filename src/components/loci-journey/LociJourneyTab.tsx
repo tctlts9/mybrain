@@ -23,7 +23,7 @@ export const LociJourneyTab: React.FC = () => {
 
         {/* Title */}
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-          {isVi ? 'Hành trình ký ức Loci' : 'Loci Memory Journey'}
+          {isVi ? 'Ký Ức Loci' : 'Loci Memory'}
         </h2>
 
         {/* Description */}

@@ -54,8 +54,8 @@ export default defineConfig(() => {
               icons: [{ src: './pwa-192x192.png', sizes: '192x192' }],
             },
             {
-              name: 'Hành trình ký ức Loci',
-              short_name: 'Ký ức Loci',
+              name: 'Loci Memory',
+              short_name: 'Loci Memory',
               description: 'Phương pháp ghi nhớ không gian Loci',
               url: './?tab=loci-journey',
               icons: [{ src: './pwa-192x192.png', sizes: '192x192' }],
@@ -96,8 +96,7 @@ export default defineConfig(() => {
           ],
         },
         devOptions: {
-          enabled: true,
-          type: 'module',
+          enabled: false,
         },
       }),
     ],

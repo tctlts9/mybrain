@@ -1,6 +1,6 @@
 # MY BRAIN ACADEMY
 
-Ứng dụng Dashboard chuyên nghiệp đa nền tảng (**Web App máy tính & Mobile App PWA di động**) gồm 3 tab chức năng: **XAUUSD**, **Prop Firm**, và **Backcom**.
+Ứng dụng Học viện Não bộ đa nền tảng (**Web App máy tính & Mobile App PWA di động**) chuyên sâu rèn luyện phản xạ tính toán và tư duy số học Super Brain (**Tính Nhẩm / Mental Math**).
 
 ---
 
@@ -15,11 +15,10 @@
 
 ---
 
-## 📱 Cấu Trúc 3 Tab
+## 📱 Cấu Trúc 2 Tab
 
-1. **Tab Tính nhẩm Siêu trí tuệ**: Không gian rèn luyện phản xạ tính toán và tư duy số học Super Brain.
-2. **Tab Prop Firm**: Giám sát tài khoản Quỹ cấp vốn (FTMO, Funding Pips, FundedNext...) và quy tắc sụt giảm vốn (*Drawdown*).
-3. **Tab Backcom**: Quản lý và đối soát hoàn phí hoa hồng (*Rebate / Cashback Commission*) từ các sàn giao dịch.
+1. **Tab Mental Math**: Không gian huấn luyện phản xạ tính nhẩm và tư duy não bộ Super Brain.
+2. **Tab Hành trình ký ức Loci**: Không gian rèn luyện phương pháp ghi nhớ không gian Method of Loci / Cung điện ký ức (nội dung sẽ thiết kế và bổ sung sau).
 
 ---
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { TabType } from '../types/dashboard';
-import { Brain, ShieldCheck, Coins } from 'lucide-react';
+import { TabType } from '../types/tab';
+import { Brain, Compass } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
@@ -12,18 +12,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
 }) => {
-  const { language, setLanguage, countryCode, isDetecting, t } = useLanguage();
-
-  const getTabLabel = (tab: TabType) => {
-    switch (tab) {
-      case 'xauusd':
-        return t.tabXauusd;
-      case 'propfirm':
-        return t.tabPropfirm;
-      case 'backcom':
-        return t.tabBackcom;
-    }
-  };
+  const { language, setLanguage, t } = useLanguage();
 
   const toggleLanguage = () => {
     setLanguage(language === 'vi' ? 'en' : 'vi');
@@ -32,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 sm:gap-6 h-14 sm:h-16">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 h-14 sm:h-16">
           {/* Brand Logo & Title */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-amber-500/20 via-slate-900 to-amber-950/80 border border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/25 p-1 shrink-0">
@@ -69,47 +58,54 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 sm:gap-2">
+          {/* Navigation Tabs for Desktop */}
+          <nav className="hidden md:flex items-center gap-2">
+            {/* Tab 1: Mental Math */}
             <button
-              onClick={() => onTabChange('xauusd')}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-                activeTab === 'xauusd'
-                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10'
+              onClick={() => onTabChange('mental-math')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'mental-math'
+                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm shadow-amber-500/10'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
               }`}
             >
-              <Brain className="w-4 h-4 text-amber-400" />
-              <span>{t.tabXauusd}</span>
+              <Brain className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 ${activeTab === 'mental-math' ? 'animate-pulse' : ''}`} />
+              <span>{t.tabMentalMath}</span>
             </button>
 
+            {/* Tab 2: Hành trình ký ức Loci */}
             <button
-              onClick={() => onTabChange('propfirm')}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-                activeTab === 'propfirm'
-                  ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30 shadow-sm shadow-blue-500/10'
+              onClick={() => onTabChange('loci-journey')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'loci-journey'
+                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
               }`}
             >
-              <ShieldCheck className="w-4 h-4 text-blue-400" />
-              <span>{t.tabPropfirm}</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('backcom')}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-                activeTab === 'backcom'
-                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
-              }`}
-            >
-              <Coins className="w-4 h-4 text-emerald-400" />
-              <span>{t.tabBackcom}</span>
+              <Compass className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 ${activeTab === 'loci-journey' ? 'animate-pulse' : ''}`} />
+              <span>{t.tabLociJourney}</span>
             </button>
           </nav>
 
-          {/* Right Action: Clean Language Toggle (Only VI or EN) */}
-          <div className="flex items-center gap-2">
+          {/* Right Action: Active Tab Badge (Thể hiện trên header) & Clean Language Toggle */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Active Tab Badge (Thể hiện trên Header) */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 shadow-sm">
+              <span className="text-slate-500 font-normal hidden xs:inline">Tab:</span>
+              {activeTab === 'mental-math' ? (
+                <span className="text-amber-400 font-semibold flex items-center gap-1">
+                  <Brain className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{t.tabMentalMath}</span>
+                </span>
+              ) : (
+                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                  <Compass className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{t.tabLociJourney}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Language Toggle (VI / EN) */}
             <button
               onClick={toggleLanguage}
               title={language === 'vi' ? 'Chuyển sang English' : 'Switch to Tiếng Việt'}
@@ -118,24 +114,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               {language === 'vi' ? 'VI' : 'EN'}
             </button>
-
-            {/* Mobile Active Tab Badge */}
-            <div className="flex md:hidden items-center">
-              <div
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold border ${
-                  activeTab === 'xauusd'
-                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                    : activeTab === 'propfirm'
-                    ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
-                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                }`}
-              >
-                {activeTab === 'xauusd' && <Brain className="w-3.5 h-3.5 text-amber-400 animate-pulse" />}
-                {activeTab === 'propfirm' && <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />}
-                {activeTab === 'backcom' && <Coins className="w-3.5 h-3.5 text-emerald-400" />}
-                <span className="tracking-tight text-[11px]">{getTabLabel(activeTab)}</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

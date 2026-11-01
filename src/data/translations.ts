@@ -19,6 +19,21 @@ export interface Translations {
   // Mental Math Content
   mentalMathTitle: string;
   mentalMathDesc: string;
+  cardMultiply2Title: string;
+  cardMultiply2Desc: string;
+  cardMultiply2Tag: string;
+  cardMultiply3Title: string;
+  cardMultiply3Desc: string;
+  cardMultiply3Tag: string;
+  practiceNow: string;
+  practiceModalTitle: string;
+  correct: string;
+  incorrect: string;
+  nextQuestion: string;
+  checkAnswer: string;
+  yourAnswer: string;
+  streak: string;
+  score: string;
 
   // Footer & Common Actions
   copyright: string;
@@ -92,6 +107,21 @@ export const translations: Record<Language, Translations> = {
     // Content
     mentalMathTitle: 'Tính Nhẩm',
     mentalMathDesc: 'Học viện huấn luyện não bộ, rèn luyện kỹ năng tính nhẩm siêu trí tuệ và phương pháp tư duy số học Super Brain.',
+    cardMultiply2Title: 'Phép nhân 2 chữ số',
+    cardMultiply2Desc: 'Rèn luyện phản xạ tính nhẩm tích 2 chữ số với 2 chữ số nhanh chóng, chính xác không cần dùng giấy bút hay máy tính.',
+    cardMultiply2Tag: 'Cơ bản & Nâng cao',
+    cardMultiply3Title: 'Phép nhân 3 số',
+    cardMultiply3Desc: 'Thử thách nâng cao bộ nhớ làm việc và tốc độ tư duy với kỹ thuật tính nhẩm tích 3 số siêu trí tuệ.',
+    cardMultiply3Tag: 'Siêu trí tuệ',
+    practiceNow: 'Luyện tập ngay',
+    practiceModalTitle: 'Luyện Tập Tính Nhẩm',
+    correct: 'Chính xác! Xuất sắc!',
+    incorrect: 'Chưa chính xác, thử lại nhé!',
+    nextQuestion: 'Câu tiếp theo',
+    checkAnswer: 'Kiểm tra',
+    yourAnswer: 'Đáp án của bạn',
+    streak: 'Chuỗi đúng',
+    score: 'Điểm số',
 
     // Footer & Common Actions
     copyright: 'Bản quyền © 2026 MY BRAIN ACADEMY',
@@ -163,11 +193,26 @@ export const translations: Record<Language, Translations> = {
     // Content
     mentalMathTitle: 'Mental Math',
     mentalMathDesc: 'Brain training academy for advanced cognitive arithmetic, lightning-speed calculation, and brain agility development.',
+    cardMultiply2Title: '2-Digit Multiplication',
+    cardMultiply2Desc: 'Master mental calculation reflexes for multiplying 2-digit numbers with speed and precision without a calculator.',
+    cardMultiply2Tag: 'Core & Intermediate',
+    cardMultiply3Title: '3-Number Multiplication',
+    cardMultiply3Desc: 'Push your working memory and mental agility to the limit with advanced 3-number multiplication mastery.',
+    cardMultiply3Tag: 'Advanced Mastery',
+    practiceNow: 'Start Practice',
+    practiceModalTitle: 'Mental Math Practice',
+    correct: 'Correct! Excellent!',
+    incorrect: 'Not quite, try again!',
+    nextQuestion: 'Next Problem',
+    checkAnswer: 'Check',
+    yourAnswer: 'Your Answer',
+    streak: 'Streak',
+    score: 'Score',
 
     // Footer & Common Actions
     copyright: 'Copyright © 2026 MY BRAIN ACADEMY',
     footerQuoteLine1: 'Skill outweighs pure expertise',
-    footerQuoteLine2: 'I hope you can build for yourself the most essential skills',
+    footerQuoteLine2: 'I hope you develop the skills that truly matter',
     installApp: 'Install App',
     youtube: 'Youtube',
     email: 'Email',

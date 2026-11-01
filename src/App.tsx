@@ -7,10 +7,8 @@ import { MobileTabBar } from './components/common/MobileTabBar';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { EmailModal } from './components/common/EmailModal';
 import { BuyCoffeeModal } from './components/common/BuyCoffeeModal';
-import { PWAInstallModal } from './components/common/PWAInstallModal';
-import { usePWAInstall } from './hooks/usePWAInstall';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
-import { Youtube, Mail, Coffee, Download } from 'lucide-react';
+import { Youtube, Mail, Coffee } from 'lucide-react';
 
 function DashboardApp() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -26,8 +24,6 @@ function DashboardApp() {
 
   const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState<boolean>(false);
-  const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
-  const { isInstalled } = usePWAInstall();
   const { t } = useLanguage();
 
   return (
@@ -67,12 +63,6 @@ function DashboardApp() {
         onClose={() => setIsCoffeeModalOpen(false)}
       />
 
-      {/* PWA Install Modal */}
-      <PWAInstallModal
-        isOpen={isInstallModalOpen}
-        onClose={() => setIsInstallModalOpen(false)}
-      />
-
       {/* Compact Professional Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-3 text-xs text-slate-400 mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-3">
@@ -91,17 +81,8 @@ function DashboardApp() {
             </span>
           </div>
 
-          {/* Action Buttons: Install App, Youtube, Email, Buy coffee */}
+          {/* Action Buttons: Youtube, Email, Buy coffee */}
           <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
-            {!isInstalled && (
-              <button
-                onClick={() => setIsInstallModalOpen(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-amber-200 transition-all text-xs font-semibold cursor-pointer active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5 text-amber-400" />
-                <span>{t.installApp}</span>
-              </button>
-            )}
 
             <a
               href="https://youtube.com"

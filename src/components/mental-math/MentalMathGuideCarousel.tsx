@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, X, Brain, Sparkles, Layers } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, X, Brain, Sparkles, ZoomIn } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 import step1Img from '../../assets/images/guide_step1_1793536046845.jpg';
@@ -12,8 +12,6 @@ interface Slide {
   image: string;
   titleVi: string;
   titleEn: string;
-  descVi: string;
-  descEn: string;
   badgeVi: string;
   badgeEn: string;
 }
@@ -24,8 +22,6 @@ const slides: Slide[] = [
     image: step1Img,
     titleVi: 'Bước 1: Tách thừa số & Nhân hàng chục (86 × 60 = 5,160)',
     titleEn: 'Step 1: Splitting & Tens Multiplication (86 × 60 = 5,160)',
-    descVi: 'Tách 68 thành (60 + 8). Nhẩm nhanh 86 × 60 bằng cách: (80 × 6 = 480) + (6 × 6 = 36) = 516, thêm số 0 thành 5,160.',
-    descEn: 'Split 68 into 60 and 8. Multiply 86 × 60 mentally: (80×6=480) + (6×6=36) = 516, append 0 to get 5,160.',
     badgeVi: 'Bước 1 / 4 • Tách số',
     badgeEn: 'Step 1 / 4 • Split Tens',
   },
@@ -34,8 +30,6 @@ const slides: Slide[] = [
     image: step2Img,
     titleVi: 'Bước 2: Tính tích phần hàng đơn vị (86 × 8 = 688)',
     titleEn: 'Step 2: Units Multiplication (86 × 8 = 688)',
-    descVi: 'Nhân 86 với 8 bằng phương pháp phân tách: (80 × 8 = 640) + (6 × 8 = 48) = 688 tích phần thứ hai.',
-    descEn: 'Compute 86 × 8 mentally by partitioning: (80 × 8 = 640) + (6 × 8 = 48) = 688 second partial product.',
     badgeVi: 'Bước 2 / 4 • Hàng đơn vị',
     badgeEn: 'Step 2 / 4 • Split Ones',
   },
@@ -44,8 +38,6 @@ const slides: Slide[] = [
     image: step3Img,
     titleVi: 'Bước 3: Cộng dồn hai tích riêng phần (5,160 + 688 = 5,848)',
     titleEn: 'Step 3: Combine Partial Products (5,160 + 688 = 5,848)',
-    descVi: 'Cộng nhẩm từ trái sang phải: 5,160 + 600 = 5,760, sau đó + 88 = 5,848. Hoàn tất đáp án cuối cùng!',
-    descEn: 'Add mentally left-to-right: 5,160 + 600 = 5,760, then + 88 = 5,848. Final answer confirmed!',
     badgeVi: 'Bước 3 / 4 • Cộng dồn',
     badgeEn: 'Step 3 / 4 • Sum Total',
   },
@@ -54,8 +46,6 @@ const slides: Slide[] = [
     image: step4Img,
     titleVi: 'Phương pháp 2: Nhân chéo Vedic siêu tốc (86 × 68 = 5,848)',
     titleEn: 'Method 2: Vedic Cross Multiplication (86 × 68 = 5,848)',
-    descVi: 'Đơn vị (6×8=48, nhớ 4) ➔ Nhân chéo (8×8 + 6×6 + 4=104, nhớ 10) ➔ Hàng chục (8×6 + 10=58) ➔ Ghép lại: 5,848.',
-    descEn: 'Units (6×8=48, carry 4) ➔ Cross ((8×8)+(6×6)+4=104, carry 10) ➔ Tens (8×6+10=58) ➔ Final result: 5,848.',
     badgeVi: 'Phương pháp 2 • Nhân chéo',
     badgeEn: 'Method 2 • Cross Multiply',
   },
@@ -97,7 +87,7 @@ export const MentalMathGuideCarousel: React.FC = () => {
     }
   };
 
-  // Close zoom modal on Esc key
+  // Keyboard navigation & Esc to close zoom modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setZoomImage(null);
@@ -108,140 +98,164 @@ export const MentalMathGuideCarousel: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeIndex]);
 
-  const activeSlide = slides[activeIndex];
-
   return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6 shadow-xl space-y-4">
-      {/* Header bar: Title & Step Counter Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <Brain className="w-4 h-4" />
+    <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-800/90 bg-slate-900/80 p-2 sm:p-4 md:p-5 shadow-2xl space-y-2.5 sm:space-y-3">
+      {/* Top Header: Title & Navigation Controls */}
+      <div className="flex items-center justify-between px-1 sm:px-2 pt-0.5 sm:pt-1">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+            <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <div>
-            <h2 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
-              <span>{isVi ? 'Hình Ảnh Hướng Dẫn Tính Nhẩm (86 × 68)' : 'Mental Math Visual Guide (86 × 68)'}</span>
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <h2 className="font-bold text-white text-xs sm:text-sm md:text-base flex items-center gap-1.5 sm:gap-2">
+              <span>{isVi ? 'Hướng Dẫn Tính Nhẩm (86 × 68)' : 'Visual Guide (86 × 68)'}</span>
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
             </h2>
-            <p className="text-xs text-slate-400 hidden sm:block">
-              {isVi ? 'Vuốt hoặc bấm nút để xem từng bước minh họa chi tiết' : 'Swipe or use buttons to navigate visual step-by-step guides'}
+            <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">
+              {isVi ? 'Vuốt ngang hoặc bấm mũi tên để xem các bước' : 'Swipe or tap arrows to navigate steps'}
             </p>
           </div>
         </div>
 
-        {/* Navigation Arrows & Counter */}
-        <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-amber-400">
+        {/* Counter & Arrow Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950 border border-slate-800 text-[11px] sm:text-xs font-mono font-bold text-amber-400 shadow-xs">
             {activeIndex + 1} / {slides.length}
           </span>
           <button
             onClick={() => scrollToSlide(activeIndex - 1)}
             disabled={activeIndex === 0}
-            className="w-8 h-8 rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
-            title={isVi ? 'Ảnh trước' : 'Previous image'}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            title={isVi ? 'Ảnh trước' : 'Previous'}
+            aria-label="Previous image"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
           <button
             onClick={() => scrollToSlide(activeIndex + 1)}
             disabled={activeIndex === slides.length - 1}
-            className="w-8 h-8 rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95"
-            title={isVi ? 'Ảnh sau' : 'Next image'}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            title={isVi ? 'Ảnh sau' : 'Next'}
+            aria-label="Next image"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Quick Step Tabs */}
-      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none pb-1">
-        {slides.map((s, idx) => (
-          <button
-            key={s.id}
-            onClick={() => scrollToSlide(idx)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeIndex === idx
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/10'
-                : 'bg-slate-950/80 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700'
-            }`}
-          >
-            <Layers className="w-3 h-3" />
-            <span>{isVi ? s.badgeVi : s.badgeEn}</span>
-          </button>
-        ))}
-      </div>
+      {/* Main Image Slider Container: Responsive for Mobile, Tablet, Web App */}
+      <div className="relative group overflow-hidden rounded-xl sm:rounded-2xl border border-amber-500/20 bg-[#061830] shadow-xl">
+        {/* Horizontal Scroll Snap Track */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth touch-pan-x"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {slides.map((slide) => (
+            <div
+              key={slide.id}
+              className="min-w-full flex-shrink-0 snap-center relative overflow-hidden flex items-center justify-center bg-[#061830]"
+            >
+              {/* Responsive 16:9 Image Container */}
+              <div className="relative w-full aspect-[16/9] flex items-center justify-center overflow-hidden bg-[#061830]">
+                <img
+                  src={slide.image}
+                  alt={isVi ? slide.titleVi : slide.titleEn}
+                  className="w-full h-full object-contain cursor-zoom-in select-none transition-transform duration-500 group-hover:scale-[1.01]"
+                  onClick={() => setZoomImage(slide.image)}
+                  draggable={false}
+                  loading="eager"
+                />
 
-      {/* Horizontal Scroll Image Carousel Container */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none rounded-2xl border border-slate-800/80 bg-slate-950 shadow-inner scroll-smooth"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {slides.map((slide, idx) => (
-          <div
-            key={slide.id}
-            className="min-w-full flex-shrink-0 snap-center relative group overflow-hidden"
-          >
-            {/* Slide Image */}
-            <div className="relative aspect-[16/9] w-full max-h-[460px] overflow-hidden bg-slate-950 flex items-center justify-center">
-              <img
-                src={slide.image}
-                alt={isVi ? slide.titleVi : slide.titleEn}
-                className="w-full h-full object-contain cursor-zoom-in transition-transform duration-300 group-hover:scale-[1.02]"
-                onClick={() => setZoomImage(slide.image)}
-                loading="lazy"
-              />
+                {/* Top-Right Zoom Action Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setZoomImage(slide.image);
+                  }}
+                  className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-amber-400 transition-all cursor-pointer backdrop-blur-md opacity-85 hover:opacity-100 shadow-md active:scale-90"
+                  title={isVi ? 'Phóng to ảnh' : 'Zoom image'}
+                >
+                  <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
 
-              {/* Zoom In Button Hint */}
-              <button
-                onClick={() => setZoomImage(slide.image)}
-                className="absolute top-3 right-3 p-2 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-400 transition-all cursor-pointer backdrop-blur-md opacity-80 group-hover:opacity-100 shadow-md"
-                title={isVi ? 'Phóng to ảnh' : 'Zoom image'}
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
+                {/* Top-Left Step Badge */}
+                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950/85 border border-amber-500/30 text-[10px] sm:text-xs font-semibold text-amber-300 backdrop-blur-md shadow-sm">
+                  {isVi ? slide.badgeVi : slide.badgeEn}
+                </div>
 
-              {/* Slide Index Badge */}
-              <div className="absolute bottom-3 left-3 px-3 py-1 rounded-lg bg-slate-950/85 border border-slate-800 text-[11px] font-semibold text-amber-400 backdrop-blur-md">
-                {isVi ? slide.badgeVi : slide.badgeEn}
+                {/* Tap to zoom hint (visible on mobile / small devices) */}
+                <div
+                  onClick={() => setZoomImage(slide.image)}
+                  className="sm:hidden absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950/75 border border-slate-700/60 text-[10px] text-slate-300 backdrop-blur-xs cursor-pointer active:scale-95"
+                >
+                  <ZoomIn className="w-3 h-3 text-amber-400" />
+                  <span>{isVi ? 'Chạm để phóng to' : 'Tap to zoom'}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {/* Floating Side Arrow Buttons for Desktop & Tablet hover */}
+        <button
+          onClick={() => scrollToSlide(activeIndex - 1)}
+          disabled={activeIndex === 0}
+          className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 disabled:opacity-0 disabled:pointer-events-none text-white border border-slate-700/80 backdrop-blur-md items-center justify-center transition-all shadow-lg active:scale-90 z-20 cursor-pointer"
+          aria-label="Previous"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => scrollToSlide(activeIndex + 1)}
+          disabled={activeIndex === slides.length - 1}
+          className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-950/80 hover:bg-amber-500 hover:text-slate-950 disabled:opacity-0 disabled:pointer-events-none text-white border border-slate-700/80 backdrop-blur-md items-center justify-center transition-all shadow-lg active:scale-90 z-20 cursor-pointer"
+          aria-label="Next"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Floating Indicator Dots centered at bottom */}
+        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-slate-800/80 z-20 shadow-md">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => scrollToSlide(i)}
+              className={`transition-all rounded-full cursor-pointer ${
+                activeIndex === i
+                  ? 'w-5 sm:w-6 h-1.5 sm:h-2 bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]'
+                  : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-slate-600 hover:bg-slate-400'
+              }`}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Active Slide Explanation Card */}
-      <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-        <h3 className="font-bold text-white text-sm sm:text-base text-amber-300">
-          {isVi ? activeSlide.titleVi : activeSlide.titleEn}
-        </h3>
-        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-          {isVi ? activeSlide.descVi : activeSlide.descEn}
-        </p>
-      </div>
-
-      {/* Lightbox / Zoom Modal for full detail */}
+      {/* Lightbox / Zoom Modal for full detail and high-res viewing */}
       {zoomImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md p-4 sm:p-8 flex flex-col items-center justify-center animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md p-2 sm:p-6 md:p-8 flex flex-col items-center justify-center animate-in fade-in duration-200"
           onClick={() => setZoomImage(null)}
         >
           <div className="relative max-w-5xl w-full flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            {/* Close Button */}
             <button
               onClick={() => setZoomImage(null)}
-              className="absolute -top-12 right-0 p-2 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 cursor-pointer transition-all"
+              className="absolute -top-10 sm:-top-12 right-0 p-1.5 sm:p-2 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 cursor-pointer transition-all active:scale-90 shadow-lg"
               title="Close"
+              aria-label="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
             <img
               src={zoomImage}
               alt="Zoomed guide diagram"
-              className="w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-slate-800"
+              className="w-full max-h-[85vh] object-contain rounded-xl sm:rounded-2xl shadow-2xl border border-slate-800 select-none"
             />
-            <p className="mt-3 text-xs text-slate-400 text-center">
-              {isVi ? 'Bấm phím Esc hoặc nhấp ra ngoài để đóng' : 'Press Esc or click outside to close'}
+            <p className="mt-2.5 text-[11px] sm:text-xs text-slate-400 text-center flex items-center gap-1.5">
+              <span>{isVi ? 'Bấm phím Esc hoặc chạm ra ngoài để đóng' : 'Press Esc or tap outside to close'}</span>
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Brain, Zap, CheckCircle2, AlertCircle, ArrowRight, RotateCcw, Lightbulb, Trophy, Timer, Sparkles } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle, ArrowRight, RotateCcw, Lightbulb, Trophy, Timer, Sparkles } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { MentalMathGuideCarousel } from './MentalMathGuideCarousel';
 
@@ -95,22 +95,6 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
           <span className="text-slate-600">/</span>
           <span className="text-amber-400 font-semibold">{isVi ? 'Phép nhân 2 chữ số' : '2-Digit Multiplication'}</span>
-        </div>
-      </div>
-
-      {/* Page Header */}
-      <div className="text-center space-y-2.5 max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
-          <Zap className="w-3.5 h-3.5 text-amber-400" />
-          <span>{isVi ? 'Chuyên đề Huấn luyện Tính Nhẩm' : 'Mental Arithmetic Training'}</span>
-        </div>
-
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-          {isVi ? 'Phép nhân 2 chữ số' : '2-Digit Multiplication'}
-        </h1>
-
-        <div className="inline-block px-4 py-1.5 rounded-2xl bg-slate-900 border border-slate-800 text-amber-400 font-mono text-sm sm:text-base font-bold shadow-sm">
-          86 × 68 = 5,848
         </div>
       </div>
 

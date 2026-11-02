@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, X, Brain, Sparkles, ZoomIn } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -58,14 +58,19 @@ export const MentalMathGuideCarousel: React.FC = () => {
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToSlide = (index: number) => {
-    if (index < 0) index = 0;
-    if (index >= slides.length) index = slides.length - 1;
-    setActiveIndex(index);
+  // Touch gesture tracking for responsive mobile and tablet swipe
+  const touchStartXRef = useRef<number>(0);
+  const touchEndXRef = useRef<number>(0);
+
+  const scrollToSlide = useCallback((index: number) => {
+    let targetIndex = index;
+    if (targetIndex < 0) targetIndex = 0;
+    if (targetIndex >= slides.length) targetIndex = slides.length - 1;
+    setActiveIndex(targetIndex);
 
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
-      const targetChild = container.children[index] as HTMLElement;
+      const targetChild = container.children[targetIndex] as HTMLElement;
       if (targetChild) {
         targetChild.scrollIntoView({
           behavior: 'smooth',
@@ -74,16 +79,36 @@ export const MentalMathGuideCarousel: React.FC = () => {
         });
       }
     }
-  };
+  }, []);
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const itemWidth = container.offsetWidth;
+    if (itemWidth === 0) return;
     const newIndex = Math.round(scrollLeft / itemWidth);
     if (newIndex >= 0 && newIndex < slides.length && newIndex !== activeIndex) {
       setActiveIndex(newIndex);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.targetTouches[0].clientX;
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartXRef.current - touchEndXRef.current;
+    const threshold = 40; // minimum swipe distance in pixels
+    if (diff > threshold && activeIndex < slides.length - 1) {
+      scrollToSlide(activeIndex + 1);
+    } else if (diff < -threshold && activeIndex > 0) {
+      scrollToSlide(activeIndex - 1);
     }
   };
 
@@ -96,7 +121,7 @@ export const MentalMathGuideCarousel: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex]);
+  }, [activeIndex, scrollToSlide]);
 
   return (
     <div className="w-full rounded-2xl sm:rounded-3xl border border-slate-800/90 bg-slate-900/80 p-2 sm:p-4 md:p-5 shadow-2xl space-y-2.5 sm:space-y-3">
@@ -145,20 +170,22 @@ export const MentalMathGuideCarousel: React.FC = () => {
 
       {/* Main Image Slider Container: Responsive for Mobile, Tablet, Web App */}
       <div className="relative group overflow-hidden rounded-xl sm:rounded-2xl border border-amber-500/20 bg-[#061830] shadow-xl">
-        {/* Horizontal Scroll Snap Track */}
+        {/* Hardware-Accelerated Responsive Track (CSS Snap & Touch Event Support) */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth touch-pan-x"
-          style={{ scrollSnapType: 'x mandatory' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="carousel-track"
         >
           {slides.map((slide) => (
             <div
               key={slide.id}
-              className="min-w-full flex-shrink-0 snap-center relative overflow-hidden flex items-center justify-center bg-[#061830]"
+              className="carousel-slide flex items-center justify-center bg-[#061830] relative overflow-hidden"
             >
-              {/* Responsive 16:9 Image Container */}
-              <div className="relative w-full aspect-[16/9] flex items-center justify-center overflow-hidden bg-[#061830]">
+              {/* Responsive 16:9 Slide Media Frame */}
+              <div className="carousel-slide-media relative flex items-center justify-center overflow-hidden bg-[#061830]">
                 <img
                   src={slide.image}
                   alt={isVi ? slide.titleVi : slide.titleEn}
@@ -176,6 +203,7 @@ export const MentalMathGuideCarousel: React.FC = () => {
                   }}
                   className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-amber-400 transition-all cursor-pointer backdrop-blur-md opacity-85 hover:opacity-100 shadow-md active:scale-90"
                   title={isVi ? 'Phóng to ảnh' : 'Zoom image'}
+                  aria-label="Zoom diagram"
                 >
                   <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>

@@ -32,3 +32,54 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+/* ========================================================
+   Responsive Touch & Hardware-Accelerated Carousel Styles
+   Standardized for Mobile, Tablet, and Desktop Web
+   ======================================================== */
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-y pinch-zoom;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  max-width: 100%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+/* Responsive Aspect Ratios & Dimensions */
+@media (max-width: 639px) {
+  .carousel-slide-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .carousel-slide-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel-slide-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+}

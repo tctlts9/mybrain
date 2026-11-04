@@ -1,8 +1,62 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+function femaleTtsPlugin(): Plugin {
+  const handler = async (req: any, res: any) => {
+    try {
+      const reqUrl = new URL(req.url || '', 'http://localhost:3000');
+      const text = reqUrl.searchParams.get('text') || '';
+      const lang = reqUrl.searchParams.get('lang') || 'vi';
+
+      if (!text) {
+        res.statusCode = 400;
+        res.end('Missing text parameter');
+        return;
+      }
+
+      // Use Google TTS with 'tw-ob' client, standard Vietnamese female voice
+      const targetUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(
+        lang
+      )}&client=tw-ob&q=${encodeURIComponent(text)}`;
+
+      const response = await fetch(targetUrl, {
+        headers: {
+          Referer: 'https://translate.google.com/',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: '*/*',
+        },
+      });
+
+      if (!response.ok) {
+        res.statusCode = response.status;
+        res.end('TTS fetch failed');
+        return;
+      }
+
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      const arrayBuffer = await response.arrayBuffer();
+      res.end(Buffer.from(arrayBuffer));
+    } catch (err: any) {
+      res.statusCode = 500;
+      res.end(err?.message || 'Server error');
+    }
+  };
+
+  return {
+    name: 'female-tts-proxy',
+    configureServer(server) {
+      server.middlewares.use('/api/tts', handler);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use('/api/tts', handler);
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
@@ -10,6 +64,7 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
+      femaleTtsPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
@@ -109,7 +164,10 @@ export default defineConfig(() => {
       port: 3000,
       host: '0.0.0.0',
       allowedHosts: true as const,
-      hmr: process.env.DISABLE_HMR !== 'true',
+      hmr: false,
+      watch: {
+        ignored: ['**/dist/**', '**/.aistudio/**', '**/node_modules/**'],
+      },
     },
   };
 });

@@ -150,7 +150,7 @@ export function parseVoiceNumber(transcript: string, lang: 'vi' | 'en'): number 
   }
 }
 
-// Speech Synthesis: Read text aloud with voice
+// Speech Synthesis: Read text aloud through device speaker
 export function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
@@ -158,7 +158,7 @@ export function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
     window.speechSynthesis.cancel(); // Stop any pending speech
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
-    utterance.rate = 1.0;
+    utterance.rate = 0.95; // slightly slower for arithmetic clarity
     utterance.pitch = 1.0;
 
     // Pick best matching voice if available
@@ -178,3 +178,53 @@ export function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
     console.warn('Speech synthesis error:', err);
   }
 }
+
+// Play instant audio chime feedback through laptop or mobile speaker
+export function playSpeakerChime(type: 'correct' | 'incorrect') {
+  if (typeof window === 'undefined') return;
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+
+    if (type === 'correct') {
+      // Harmonic pleasant victory chime (C5 -> E5 -> G5)
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+      osc.frequency.setValueAtTime(783.99, now + 0.22); // G5
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.6);
+    } else if (type === 'incorrect') {
+      // Gentle notification tone
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(349.23, now); // F4
+      osc.frequency.setValueAtTime(261.63, now + 0.16); // C4
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.45);
+    }
+  } catch {
+    // audio context suppressed until user gesture
+  }
+}
+

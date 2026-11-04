@@ -5,19 +5,16 @@ import {
   AlertCircle,
   ArrowRight,
   RotateCcw,
-  Lightbulb,
-  Trophy,
-  Timer,
   Sparkles,
-  Mic,
-  MicOff,
   Volume2,
   VolumeX,
+  Sliders,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { MentalMathGuideCarousel } from './MentalMathGuideCarousel';
-import { useVoiceAnswer } from '../../hooks/useVoiceAnswer';
-import { speakText } from '../../utils/speechUtils';
+import { speakText, playSpeakerChime, parseVoiceNumber } from '../../utils/speechUtils';
 
 interface TwoDigitMultiplicationPageProps {
   onBack: () => void;
@@ -29,107 +26,271 @@ interface Question {
   answer: number;
 }
 
+type TrainingTopic = 'multiply11' | 'sameTensSum10' | 'twoDigit';
+
+interface TrainingModeOption {
+  id: TrainingTopic;
+  labelVi: string;
+  labelEn: string;
+  icon: string;
+  badgeVi: string;
+  badgeEn: string;
+}
+
+const TRAINING_MODES: TrainingModeOption[] = [
+  {
+    id: 'twoDigit',
+    labelVi: 'Nhân 2 chữ số (2D × 2D)',
+    labelEn: '2-Digit × 2-Digit',
+    icon: '🎯',
+    badgeVi: 'Chuyên đề: Nhân 2 chữ số tổng quát',
+    badgeEn: 'Topic: General 2D × 2D',
+  },
+  {
+    id: 'multiply11',
+    labelVi: 'Nhân với 11',
+    labelEn: 'Multiply × 11',
+    icon: '⚡',
+    badgeVi: 'Chuyên đề: Nhân với số 11',
+    badgeEn: 'Topic: Multiply by 11',
+  },
+  {
+    id: 'sameTensSum10',
+    labelVi: 'Đầu giống, đuôi = 10 (86 × 84)',
+    labelEn: 'Same 1st, Sum 10 (86 × 84)',
+    icon: '✨',
+    badgeVi: 'Chuyên đề: 2 số đầu giống nhau & 2 số sau cộng lại = 10 (86 × 84)',
+    badgeEn: 'Topic: Same Tens & Units sum to 10 (86 × 84)',
+  },
+];
+
+const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
+  const digits = String(num).split('');
+  const enWords: Record<string, string> = {
+    '0': 'zero',
+    '1': 'one',
+    '2': 'two',
+    '3': 'three',
+    '4': 'four',
+    '5': 'five',
+    '6': 'six',
+    '7': 'seven',
+    '8': 'eight',
+    '9': 'nine',
+  };
+  const viWords: Record<string, string> = {
+    '0': 'không',
+    '1': 'một',
+    '2': 'hai',
+    '3': 'ba',
+    '4': 'bốn',
+    '5': 'năm',
+    '6': 'sáu',
+    '7': 'bảy',
+    '8': 'tám',
+    '9': 'chín',
+  };
+  const words = isVietnamese ? viWords : enWords;
+  return digits.map((d) => words[d] || d).join(', ');
+};
+
 export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProps> = ({ onBack }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
 
-  // Practice state
-  const [question, setQuestion] = useState<Question>({ a: 86, b: 68, answer: 5848 });
+  // Training Mode State
+  const [selectedTopic, setSelectedTopic] = useState<TrainingTopic>('multiply11');
+  const [question, setQuestion] = useState<Question>({ a: 35, b: 11, answer: 385 });
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
-  const [showHint, setShowHint] = useState<boolean>(false);
-  const [streak, setStreak] = useState<number>(0);
-  const [score, setScore] = useState<number>(0);
-  const [timer, setTimer] = useState<number>(0);
-  const [solvedCount, setSolvedCount] = useState<number>(0);
-  const [isVoiceFeedbackEnabled, setIsVoiceFeedbackEnabled] = useState<boolean>(true);
-  const [lastSpokenNumber, setLastSpokenNumber] = useState<number | null>(null);
+  const [isSpeakerEnabled, setIsSpeakerEnabled] = useState<boolean>(true);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+
+  // Voice Answering State
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [voiceTranscript, setVoiceTranscript] = useState<string>('');
+  const recognitionRef = useRef<any>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Check the answer and trigger voice feedback
+  // Read current problem aloud via device speaker
+  const readQuestionAloud = useCallback(() => {
+    if (!isSpeakerEnabled) return;
+    setIsSpeaking(true);
+    const text = isVi
+      ? `${question.a} nhân ${question.b} bằng bao nhiêu?`
+      : `What is ${question.a} times ${question.b}?`;
+    speakText(text, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
+  }, [question.a, question.b, isVi, isSpeakerEnabled]);
+
+  // Read answer aloud via device speaker
+  const readAnswerAloud = useCallback(() => {
+    if (!isSpeakerEnabled) return;
+    setIsSpeaking(true);
+    const spelledDigits = getSpelledOutDigits(question.answer, isVi);
+    if (feedback === 'correct') {
+      const text = isVi
+        ? `Chính xác!: ${spelledDigits}.`
+        : `Correct!: ${spelledDigits}.`;
+      speakText(text, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
+    } else {
+      const text = isVi
+        ? `Chưa chính xác!: ${spelledDigits}.`
+        : `Not quite!: ${spelledDigits}.`;
+      speakText(text, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
+    }
+  }, [question.answer, feedback, isVi, isSpeakerEnabled]);
+
+  // Check answer and trigger speaker chime & evaluation
   const verifyAnswer = useCallback(
     (inputNum: number) => {
       if (inputNum === question.answer) {
         setFeedback('correct');
-        setStreak((s) => s + 1);
-        setScore((sc) => sc + 10 + streak * 2);
-        setSolvedCount((c) => c + 1);
 
-        if (isVoiceFeedbackEnabled) {
+        if (isSpeakerEnabled) {
+          playSpeakerChime('correct');
+          setIsSpeaking(true);
+          const spelledDigits = getSpelledOutDigits(question.answer, isVi);
           const praise = isVi
-            ? 'Chính xác! Bạn tính nhẩm rất xuất sắc!'
-            : 'Correct! Excellent mental calculation!';
-          speakText(praise, isVi ? 'vi' : 'en');
+            ? `Chính xác!: ${spelledDigits}.`
+            : `Correct!: ${spelledDigits}.`;
+          speakText(praise, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
         }
       } else {
         setFeedback('incorrect');
-        setStreak(0);
 
-        if (isVoiceFeedbackEnabled) {
+        if (isSpeakerEnabled) {
+          playSpeakerChime('incorrect');
+          setIsSpeaking(true);
+          const spelledDigits = getSpelledOutDigits(question.answer, isVi);
           const retry = isVi
-            ? `Chưa chính xác! Đáp án đúng là ${question.answer}`
-            : `Not quite! The correct answer is ${question.answer}`;
-          speakText(retry, isVi ? 'vi' : 'en');
+            ? `Chưa chính xác!: ${spelledDigits}.`
+            : `Not quite!: ${spelledDigits}.`;
+          speakText(retry, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
         }
       }
     },
-    [question.answer, streak, isVoiceFeedbackEnabled, isVi]
+    [question.answer, isSpeakerEnabled, isVi]
   );
 
-  // Hook for Speech Recognition
-  const handleVoiceNumberDetected = useCallback(
-    (num: number, rawTranscript: string) => {
-      setUserAnswer(String(num));
-      setLastSpokenNumber(num);
-      verifyAnswer(num);
+  // Toggle voice recognition for answering
+  const toggleListening = useCallback(() => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+      }
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        isVi
+          ? 'Trình duyệt hiện tại chưa hỗ trợ nhận diện giọng nói Web Speech API. Bạn vui lòng sử dụng Google Chrome hoặc Microsoft Edge.'
+          : 'Your browser does not support Web Speech Recognition API. Please use Google Chrome or Microsoft Edge.'
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = isVi ? 'vi-VN' : 'en-US';
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.continuous = false;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setVoiceTranscript('');
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setVoiceTranscript(transcript);
+
+        const parsed = parseVoiceNumber(transcript, isVi ? 'vi' : 'en');
+        if (parsed !== null) {
+          setUserAnswer(parsed.toString());
+          if (event.results[0].isFinal) {
+            verifyAnswer(parsed);
+            setIsListening(false);
+          }
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.warn('Speech recognition start error:', err);
+      setIsListening(false);
+    }
+  }, [isListening, isVi, verifyAnswer]);
+
+  // Generate a problem based on Selected Topic
+  const generateNewQuestion = useCallback(
+    (targetTopic?: TrainingTopic) => {
+      const activeTopic = targetTopic ?? selectedTopic;
+
+      let a = 35;
+      let b = 11;
+
+      if (activeTopic === 'multiply11') {
+        // Phép nhân 2 chữ số với số 11 (11-99 × 11)
+        a = Math.floor(Math.random() * 89) + 11;
+        b = 11;
+      } else if (activeTopic === 'sameTensSum10') {
+        // 2 số đầu giống nhau và 2 số sau cộng lại thành 10 (ví dụ: 86 × 84)
+        const tens = Math.floor(Math.random() * 8) + 2; // hàng chục: 2 đến 9
+        const u1 = Math.floor(Math.random() * 9) + 1; // hàng đơn vị 1: 1 đến 9
+        const u2 = 10 - u1; // hàng đơn vị 2: tổng bằng 10
+        a = tens * 10 + u1;
+        b = tens * 10 + u2;
+      } else if (activeTopic === 'twoDigit') {
+        // Phép nhân 2 chữ số tổng quát (12-99 × 12-99)
+        a = Math.floor(Math.random() * 88) + 12;
+        b = Math.floor(Math.random() * 88) + 12;
+      }
+
+      setQuestion({
+        a,
+        b,
+        answer: a * b,
+      });
+      setUserAnswer('');
+      setFeedback('idle');
+      setVoiceTranscript('');
+      if (recognitionRef.current && isListening) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+        setIsListening(false);
+      }
+      setTimeout(() => inputRef.current?.focus(), 50);
     },
-    [verifyAnswer]
+    [selectedTopic, isListening]
   );
 
-  const {
-    isListening,
-    transcript,
-    isSupported: isSpeechSupported,
-    voiceError,
-    toggleListening,
-    stopListening,
-  } = useVoiceAnswer({
-    lang: isVi ? 'vi' : 'en',
-    onNumberDetected: handleVoiceNumberDetected,
-  });
-
-  // Read out the current question aloud
-  const readQuestionAloud = useCallback(() => {
-    const text = isVi
-      ? `${question.a} nhân ${question.b} bằng bao nhiêu?`
-      : `What is ${question.a} times ${question.b}?`;
-    speakText(text, isVi ? 'vi' : 'en');
-  }, [question.a, question.b, isVi]);
-
-  // Generate a new 2-digit multiplication problem
-  const generateNewQuestion = useCallback(() => {
-    stopListening();
-    const a = Math.floor(Math.random() * 88) + 12; // 12 to 99
-    const b = Math.floor(Math.random() * 88) + 11; // 11 to 98
-    setQuestion({
-      a,
-      b,
-      answer: a * b,
-    });
-    setUserAnswer('');
-    setFeedback('idle');
-    setShowHint(false);
-    setLastSpokenNumber(null);
-    setTimeout(() => inputRef.current?.focus(), 50);
-  }, [stopListening]);
+  const handleSelectTopic = (newTopic: TrainingTopic) => {
+    setSelectedTopic(newTopic);
+    generateNewQuestion(newTopic);
+  };
 
   useEffect(() => {
     generateNewQuestion();
-    const interval = setInterval(() => {
-      setTimer((t) => t + 1);
-    }, 1000);
-    return () => clearInterval(interval);
   }, [generateNewQuestion]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -139,17 +300,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
     verifyAnswer(parsed);
   };
 
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  // Mental math steps calculation for hint
-  const tensB = Math.floor(question.b / 10) * 10;
-  const unitsB = question.b % 10;
-  const step1 = question.a * tensB;
-  const step2 = question.a * unitsB;
+  const currentTopicMeta = TRAINING_MODES.find((m) => m.id === selectedTopic) || TRAINING_MODES[0];
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
@@ -175,94 +326,110 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
       {/* Section 1: Scroll Image các Image hướng dẫn */}
       <MentalMathGuideCarousel />
 
-      {/* Section 2: Đấu trường Luyện tập Trực tiếp với Voice Answer */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-5 sm:p-8 shadow-xl relative overflow-hidden">
+      {/* Section 2: Training Section */}
+      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-4 sm:p-7 shadow-xl relative overflow-hidden space-y-5">
         {/* Subtle backdrop glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Stats & Voice Controls Row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-800/80 mb-6">
+        {/* Top Header Row: Title & Level Buttons [1, 2, 3] + Speaker Button */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
-              {isVi ? 'Phòng Luyện Tính Nhẩm Tương Tác' : 'Interactive Mental Math Arena'}
+              {isVi ? 'Luyện tập' : 'Training'}
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
-            {/* Voice Audio Feedback Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3 text-xs">
+            {/* Direct Speaker Toggle */}
             <button
               type="button"
-              onClick={() => setIsVoiceFeedbackEnabled(!isVoiceFeedbackEnabled)}
-              className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
-                isVoiceFeedbackEnabled
-                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-xs'
+              onClick={() => {
+                const next = !isSpeakerEnabled;
+                setIsSpeakerEnabled(next);
+                if (next) playSpeakerChime('correct');
+              }}
+              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
+                isSpeakerEnabled
+                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-xs ring-1 ring-amber-400/20'
                   : 'bg-slate-950/70 text-slate-500 border-slate-800'
               }`}
               title={
-                isVoiceFeedbackEnabled
+                isSpeakerEnabled
                   ? isVi
-                    ? 'Đang bật giọng đọc phản hồi (Bấm để tắt)'
-                    : 'Voice feedback enabled (Click to mute)'
+                    ? 'Đang bật Loa thiết bị (Bấm để tắt âm)'
+                    : 'Device speaker ON (Click to mute)'
                   : isVi
-                  ? 'Đang tắt giọng đọc (Bấm để bật)'
-                  : 'Voice feedback muted (Click to enable)'
+                  ? 'Đang tắt Loa (Bấm để bật âm thanh)'
+                  : 'Device speaker MUTED (Click to enable)'
               }
             >
-              {isVoiceFeedbackEnabled ? (
-                <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+              {isSpeakerEnabled ? (
+                <Volume2
+                  className={`w-3.5 h-3.5 text-amber-400 ${isSpeaking ? 'animate-bounce' : ''}`}
+                />
               ) : (
                 <VolumeX className="w-3.5 h-3.5 text-slate-500" />
               )}
-              <span className="font-semibold hidden xs:inline">
-                {isVoiceFeedbackEnabled
+              <span className="font-semibold">
+                {isSpeakerEnabled
                   ? isVi
-                    ? 'Giọng nói'
-                    : 'Voice ON'
+                    ? 'Loa: Bật'
+                    : 'Speaker: ON'
                   : isVi
-                  ? 'Tắt tiếng'
-                  : 'Voice OFF'}
+                  ? 'Loa: Tắt'
+                  : 'Speaker: OFF'}
               </span>
             </button>
+          </div>
+        </div>
 
-            {/* Score */}
-            <div className="px-3 py-1.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-1.5">
-              <Trophy className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-slate-400">{isVi ? 'Điểm:' : 'Score:'}</span>
-              <span className="font-bold text-amber-400">{score}</span>
-            </div>
+        {/* Group Buttons: Lựa chọn bài training theo yêu cầu */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 px-1">
+            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
+          </div>
 
-            {/* Streak */}
-            <div className="px-3 py-1.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-1.5">
-              <span className="text-emerald-400">🔥</span>
-              <span className="text-slate-400">{isVi ? 'Chuỗi:' : 'Streak:'}</span>
-              <span className="font-bold text-emerald-400">{streak}</span>
-            </div>
-
-            {/* Timer */}
-            <div className="px-3 py-1.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center gap-1.5">
-              <Timer className="w-3.5 h-3.5 text-sky-400" />
-              <span className="font-mono font-bold text-sky-400">{formatTime(timer)}</span>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
+            {TRAINING_MODES.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => handleSelectTopic(mode.id)}
+                className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
+                  selectedTopic === mode.id
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                    : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
+                }`}
+              >
+                <span className="text-base">{mode.icon}</span>
+                <span className="truncate">{isVi ? mode.labelVi : mode.labelEn}</span>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Math Question Arena */}
-        <div className="max-w-xl mx-auto space-y-6">
+        <div className="max-w-xl mx-auto space-y-6 pt-1">
           <div className="rounded-3xl bg-slate-950/80 border border-slate-800 p-6 sm:p-10 text-center shadow-inner relative group">
-            {/* Header: Problem number & Speaker read aloud */}
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-xs uppercase tracking-widest text-slate-500 font-semibold">
-                {isVi ? `Bài tập #${solvedCount + 1}` : `Problem #${solvedCount + 1}`}
+            {/* Header: Topic Badge & Level & Speaker read aloud */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
               </span>
+
               <button
                 type="button"
                 onClick={readQuestionAloud}
-                className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
-                title={isVi ? 'Nghe đọc phép tính' : 'Listen to problem'}
-                aria-label="Listen to problem"
+                className="p-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-medium"
+                title={isVi ? 'Nghe đọc phép tính qua loa' : 'Listen to problem via speaker'}
+                aria-label="Listen via speaker"
               >
-                <Volume2 className="w-3.5 h-3.5" />
+                <Volume2
+                  className={`w-3.5 h-3.5 ${isSpeaking ? 'animate-pulse text-amber-300' : ''}`}
+                />
+                <span className="hidden xs:inline">{isVi ? 'Đọc đề bài' : 'Listen'}</span>
               </button>
             </div>
 
@@ -273,27 +440,21 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
               <span>{question.b}</span>
             </div>
 
-            {/* Hint Box (if toggled) */}
-            {showHint && (
-              <div className="mt-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-left text-xs text-amber-300 font-mono space-y-1 animate-in fade-in duration-200">
-                <div className="font-sans font-bold flex items-center gap-1 text-amber-400">
-                  <Lightbulb className="w-3.5 h-3.5" />
-                  <span>{isVi ? 'Gợi ý phân tách nhẩm:' : 'Mental split hint:'}</span>
-                </div>
-                <div>• ({question.a} × {tensB}) = {step1}</div>
-                <div>• ({question.a} × {unitsB}) = {step2}</div>
-                <div className="font-semibold">• Kết quả: {step1} + {step2}</div>
-              </div>
-            )}
-
             {/* Feedback message */}
             {feedback === 'correct' && (
               <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 animate-in zoom-in-95 duration-150">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>
-                  {isVi ? 'Chính xác! Bạn làm rất tốt!' : 'Correct! Great mental calculation!'} (+
-                  {10 + (streak - 1) * 2}đ)
+                  {isVi ? 'Chính xác! Bạn làm rất tốt!' : 'Correct! Great mental calculation!'}
                 </span>
+                <button
+                  type="button"
+                  onClick={readAnswerAloud}
+                  className="ml-1 p-1 hover:text-white transition-colors"
+                  title={isVi ? 'Nghe phát âm đáp án' : 'Hear answer'}
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
             {feedback === 'incorrect' && (
@@ -301,17 +462,24 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 <AlertCircle className="w-4 h-4" />
                 <span>
                   {isVi
-                    ? `Chưa chính xác! Đáp án đúng là ${question.answer}`
-                    : `Not quite! The correct answer is ${question.answer}`}
+                    ? `Chưa chính xác!: ${question.answer} ( ${getSpelledOutDigits(question.answer, true)} )`
+                    : `Not quite!: ${question.answer} ( ${getSpelledOutDigits(question.answer, false)} )`}
                 </span>
+                <button
+                  type="button"
+                  onClick={readAnswerAloud}
+                  className="ml-1 p-1 hover:text-white transition-colors"
+                  title={isVi ? 'Nghe phát âm đáp án' : 'Hear answer'}
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
 
-          {/* Voice Answer Bar & Input Form */}
+          {/* Clean Input Form with Voice Answering Support */}
           <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Input Container with integrated Voice Button */}
-            <div className="relative">
+            <div className="relative flex items-center">
               <input
                 ref={inputRef}
                 type="number"
@@ -321,114 +489,69 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 placeholder={
                   isListening
                     ? isVi
-                      ? 'Đang lắng nghe... Hãy đọc số đáp án'
-                      : 'Listening... Speak your answer'
+                      ? '🎙️ Đang lắng nghe... Hãy nói đáp án'
+                      : '🎙️ Listening... Say your answer'
                     : isVi
-                    ? 'Nhập hoặc nói kết quả...'
-                    : 'Type or speak answer...'
+                    ? 'Nhập kết quả hoặc bấm Micro để nói...'
+                    : 'Type answer or click Mic to speak...'
                 }
-                disabled={feedback === 'correct'}
+                disabled={feedback === 'correct' || isListening}
                 className={`w-full h-14 pl-5 pr-14 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
                   isListening
-                    ? 'border-rose-500/80 ring-2 ring-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.3)]'
+                    ? 'border-rose-500 ring-2 ring-rose-500/30 animate-pulse'
                     : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
                 }`}
               />
 
-              {/* In-Input Voice Mic Button */}
-              {isSpeechSupported && (
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-md active:scale-90 ${
-                    isListening
-                      ? 'bg-rose-500 text-white animate-pulse shadow-rose-500/50'
-                      : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40'
-                  }`}
-                  title={
-                    isListening
-                      ? isVi
-                        ? 'Đang lắng nghe (Bấm để dừng)'
-                        : 'Listening (Click to stop)'
-                      : isVi
-                      ? 'Bấm để trả lời bằng giọng nói'
-                      : 'Click to answer with voice'
-                  }
-                  aria-label="Voice Answer"
-                >
-                  {isListening ? (
-                    <MicOff className="w-5 h-5 text-white animate-bounce" />
-                  ) : (
-                    <Mic className="w-5 h-5" />
-                  )}
-                </button>
-              )}
+              {/* Mic Icon Button inside input */}
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={feedback === 'correct'}
+                className={`absolute right-2.5 w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+                  isListening
+                    ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/40 animate-pulse'
+                    : 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700/80 hover:border-amber-500/40'
+                }`}
+                title={
+                  isListening
+                    ? isVi
+                      ? 'Đang nghe... Bấm để dừng'
+                      : 'Listening... Click to stop'
+                    : isVi
+                    ? 'Trả lời bằng giọng nói (Voice)'
+                    : 'Answer by voice'
+                }
+              >
+                {isListening ? (
+                  <MicOff className="w-5 h-5 text-white" />
+                ) : (
+                  <Mic className="w-5 h-5 text-amber-400" />
+                )}
+              </button>
             </div>
 
-            {/* Live Voice Status Indicator & Realtime Transcript */}
+            {/* Live voice feedback indicator if listening */}
             {isListening && (
-              <div className="p-3 rounded-xl bg-slate-950/90 border border-rose-500/40 flex flex-col items-center justify-center gap-1.5 animate-in fade-in duration-200">
-                <div className="flex items-center gap-2 text-rose-400 font-semibold text-xs sm:text-sm">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
-                  <span>
-                    {isVi
-                      ? 'Đang lắng nghe giọng nói... Hãy đọc kết quả (ví dụ: "2890" hoặc "hai ngàn tám trăm...")'
-                      : 'Listening... Speak your answer (e.g. "2890" or "two thousand...")'}
-                  </span>
-                </div>
-                {transcript && (
-                  <div className="text-xs font-mono text-amber-300">
-                    {isVi ? 'Đã nghe: ' : 'Heard: '}
-                    <span className="italic">"{transcript}"</span>
-                    {lastSpokenNumber !== null && (
-                      <span className="ml-2 font-bold text-emerald-400">
-                        ➔ {lastSpokenNumber}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Error Message for Microphone */}
-            {voiceError && (
-              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center flex items-center justify-center gap-1.5">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{voiceError}</span>
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center gap-2 text-xs font-semibold text-rose-400 animate-in fade-in duration-150">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                <span>
+                  {voiceTranscript
+                    ? `${isVi ? 'Đã nhận diện:' : 'Detected:'} "${voiceTranscript}"`
+                    : isVi
+                    ? 'Đang lắng nghe... Hãy đọc to đáp án của bạn'
+                    : 'Listening... Speak your answer aloud'}
+                </span>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              {/* Voice Answer Primary Button */}
-              {isSpeechSupported && (
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`h-12 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-95 ${
-                    isListening
-                      ? 'bg-rose-500 text-white shadow-rose-500/30 animate-pulse'
-                      : 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 border border-amber-500/50 text-amber-300 hover:text-white'
-                  }`}
-                >
-                  <Mic className={`w-4 h-4 ${isListening ? 'animate-bounce' : 'text-amber-400'}`} />
-                  <span>
-                    {isListening
-                      ? isVi
-                        ? 'Dừng ghi âm'
-                        : 'Stop Voice'
-                      : isVi
-                      ? 'Trả lời bằng Voice'
-                      : 'Answer with Voice'}
-                  </span>
-                </button>
-              )}
-
-              {/* Submit / Next Button */}
+            <div className="flex items-center gap-2.5">
+              {/* Submit or Next Problem */}
               {feedback === 'correct' ? (
                 <button
                   type="button"
-                  onClick={generateNewQuestion}
+                  onClick={() => generateNewQuestion()}
                   className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
                 >
                   <span>{isVi ? 'Câu tiếp theo' : 'Next Problem'}</span>
@@ -439,26 +562,45 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                   type="submit"
                   className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Kiểm tra' : 'Check'}</span>
+                  <span>{isVi ? 'Kiểm tra kết quả' : 'Check Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
 
-              {/* Hint Button */}
+              {/* Voice Answer button in action row */}
               <button
                 type="button"
-                onClick={() => setShowHint(!showHint)}
-                title={isVi ? 'Xem gợi ý cách tính' : 'Toggle calculation hint'}
-                className="h-12 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-700 hover:border-amber-500/40 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 shrink-0"
+                onClick={toggleListening}
+                disabled={feedback === 'correct'}
+                title={
+                  isListening
+                    ? isVi
+                      ? 'Đang nghe... Bấm để dừng'
+                      : 'Listening... Click to stop'
+                    : isVi
+                    ? 'Bấm để trả lời bằng Voice'
+                    : 'Click to answer by Voice'
+                }
+                className={`h-12 px-3.5 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
+                  isListening
+                    ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/30'
+                    : 'bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-700 hover:border-amber-500/40'
+                }`}
               >
-                <Lightbulb className="w-4 h-4" />
-                <span className="hidden sm:inline">{isVi ? 'Gợi ý' : 'Hint'}</span>
+                {isListening ? (
+                  <MicOff className="w-4 h-4 text-white" />
+                ) : (
+                  <Mic className="w-4 h-4 text-amber-400" />
+                )}
+                <span className="hidden sm:inline">
+                  {isListening ? (isVi ? 'Dừng' : 'Stop') : 'Voice'}
+                </span>
               </button>
 
               {/* Skip Problem Button */}
               <button
                 type="button"
-                onClick={generateNewQuestion}
+                onClick={() => generateNewQuestion()}
                 title={isVi ? 'Đổi đề bài khác' : 'Skip problem'}
                 className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
               >

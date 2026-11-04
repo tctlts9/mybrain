@@ -17,6 +17,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { MentalMathGuideCarousel } from './MentalMathGuideCarousel';
 import {
   playSpeakerChime,
+  announceResultFemaleVoice,
   speakText,
   stopCurrentSpeech,
   parseVoiceNumber,
@@ -134,25 +135,16 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
       if (!isSpeakerEnabled) return;
 
       setIsSpeaking(true);
-      const spelledDigits = getSpelledOutDigits(targetAnswer, isVi);
+      playSpeakerChime(isCorrect ? 'correct' : 'incorrect');
 
-      if (isCorrect) {
-        playSpeakerChime('correct');
-        const text = isVi
-          ? `Chính xác: ${spelledDigits}`
-          : `Correct: ${spelledDigits}`;
-        setTimeout(() => {
-          speakText(text, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
-        }, 280);
-      } else {
-        playSpeakerChime('incorrect');
-        const text = isVi
-          ? `Chưa chính xác: ${spelledDigits}`
-          : `Incorrect: ${spelledDigits}`;
-        setTimeout(() => {
-          speakText(text, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
-        }, 280);
-      }
+      setTimeout(() => {
+        announceResultFemaleVoice(
+          isCorrect,
+          targetAnswer,
+          isVi ? 'vi' : 'en',
+          () => setIsSpeaking(false)
+        );
+      }, 280);
     },
     [isSpeakerEnabled, isVi]
   );
@@ -165,23 +157,17 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
     const isSampleCorrect = !previewToggleRef.current;
     previewToggleRef.current = !previewToggleRef.current;
 
-    if (isSampleCorrect) {
-      playSpeakerChime('correct');
-      const sample = isVi
-        ? 'Chính xác: Tám Năm Tám'
-        : 'Correct: Eight Five Eight';
-      setTimeout(() => {
-        speakText(sample, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
-      }, 280);
-    } else {
-      playSpeakerChime('incorrect');
-      const sample = isVi
-        ? 'Chưa chính xác: Bảy Chín Hai'
-        : 'Incorrect: Seven Nine Two';
-      setTimeout(() => {
-        speakText(sample, isVi ? 'vi' : 'en', () => setIsSpeaking(false));
-      }, 280);
-    }
+    playSpeakerChime(isSampleCorrect ? 'correct' : 'incorrect');
+
+    setTimeout(() => {
+      // 858 = "Chính xác: Tám Năm Tám", 792 = "Chưa chính xác: Bảy Chín Hai"
+      announceResultFemaleVoice(
+        isSampleCorrect,
+        isSampleCorrect ? 858 : 792,
+        isVi ? 'vi' : 'en',
+        () => setIsSpeaking(false)
+      );
+    }, 280);
   }, [isVi]);
 
   // Replay result announcement manually when clicking the audio icon

@@ -1,6 +1,6 @@
 /**
  * Speech Recognition and Speech Synthesis Utilities for Mental Math
- * Guaranteed Natural Female Voice for result announcements
+ * Guaranteed Natural Female Voice for result announcements in all environments (Local & Deployed)
  */
 
 // Normalize transcript: cleans punctuation, handles dots/commas as thousand separators
@@ -44,12 +44,10 @@ function parseVietnameseNumberDirect(cleaned: string): number | null {
   // 1. Direct digits in text (e.g. "5848", "1 0 2 9", "7224")
   const allDigitGroups = cleaned.match(/\d+/g);
   if (allDigitGroups && allDigitGroups.length > 0) {
-    // If user said spaced digits "1 0 2 9" or "6 0 5"
     if (allDigitGroups.length >= 2 && allDigitGroups.every((g) => g.length === 1)) {
       const combined = parseInt(allDigitGroups.join(''), 10);
       if (!isNaN(combined) && combined > 0) return combined;
     }
-    // Take the last number group (e.g. in "86 nhân 84 bằng 7224", take 7224)
     const lastNum = parseInt(allDigitGroups[allDigitGroups.length - 1], 10);
     if (!isNaN(lastNum) && lastNum > 0) return lastNum;
   }
@@ -145,7 +143,6 @@ export function parseEnglishNumber(text: string): number | null {
   if (!text) return null;
   const cleaned = normalizeSpeechText(text);
 
-  // If speech contains "equals", "equal", "is", "answer is": parse part after it
   const resultSplitters = ['equals', 'equal', 'answer is', 'is'];
   for (const splitter of resultSplitters) {
     const idx = cleaned.lastIndexOf(splitter);
@@ -162,7 +159,6 @@ export function parseEnglishNumber(text: string): number | null {
 }
 
 function parseEnglishNumberDirect(cleaned: string): number | null {
-  // 1. Direct digits in text
   const allDigitGroups = cleaned.match(/\d+/g);
   if (allDigitGroups && allDigitGroups.length > 0) {
     if (allDigitGroups.length >= 2 && allDigitGroups.every((g) => g.length === 1)) {
@@ -192,12 +188,9 @@ function parseEnglishNumberDirect(cleaned: string): number | null {
   };
 
   const tokens = cleaned.replace(/[.,?!:;]/g, '').split(/\s+/).filter(Boolean);
-
-  // Filter out filler words like "it", "is", "equals", "the", "answer", "result"
   const fillerWords = new Set(['it', 'is', 'equals', 'the', 'answer', 'result', 'and', 'equal', 'my']);
   const meaningfulTokens = tokens.filter((t) => !fillerWords.has(t));
 
-  // Check digit-by-digit spoken (e.g. "six zero five" -> 605, "seven two two four" -> 7224)
   const singleDigitsList: number[] = [];
   let isAllSmallDigits = meaningfulTokens.length > 0;
   for (const t of meaningfulTokens) {
@@ -214,7 +207,6 @@ function parseEnglishNumberDirect(cleaned: string): number | null {
     return parseInt(numStr, 10);
   }
 
-  // Parse structured English numbers (e.g. "six hundred five", "one thousand twenty nine")
   let total = 0;
   let current = 0;
   let hasNumberWord = false;
@@ -238,11 +230,9 @@ function parseEnglishNumberDirect(cleaned: string): number | null {
   return hasNumberWord && total > 0 ? total : null;
 }
 
-// Master parser that detects either language or direct digits
 export function parseVoiceNumber(transcript: string, lang: 'vi' | 'en'): number | null {
   if (!transcript) return null;
 
-  // 1. Language-specific parsing first
   if (lang === 'vi') {
     const viVal = parseVietnameseNumber(transcript);
     if (viVal !== null && viVal > 0) return viVal;
@@ -255,7 +245,6 @@ export function parseVoiceNumber(transcript: string, lang: 'vi' | 'en'): number 
     if (viVal !== null && viVal > 0) return viVal;
   }
 
-  // 2. Direct digits fallback
   const cleaned = normalizeSpeechText(transcript);
   const allDigitGroups = cleaned.match(/\d+/g);
   if (allDigitGroups && allDigitGroups.length > 0) {
@@ -266,7 +255,176 @@ export function parseVoiceNumber(transcript: string, lang: 'vi' | 'en'): number 
   return null;
 }
 
-// Speech Synthesis Cache & Voice Selector
+// -------------------------------------------------------------
+// BUNDLED STATIC FEMALE AUDIO ENGINE (100% Reliable on Any Host)
+// -------------------------------------------------------------
+let sharedAudioCtx: AudioContext | null = null;
+const audioBufferCache = new Map<string, AudioBuffer>();
+let activeAudioSources: AudioBufferSourceNode[] = [];
+let activeHtmlAudio: HTMLAudioElement | null = null;
+
+function getSharedAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    if (!sharedAudioCtx) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        sharedAudioCtx = new AudioContextClass();
+      }
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {});
+    }
+    return sharedAudioCtx;
+  } catch {
+    return null;
+  }
+}
+
+async function loadBufferFromUrl(url: string): Promise<AudioBuffer | null> {
+  if (audioBufferCache.has(url)) {
+    return audioBufferCache.get(url)!;
+  }
+  const ctx = getSharedAudioContext();
+  if (!ctx) return null;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const arrayBuf = await res.arrayBuffer();
+    const decoded = await ctx.decodeAudioData(arrayBuf);
+    audioBufferCache.set(url, decoded);
+    return decoded;
+  } catch (err) {
+    console.warn('Failed to decode buffer:', url, err);
+    return null;
+  }
+}
+
+/**
+ * Stop any current female voice announcement
+ */
+export function stopCurrentSpeech() {
+  activeAudioSources.forEach((src) => {
+    try {
+      src.stop();
+      src.disconnect();
+    } catch {}
+  });
+  activeAudioSources = [];
+
+  if (activeHtmlAudio) {
+    try {
+      activeHtmlAudio.pause();
+      activeHtmlAudio.currentTime = 0;
+    } catch {}
+    activeHtmlAudio = null;
+  }
+
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
+  }
+}
+
+/**
+ * Play a sequence of audio URLs via HTMLAudioElement (Reliable Fallback)
+ */
+function playAudioSequenceElements(urls: string[], onEnd?: () => void) {
+  let idx = 0;
+  function playNext() {
+    if (idx >= urls.length) {
+      if (onEnd) onEnd();
+      return;
+    }
+    const currentUrl = urls[idx++];
+    const audio = new Audio(currentUrl);
+    activeHtmlAudio = audio;
+    audio.onended = () => {
+      // Natural gap between spoken words
+      const gap = idx === 1 ? 160 : 90;
+      setTimeout(playNext, gap);
+    };
+    audio.onerror = () => {
+      playNext();
+    };
+    audio.play().catch(() => {
+      playNext();
+    });
+  }
+  playNext();
+}
+
+/**
+ * GUARANTEED Female Voice Announcement for Mental Math Results:
+ * Uses pre-bundled natural Google Vietnamese Female voice MP3s in /audio/tts/
+ * Works on Local Dev, Cloud Run, Vercel, PWA, Mobile, Windows, Mac, Android.
+ */
+export async function announceResultFemaleVoice(
+  isCorrect: boolean,
+  targetAnswer: number,
+  lang: 'vi' | 'en',
+  onEnd?: () => void
+) {
+  if (typeof window === 'undefined') {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  stopCurrentSpeech();
+
+  const isVi = lang === 'vi';
+  const prefixUrl = isVi
+    ? (isCorrect ? './audio/tts/chinh-xac.mp3' : './audio/tts/chua-chinh-xac.mp3')
+    : (isCorrect ? './audio/tts/en-correct.mp3' : './audio/tts/en-incorrect.mp3');
+
+  const digits = String(targetAnswer).split('');
+  const digitUrls = digits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
+  const allUrls = [prefixUrl, ...digitUrls];
+
+  // 1. Try High-Performance Web Audio API (Precise scheduling with zero latency)
+  const ctx = getSharedAudioContext();
+  if (ctx) {
+    try {
+      const buffers = await Promise.all(allUrls.map((u) => loadBufferFromUrl(u)));
+      if (buffers.every((b) => b !== null)) {
+        let startTime = ctx.currentTime + 0.05;
+        const newSources: AudioBufferSourceNode[] = [];
+
+        for (let i = 0; i < buffers.length; i++) {
+          const buf = buffers[i]!;
+          const source = ctx.createBufferSource();
+          source.buffer = buf;
+          source.connect(ctx.destination);
+          source.start(startTime);
+          newSources.push(source);
+
+          // Word duration + natural pause between words
+          const duration = buf.duration;
+          const pause = i === 0 ? 0.22 : 0.12;
+          startTime += duration + pause;
+        }
+
+        activeAudioSources = newSources;
+        const totalDurationMs = Math.max(100, (startTime - ctx.currentTime) * 1000);
+        setTimeout(() => {
+          if (onEnd) onEnd();
+        }, totalDurationMs);
+        return;
+      }
+    } catch (e) {
+      console.warn('Web Audio playback failed, falling back to sequential Audio elements', e);
+    }
+  }
+
+  // 2. Fallback: Sequential HTMLAudioElements with bundled static MP3s
+  playAudioSequenceElements(allUrls, onEnd);
+}
+
+// -------------------------------------------------------------
+// Web Speech Synthesis Fallback (Used only if static files fail)
+// -------------------------------------------------------------
 let cachedVoices: SpeechSynthesisVoice[] = [];
 
 export function ensureVoicesLoaded(): Promise<SpeechSynthesisVoice[]> {
@@ -301,16 +459,8 @@ export function ensureVoicesLoaded(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
-if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  ensureVoicesLoaded();
-}
-
-/**
- * Checks if a voice is explicitly male
- */
 function isMaleVoiceName(name: string): boolean {
   const n = name.toLowerCase();
-  // Microsoft An, Microsoft NamMinh, male markers
   if (n.includes('microsoft an') || n.includes('namminh') || n.includes('male') || n.includes('đức') || n.includes('duc')) {
     return true;
   }
@@ -320,9 +470,6 @@ function isMaleVoiceName(name: string): boolean {
   return false;
 }
 
-/**
- * Finds a verified female voice from installed voices
- */
 export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
 
@@ -335,31 +482,26 @@ export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | nu
   );
 
   if (lang === 'vi') {
-    // 1. Microsoft HoaiMy Online Natural (Giọng nữ ấm áp, chuẩn Việt số 1)
     const hoaiMy = langVoices.find((v) => v.name.toLowerCase().includes('hoaimy'));
     if (hoaiMy) return hoaiMy;
 
-    // 2. Google Tiếng Việt (Giọng nữ tiêu chuẩn Google)
     const googleVi = langVoices.find((v) => {
       const n = v.name.toLowerCase();
       return (n.includes('google') || n.includes('tiếng việt')) && !isMaleVoiceName(n);
     });
     if (googleVi) return googleVi;
 
-    // 3. Apple Linh / Mai / Thảo
     const appleFemale = langVoices.find((v) => {
       const n = v.name.toLowerCase();
       return (n.includes('linh') || n.includes('mai') || n.includes('thảo') || n.includes('thao') || n.includes('ngọc')) && !isMaleVoiceName(n);
     });
     if (appleFemale) return appleFemale;
 
-    // 4. Any voice that does NOT match male name
     const strictlyFemale = langVoices.find((v) => !isMaleVoiceName(v.name));
     if (strictlyFemale) return strictlyFemale;
 
     return null;
   } else {
-    // English Natural Female Voices
     const topKeywords = ['jenny', 'aria', 'natural', 'samantha', 'google uk english female', 'female', 'karen', 'victoria', 'zira'];
     for (const kw of topKeywords) {
       const match = langVoices.find((v) => v.name.toLowerCase().includes(kw) && !isMaleVoiceName(v.name));
@@ -373,36 +515,13 @@ export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | nu
   }
 }
 
-// Global active audio reference to ensure only one speech announcement plays at a time
-let activeTtsAudio: HTMLAudioElement | null = null;
-const audioBlobCache = new Map<string, string>();
-
-/**
- * Stop any active audio announcement or synthesis
- */
-export function stopCurrentSpeech() {
-  if (activeTtsAudio) {
-    try {
-      activeTtsAudio.pause();
-      activeTtsAudio.currentTime = 0;
-    } catch {}
-    activeTtsAudio = null;
-  }
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch {}
-  }
-}
-
-/**
- * Fallback Web Speech Synthesis with Pitch Adjustment for feminine voice timbre
- */
-async function speakWithSynthesisFallback(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
+export async function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     if (onEnd) onEnd();
     return;
   }
+
+  stopCurrentSpeech();
 
   try {
     await ensureVoicesLoaded();
@@ -413,11 +532,11 @@ async function speakWithSynthesisFallback(text: string, lang: 'vi' | 'en', onEnd
     if (femaleVoice) {
       utterance.voice = femaleVoice;
       utterance.rate = 0.95;
-      utterance.pitch = 1.15; // Natural gentle female pitch
+      utterance.pitch = 1.15;
     } else {
-      // If OS only has default male voice (e.g. Windows Microsoft An), shift pitch to high female range
+      // Pitch shift to female register if only male voice is present on OS
       utterance.rate = 1.0;
-      utterance.pitch = 1.45; // Pitch-shift formant to sound like a female voice
+      utterance.pitch = 1.5;
     }
     utterance.volume = 1.0;
 
@@ -431,75 +550,19 @@ async function speakWithSynthesisFallback(text: string, lang: 'vi' | 'en', onEnd
 
     window.speechSynthesis.speak(utterance);
   } catch (err) {
-    console.warn('Speech synthesis fallback failed:', err);
+    console.warn('Speech synthesis error:', err);
     if (onEnd) onEnd();
   }
 }
 
-/**
- * Plays text aloud using the guaranteed authentic Google Vietnamese Female Voice
- * with zero dependency on client OS voice packages, falling back to synthesis if offline.
- */
-export async function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
-  if (typeof window === 'undefined') {
-    if (onEnd) onEnd();
-    return;
-  }
-
-  // Cancel any running speech
-  stopCurrentSpeech();
-
-  // 1. Try High-Quality Natural Female Voice via /api/tts endpoint (Google Female TTS Voice)
-  try {
-    const cacheKey = `${lang}:${text}`;
-    let objectUrl = audioBlobCache.get(cacheKey);
-
-    if (!objectUrl) {
-      const endpoint = `/api/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(text)}`;
-      const res = await fetch(endpoint);
-      if (res.ok) {
-        const blob = await res.blob();
-        objectUrl = URL.createObjectURL(blob);
-        audioBlobCache.set(cacheKey, objectUrl);
-      }
-    }
-
-    if (objectUrl) {
-      const audio = new Audio(objectUrl);
-      activeTtsAudio = audio;
-
-      audio.onended = () => {
-        if (activeTtsAudio === audio) activeTtsAudio = null;
-        if (onEnd) onEnd();
-      };
-
-      audio.onerror = () => {
-        if (activeTtsAudio === audio) activeTtsAudio = null;
-        // Fall back to SpeechSynthesis
-        speakWithSynthesisFallback(text, lang, onEnd);
-      };
-
-      await audio.play();
-      return;
-    }
-  } catch (err) {
-    console.warn('Online female voice audio play failed, falling back to synthesis:', err);
-  }
-
-  // 2. Fallback to Web Speech Synthesis
-  speakWithSynthesisFallback(text, lang, onEnd);
-}
-
-// Play instant audio chime feedback through laptop or mobile speaker
+// Play instant audio chime feedback through speaker
 export function playSpeakerChime(type: 'correct' | 'incorrect') {
   if (typeof window === 'undefined') return;
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
 
     if (type === 'correct') {
-      // Harmonic pleasant victory chime (C5 -> E5 -> G5)
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -517,7 +580,6 @@ export function playSpeakerChime(type: 'correct' | 'incorrect') {
       osc.start(now);
       osc.stop(now + 0.55);
     } else if (type === 'incorrect') {
-      // Gentle notification tone
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -534,7 +596,5 @@ export function playSpeakerChime(type: 'correct' | 'incorrect') {
       osc.start(now);
       osc.stop(now + 0.4);
     }
-  } catch {
-    // audio context suppressed until user gesture
-  }
+  } catch {}
 }

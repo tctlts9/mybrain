@@ -9,10 +9,16 @@ type MentalMathPage = 'card' | 'two-digit-page' | 'challenge-page';
 export const MentalMathTab: React.FC = () => {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<MentalMathPage>('card');
+  const [challengeTopic, setChallengeTopic] = useState<'multiply11' | 'sameTensSum10' | 'twoDigit'>('twoDigit');
 
-  // Trang Thử thách Mental Math Challenge (5s / 10s)
+  // Trang Thử thách Mental Math Challenge (5s / 10s) -> Quay lại trang Luyện tập (Training Page)
   if (currentPage === 'challenge-page') {
-    return <MentalMathChallengePage onBack={() => setCurrentPage('card')} />;
+    return (
+      <MentalMathChallengePage
+        initialTopic={challengeTopic}
+        onBack={() => setCurrentPage('two-digit-page')}
+      />
+    );
   }
 
   // Trang Luyện tập Phép nhân 2 chữ số
@@ -20,7 +26,10 @@ export const MentalMathTab: React.FC = () => {
     return (
       <TwoDigitMultiplicationPage
         onBack={() => setCurrentPage('card')}
-        onOpenChallenge={() => setCurrentPage('challenge-page')}
+        onOpenChallenge={(topic) => {
+          if (topic) setChallengeTopic(topic);
+          setCurrentPage('challenge-page');
+        }}
       />
     );
   }

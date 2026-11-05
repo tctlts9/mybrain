@@ -30,7 +30,7 @@ export type TrainingTopic = 'multiply11' | 'sameTensSum10' | 'twoDigit';
 
 interface TwoDigitMultiplicationPageProps {
   onBack: () => void;
-  onOpenChallenge?: () => void;
+  onOpenChallenge?: (topic?: TrainingTopic) => void;
 }
 
 interface Question {
@@ -68,7 +68,7 @@ const TRAINING_MODES: TopicOption[] = [
   {
     id: 'twoDigit',
     labelVi: 'Nhân 2 chữ số tổng quát',
-    labelEn: '2-Digit × 2-Digit',
+    labelEn: 'General 2D × 2D',
     icon: '🎯',
     badgeVi: 'Chuyên đề: Nhân 2 chữ số tổng quát',
     badgeEn: 'Topic: General 2D × 2D',
@@ -440,9 +440,16 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
       let b = 11;
 
       if (activeTopic === 'multiply11') {
-        // Phép nhân 2 chữ số với số 11 (11-99 × 11)
-        a = Math.floor(Math.random() * 89) + 11;
-        b = 11;
+        // Phép nhân 2 chữ số với số 11 (ngẫu nhiên 11 × num hoặc num × 11)
+        const num = Math.floor(Math.random() * 89) + 11;
+        const isElevenFirst = Math.random() < 0.5;
+        if (isElevenFirst) {
+          a = 11;
+          b = num;
+        } else {
+          a = num;
+          b = 11;
+        }
       } else if (activeTopic === 'sameTensSum10') {
         // 2 số đầu giống nhau và 2 số sau cộng lại thành 10 (ví dụ: 86 × 84)
         const tens = Math.floor(Math.random() * 8) + 2; // hàng chục: 2 đến 9
@@ -516,7 +523,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
         <div className="flex items-center gap-2">
           {onOpenChallenge && (
             <button
-              onClick={onOpenChallenge}
+              onClick={() => onOpenChallenge(selectedTopic)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-rose-500/15 hover:from-amber-500/25 hover:to-rose-500/25 border border-amber-500/35 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
               title="Mental Math Challenge (5s / 10s)"
             >
@@ -557,7 +564,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
             {onOpenChallenge && (
               <button
                 type="button"
-                onClick={onOpenChallenge}
+                onClick={() => onOpenChallenge(selectedTopic)}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
                 title={isVi ? 'Thử thách tính nhẩm trong 5s hoặc 10s (Nhân 2 chữ số tổng quát)' : 'Mental Math Challenge in 5s or 10s (General 2D × 2D)'}
               >

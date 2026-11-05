@@ -30,8 +30,47 @@ import {
   parseVoiceNumber,
 } from '../../utils/speechUtils';
 
+export type ChallengeTopic = 'multiply11' | 'sameTensSum10' | 'twoDigit';
+
+interface TopicOption {
+  id: ChallengeTopic;
+  labelVi: string;
+  labelEn: string;
+  icon: string;
+  badgeVi: string;
+  badgeEn: string;
+}
+
+export const CHALLENGE_TOPICS: TopicOption[] = [
+  {
+    id: 'multiply11',
+    labelVi: 'Nhân với 11',
+    labelEn: 'Multiply by 11',
+    icon: '⚡',
+    badgeVi: 'Nhân với 11',
+    badgeEn: 'Multiply by 11',
+  },
+  {
+    id: 'sameTensSum10',
+    labelVi: 'Hàng chục giống nhau & Tổng ĐV = 10',
+    labelEn: 'Same Tens & Units sum = 10',
+    icon: '✨',
+    badgeVi: 'Hàng chục giống nhau & Tổng ĐV = 10',
+    badgeEn: 'Same Tens & Units sum = 10',
+  },
+  {
+    id: 'twoDigit',
+    labelVi: 'Nhân 2 chữ số tổng quát',
+    labelEn: 'General 2D × 2D',
+    icon: '🎯',
+    badgeVi: '2 Chữ Số Tổng Quát',
+    badgeEn: 'General 2D × 2D',
+  },
+];
+
 interface MentalMathChallengePageProps {
   onBack: () => void;
+  initialTopic?: ChallengeTopic;
 }
 
 interface Question {
@@ -73,17 +112,40 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
   return digits.map((d) => words[d] || d).join(' ');
 };
 
-export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = ({ onBack }) => {
+export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = ({
+  onBack,
+  initialTopic,
+}) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
+
+  // Topic selection: Multiply by 11 | Same Tens & Units sum = 10 | General 2D × 2D
+  const [selectedTopic, setSelectedTopic] = useState<ChallengeTopic>(initialTopic ?? 'twoDigit');
 
   // Config: 5s hoặc 10s
   const [timeLimit, setTimeLimit] = useState<TimeLimit>(10);
   const [timeLeft, setTimeLeft] = useState<number>(10);
   const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
 
-  // Math Problem (Nhân 2 chữ số tổng quát)
-  const [question, setQuestion] = useState<Question>({ a: 24, b: 35, answer: 840 });
+  // Math Problem
+  const [question, setQuestion] = useState<Question>(() => {
+    const topic = initialTopic ?? 'twoDigit';
+    if (topic === 'multiply11') {
+      const num = Math.floor(Math.random() * 89) + 11;
+      const isElevenFirst = Math.random() < 0.5;
+      const a = isElevenFirst ? 11 : num;
+      const b = isElevenFirst ? num : 11;
+      return { a, b, answer: a * b };
+    } else if (topic === 'sameTensSum10') {
+      const tens = Math.floor(Math.random() * 8) + 2;
+      const u1 = Math.floor(Math.random() * 9) + 1;
+      const u2 = 10 - u1;
+      const a = tens * 10 + u1;
+      const b = tens * 10 + u2;
+      return { a, b, answer: a * b };
+    }
+    return { a: 24, b: 35, answer: 840 };
+  });
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect' | 'timeout'>('idle');
 
@@ -132,12 +194,41 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
   const questionRef = useRef<Question>(question);
   questionRef.current = question;
 
-  // Generate random 2-digit multiplication (Nhân 2 chữ số tổng quát: 12-99 × 12-99)
-  const generateGeneral2DigitProblem = useCallback((): Question => {
-    const a = Math.floor(Math.random() * 88) + 12; // 12 - 99
-    const b = Math.floor(Math.random() * 88) + 12; // 12 - 99
-    return { a, b, answer: a * b };
-  }, []);
+  // Generate random problem based on Selected Topic:
+  // 1. multiply11: 11-99 × 11
+  // 2. sameTensSum10: same tens, units sum = 10
+  // 3. twoDigit: 12-99 × 12-99 (General 2D × 2D)
+  const generateProblemForTopic = useCallback(
+    (topicToUse?: ChallengeTopic): Question => {
+      const active = topicToUse ?? selectedTopic;
+      let a = 24;
+      let b = 35;
+
+      if (active === 'multiply11') {
+        const num = Math.floor(Math.random() * 89) + 11;
+        const isElevenFirst = Math.random() < 0.5;
+        if (isElevenFirst) {
+          a = 11;
+          b = num;
+        } else {
+          a = num;
+          b = 11;
+        }
+      } else if (active === 'sameTensSum10') {
+        const tens = Math.floor(Math.random() * 8) + 2;
+        const u1 = Math.floor(Math.random() * 9) + 1;
+        const u2 = 10 - u1;
+        a = tens * 10 + u1;
+        b = tens * 10 + u2;
+      } else {
+        a = Math.floor(Math.random() * 88) + 12;
+        b = Math.floor(Math.random() * 88) + 12;
+      }
+
+      return { a, b, answer: a * b };
+    },
+    [selectedTopic]
+  );
 
   // Stop Timer
   const clearCountdown = useCallback(() => {
@@ -262,12 +353,13 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
 
   // Start Next Round / Start Challenge
   const startNextRound = useCallback(
-    (explicitTimeLimit?: TimeLimit) => {
+    (explicitTimeLimit?: TimeLimit, explicitTopic?: ChallengeTopic) => {
       stopCurrentSpeech();
       clearCountdown();
 
       const activeLimit = explicitTimeLimit ?? timeLimit;
-      const newQ = generateGeneral2DigitProblem();
+      const activeTopic = explicitTopic ?? selectedTopic;
+      const newQ = generateProblemForTopic(activeTopic);
       setQuestion(newQ);
       questionRef.current = newQ;
       setUserAnswer('');
@@ -279,7 +371,7 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
       startCountdown(activeLimit);
       setTimeout(() => inputRef.current?.focus(), 60);
     },
-    [timeLimit, generateGeneral2DigitProblem, clearCountdown, startCountdown]
+    [timeLimit, selectedTopic, generateProblemForTopic, clearCountdown, startCountdown]
   );
 
   // Switch Time Limit (5s / 10s)
@@ -291,6 +383,18 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
     }
   };
 
+  // Switch Topic: Multiply by 11 | Same Tens & Units sum = 10 | General 2D × 2D
+  const handleSelectTopic = (newTopic: ChallengeTopic) => {
+    setSelectedTopic(newTopic);
+    if (gameStatus === 'running' || gameStatus === 'answered') {
+      startNextRound(undefined, newTopic);
+    } else {
+      const newQ = generateProblemForTopic(newTopic);
+      setQuestion(newQ);
+      questionRef.current = newQ;
+    }
+  };
+
   // Reset Session
   const handleReset = () => {
     stopCurrentSpeech();
@@ -298,12 +402,13 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
     setGameStatus('idle');
     setScore(0);
     setStreak(0);
+    setBestStreak(0);
     setTotalAttempts(0);
     setCorrectCount(0);
     setUserAnswer('');
     setFeedback('idle');
     setTimeLeft(timeLimit);
-    const newQ = generateGeneral2DigitProblem();
+    const newQ = generateProblemForTopic(selectedTopic);
     setQuestion(newQ);
     questionRef.current = newQ;
   };
@@ -400,6 +505,9 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
   const timerPercentage = Math.max(0, Math.min(100, (timeLeft / timeLimit) * 100));
   const isUrgent = timeLeft <= (timeLimit === 5 ? 2 : 3);
 
+  const currentTopicMeta =
+    CHALLENGE_TOPICS.find((t) => t.id === selectedTopic) || CHALLENGE_TOPICS[2];
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-5 sm:space-y-7 animate-in fade-in duration-300">
       {/* Top Navigation Bar: Back & Title */}
@@ -411,13 +519,25 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
             onBack();
           }}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          title={isVi ? 'Quay về trang Luyện tập (Training)' : 'Back to Training page'}
         >
           <ArrowLeft className="w-4 h-4 text-amber-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
         <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
-          <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
+          <button
+            type="button"
+            onClick={() => {
+              stopCurrentSpeech();
+              clearCountdown();
+              onBack();
+            }}
+            className="hover:text-amber-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
+            title={isVi ? 'Về trang Luyện tập' : 'Go to Training page'}
+          >
+            {isVi ? 'Luyện tập' : 'Training'}
+          </button>
           <span className="text-slate-600">/</span>
           <span className="text-amber-400 font-bold flex items-center gap-1">
             <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
@@ -438,10 +558,10 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
               <Zap className="w-5 h-5 fill-slate-950" />
             </div>
             <div>
-              <h1 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
+              <h1 className="font-bold text-white text-base sm:text-lg flex flex-wrap items-center gap-2">
                 <span>Mental Math Challenge</span>
                 <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  {isVi ? '2 Chữ Số Tổng Quát' : 'General 2D × 2D'}
+                  {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
                 </span>
               </h1>
               <p className="text-xs text-slate-400 hidden sm:block">
@@ -515,6 +635,25 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
               )}
             </button>
           </div>
+        </div>
+
+        {/* 3 Topic Selector Buttons: Multiply by 11, Same Tens & Units sum = 10, General 2D × 2D */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
+          {CHALLENGE_TOPICS.map((topic) => (
+            <button
+              key={topic.id}
+              type="button"
+              onClick={() => handleSelectTopic(topic.id)}
+              className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
+                selectedTopic === topic.id
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                  : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
+              }`}
+            >
+              <span className="text-base">{topic.icon}</span>
+              <span className="truncate">{isVi ? topic.labelVi : topic.labelEn}</span>
+            </button>
+          ))}
         </div>
 
         {/* Real-time Stats Scoreboard Row */}
@@ -593,8 +732,15 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
               />
             </div>
 
+            {/* Topic Badge */}
+            <div className="flex items-center justify-center mb-1.5 mt-1">
+              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
+              </span>
+            </div>
+
             {/* Countdown Badge */}
-            <div className="flex items-center justify-center gap-2 mb-3 mt-1">
+            <div className="flex items-center justify-center gap-2 mb-3">
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
                   isUrgent && gameStatus === 'running'

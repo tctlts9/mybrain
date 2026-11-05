@@ -133,7 +133,7 @@ export const MentalMathGuideCarousel: React.FC = () => {
           </div>
           <div>
             <h2 className="font-bold text-white text-xs sm:text-sm md:text-base flex items-center gap-1.5 sm:gap-2">
-              <span>{isVi ? 'Hướng Dẫn Tính Nhẩm (86 × 68)' : 'Visual Guide (86 × 68)'}</span>
+              <span>{isVi ? 'Hướng Dẫn' : 'Visual Guide'}</span>
               <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
             </h2>
             <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">

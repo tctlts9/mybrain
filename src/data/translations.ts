@@ -130,7 +130,7 @@ export const translations: Record<Language, Translations> = {
     installApp: 'Cài Đặt App',
     youtube: 'Youtube',
     email: 'Email',
-    buyCoffee: 'Ủng hộ cà phê',
+    buyCoffee: 'Buy Coffee',
     offlineNotice: 'Chế độ Ngoại tuyến — Dữ liệu đã lưu bộ nhớ đệm.',
 
     // Email Modal
@@ -216,7 +216,7 @@ export const translations: Record<Language, Translations> = {
     installApp: 'Install App',
     youtube: 'Youtube',
     email: 'Email',
-    buyCoffee: 'Buy coffee',
+    buyCoffee: 'Buy Coffee',
     offlineNotice: 'Offline Mode — Cached data is being used.',
 
     // Email Modal

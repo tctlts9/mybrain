@@ -331,7 +331,7 @@ export function stopCurrentSpeech() {
 /**
  * Play a sequence of audio URLs via HTMLAudioElement (Reliable Fallback)
  */
-function playAudioSequenceElements(urls: string[], onEnd?: () => void) {
+function playAudioSequenceElements(urls: string[], onEnd?: () => void, speed: number = 1.0) {
   let idx = 0;
   function playNext() {
     if (idx >= urls.length) {
@@ -341,9 +341,12 @@ function playAudioSequenceElements(urls: string[], onEnd?: () => void) {
     const currentUrl = urls[idx++];
     const audio = new Audio(currentUrl);
     activeHtmlAudio = audio;
+    try {
+      audio.playbackRate = speed;
+    } catch {}
     audio.onended = () => {
-      // Natural gap between spoken words
-      const gap = idx === 1 ? 160 : 90;
+      // Natural gap between spoken words adjusted by speed
+      const gap = (idx === 1 ? 160 : 90) / speed;
       setTimeout(playNext, gap);
     };
     audio.onerror = () => {
@@ -420,6 +423,79 @@ export async function announceResultFemaleVoice(
 
   // 2. Fallback: Sequential HTMLAudioElements with bundled static MP3s
   playAudioSequenceElements(allUrls, onEnd);
+}
+
+/**
+ * Pronounces a math question aloud (e.g. 52 × 11 -> "Năm Hai nhân Một Một")
+ * with adjustable speed (0.75x, 1.0x, 1.25x, 1.5x)
+ * using bundled static female audio clips for guaranteed quality in dev and deploy.
+ */
+export async function pronounceQuestionFemaleVoice(
+  a: number,
+  b: number,
+  lang: 'vi' | 'en',
+  onEnd?: () => void,
+  speed: number = 1.0
+) {
+  if (typeof window === 'undefined') {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  stopCurrentSpeech();
+
+  const isVi = lang === 'vi';
+  const aDigits = String(a).split('');
+  const bDigits = String(b).split('');
+
+  const operatorUrl = isVi ? './audio/tts/nhan.mp3' : './audio/tts/en-times.mp3';
+
+  const aUrls = aDigits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
+  const bUrls = bDigits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
+
+  const allUrls = [...aUrls, operatorUrl, ...bUrls];
+
+  const safeSpeed = Math.max(0.5, Math.min(2.5, speed || 1.0));
+
+  // 1. Try High-Performance Web Audio API
+  const ctx = getSharedAudioContext();
+  if (ctx) {
+    try {
+      const buffers = await Promise.all(allUrls.map((u) => loadBufferFromUrl(u)));
+      if (buffers.every((b) => b !== null)) {
+        let startTime = ctx.currentTime + 0.05;
+        const newSources: AudioBufferSourceNode[] = [];
+
+        for (let i = 0; i < buffers.length; i++) {
+          const buf = buffers[i]!;
+          const source = ctx.createBufferSource();
+          source.buffer = buf;
+          source.playbackRate.value = safeSpeed;
+          source.connect(ctx.destination);
+          source.start(startTime);
+          newSources.push(source);
+
+          const duration = buf.duration / safeSpeed;
+          // Natural cadence: small pause around operator "nhân", scaled by speed
+          const rawPause = i === aUrls.length - 1 || i === aUrls.length ? 0.16 : 0.1;
+          const pause = rawPause / safeSpeed;
+          startTime += duration + pause;
+        }
+
+        activeAudioSources = newSources;
+        const totalDurationMs = Math.max(100, (startTime - ctx.currentTime) * 1000);
+        setTimeout(() => {
+          if (onEnd) onEnd();
+        }, totalDurationMs);
+        return;
+      }
+    } catch (e) {
+      console.warn('Web Audio question playback failed, falling back to sequential audio', e);
+    }
+  }
+
+  // 2. Fallback: Sequential HTMLAudioElements with bundled static MP3s
+  playAudioSequenceElements(allUrls, onEnd, safeSpeed);
 }
 
 // -------------------------------------------------------------

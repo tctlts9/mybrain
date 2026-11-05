@@ -12,12 +12,15 @@ import {
   Mic,
   MicOff,
   AlertTriangle,
+  Zap,
+  Gauge,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { MentalMathGuideCarousel } from './MentalMathGuideCarousel';
 import {
   playSpeakerChime,
   announceResultFemaleVoice,
+  pronounceQuestionFemaleVoice,
   speakText,
   stopCurrentSpeech,
   parseVoiceNumber,
@@ -27,6 +30,7 @@ export type TrainingTopic = 'multiply11' | 'sameTensSum10' | 'twoDigit';
 
 interface TwoDigitMultiplicationPageProps {
   onBack: () => void;
+  onOpenChallenge?: () => void;
 }
 
 interface Question {
@@ -55,10 +59,10 @@ const TRAINING_MODES: TopicOption[] = [
   },
   {
     id: 'sameTensSum10',
-    labelVi: 'Chục giống nhau & ĐV tổng 10',
-    labelEn: 'Same Tens & Units sum to 10',
+    labelVi: 'Hàng chục giống nhau & Tổng đơn vị = 10',
+    labelEn: 'Same Tens & Units sum = 10',
     icon: '✨',
-    badgeVi: 'Chuyên đề: Hàng chục giống nhau & Hàng ĐV tổng = 10',
+    badgeVi: 'Chuyên đề: Hàng chục giống nhau & Tổng đơn vị = 10',
     badgeEn: 'Topic: Same Tens & Units Sum = 10',
   },
   {
@@ -101,7 +105,10 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
   return digits.map((d) => words[d] || d).join(' ');
 };
 
-export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProps> = ({ onBack }) => {
+export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProps> = ({
+  onBack,
+  onOpenChallenge,
+}) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
 
@@ -114,6 +121,29 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   // Thông báo kết quả qua loa & Giọng nói
   const [isSpeakerEnabled, setIsSpeakerEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [isSpeakingQuestion, setIsSpeakingQuestion] = useState<boolean>(false);
+
+  // Tốc độ phát loa câu hỏi (0.75x, 1.0x, 1.25x, 1.5x)
+  const [questionSpeed, setQuestionSpeed] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('mental_math_question_speed');
+      if (saved) {
+        const parsed = parseFloat(saved);
+        if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2.0) return parsed;
+      }
+    }
+    return 1.0;
+  });
+
+  const handleSetSpeed = (newSpeed: number) => {
+    setQuestionSpeed(newSpeed);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mental_math_question_speed', String(newSpeed));
+    }
+    if (isSpeakingQuestion) {
+      pronounceQuestion(newSpeed);
+    }
+  };
 
   // Chức năng Trả lời bằng Voice
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -169,6 +199,22 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
       );
     }, 280);
   }, [isVi]);
+
+  // Phát âm thông tin câu hỏi bằng giọng nữ (VD: "Năm Hai nhân Một Một")
+  const pronounceQuestion = useCallback(
+    (overrideSpeed?: number) => {
+      setIsSpeakingQuestion(true);
+      const speedToUse = overrideSpeed ?? questionSpeed;
+      pronounceQuestionFemaleVoice(
+        question.a,
+        question.b,
+        isVi ? 'vi' : 'en',
+        () => setIsSpeakingQuestion(false),
+        speedToUse
+      );
+    },
+    [question.a, question.b, isVi, questionSpeed]
+  );
 
   // Replay result announcement manually when clicking the audio icon
   const replayAnnouncement = useCallback(() => {
@@ -457,8 +503,8 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-      {/* Top Navigation Bar: Back button & Breadcrumbs */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-900">
+      {/* Top Navigation Bar: Back button, Challenge Button & Breadcrumbs */}
+      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
@@ -467,12 +513,25 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
-          <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
-          <span className="text-slate-600">/</span>
-          <span className="text-amber-400 font-semibold">
-            {isVi ? 'Phép nhân 2 chữ số' : '2-Digit Multiplication'}
-          </span>
+        <div className="flex items-center gap-2">
+          {onOpenChallenge && (
+            <button
+              onClick={onOpenChallenge}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-rose-500/15 hover:from-amber-500/25 hover:to-rose-500/25 border border-amber-500/35 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+              title="Mental Math Challenge (5s / 10s)"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <span>Mental Math Challenge</span>
+            </button>
+          )}
+
+          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
+            <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
+            <span className="text-slate-600">/</span>
+            <span className="text-amber-400 font-semibold">
+              {isVi ? 'Phép nhân 2 chữ số' : '2-Digit Multiplication'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -484,7 +543,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
         {/* Subtle backdrop glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top Header Row: Title & Result Audio Announcement Toggle */}
+        {/* Top Header Row: Title, Mental Math Challenge Button & Result Audio Announcement Toggle */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-400" />
@@ -494,6 +553,19 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
 
           <div className="flex items-center gap-2 text-xs">
+            {/* Button: Mental Math Challenge */}
+            {onOpenChallenge && (
+              <button
+                type="button"
+                onClick={onOpenChallenge}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
+                title={isVi ? 'Thử thách tính nhẩm trong 5s hoặc 10s (Nhân 2 chữ số tổng quát)' : 'Mental Math Challenge in 5s or 10s (General 2D × 2D)'}
+              >
+                <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                <span>Mental Math Challenge</span>
+              </button>
+            )}
+
             {/* Toggle Thông báo kết quả bằng giọng nói / âm thanh */}
             <button
               type="button"
@@ -527,26 +599,13 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
               <span className="font-semibold">
                 {isSpeakerEnabled
                   ? isVi
-                    ? 'Thông báo kết quả: Bật'
-                    : 'Voice Result: ON'
+                    ? 'Kết quả: Bật'
+                    : 'Result: ON'
                   : isVi
-                  ? 'Thông báo kết quả: Tắt'
-                  : 'Voice Result: OFF'}
+                  ? 'Kết quả: Tắt'
+                  : 'Result: OFF'}
               </span>
             </button>
-
-            {/* Nút nghe thử giọng đọc nữ truyền cảm */}
-            {isSpeakerEnabled && (
-              <button
-                type="button"
-                onClick={previewFemaleVoice}
-                className="px-2.5 py-1.5 rounded-xl border border-amber-500/30 bg-slate-900/80 hover:bg-slate-800 text-amber-300 hover:text-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-xs"
-                title={isVi ? 'Bấm để nghe thử giọng nữ đọc mẫu' : 'Click to hear female voice sample'}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isVi ? 'Thử giọng nữ' : 'Test Voice'}</span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -586,11 +645,63 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
               </span>
             </div>
 
-            {/* Large Mathematical Problem Display */}
-            <div className="text-4xl sm:text-6xl font-black text-white tracking-wide font-mono py-2 flex items-center justify-center gap-2">
-              <span>{question.a}</span>
-              <span className="text-amber-400 font-sans">×</span>
-              <span>{question.b}</span>
+            {/* Large Mathematical Problem Display with Speaker Button & Speed Adjustment */}
+            <div className="flex flex-col items-center justify-center gap-3 py-2">
+              <div className="flex items-center justify-center gap-3 sm:gap-4">
+                <div className="text-4xl sm:text-6xl font-black text-white tracking-wide font-mono flex items-center gap-2 sm:gap-3">
+                  <span>{question.a}</span>
+                  <span className="text-amber-400 font-sans">×</span>
+                  <span>{question.b}</span>
+                </div>
+
+                {/* Button Loa để phát thông tin câu hỏi (VD: "Năm Hai nhân Một Một") */}
+                <button
+                  type="button"
+                  onClick={() => pronounceQuestion()}
+                  className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
+                    isSpeakingQuestion
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
+                      : 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
+                  }`}
+                  title={
+                    isVi
+                      ? `Phát âm câu hỏi (${getSpelledOutDigits(question.a, true)} nhân ${getSpelledOutDigits(question.b, true)}) - Tốc độ: ${questionSpeed}x`
+                      : `Pronounce question (${question.a} times ${question.b}) - Speed: ${questionSpeed}x`
+                  }
+                  aria-label={
+                    isVi
+                      ? `Phát âm câu hỏi: ${getSpelledOutDigits(question.a, true)} nhân ${getSpelledOutDigits(question.b, true)}`
+                      : 'Pronounce question'
+                  }
+                >
+                  <Volume2 className={`w-5 h-5 sm:w-6 sm:h-6 ${isSpeakingQuestion ? 'animate-bounce' : ''}`} />
+                </button>
+              </div>
+
+              {/* Tùy chỉnh tốc độ loa phát câu hỏi (0.75x, 1x, 1.25x, 1.5x) */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
+                <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                  <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isVi ? 'Tốc độ loa:' : 'Voice Speed:'}</span>
+                </span>
+                <div className="flex items-center gap-1 ml-0.5">
+                  {[0.75, 1.0, 1.25, 1.5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => handleSetSpeed(s)}
+                      className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
+                        questionSpeed === s
+                          ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
+                          : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
+                      }`}
+                      title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
+                    >
+                      {s === 1.0 ? '1x' : `${s}x`}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Feedback message with Replay Audio Button */}

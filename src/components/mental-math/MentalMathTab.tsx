@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { TwoDigitMultiplicationPage } from './TwoDigitMultiplicationPage';
 import { MentalMathChallengePage } from './MentalMathChallengePage';
+import { VisualGuidePage } from './VisualGuidePage';
 import cardBg from '../../assets/images/mental_math_bg_1793487233435.jpg';
 
-type MentalMathPage = 'card' | 'two-digit-page' | 'challenge-page';
+type MentalMathPage = 'card' | 'two-digit-page' | 'challenge-page' | 'visual-guide-page';
 
 export const MentalMathTab: React.FC = () => {
   const { t } = useLanguage();
@@ -21,6 +22,16 @@ export const MentalMathTab: React.FC = () => {
     );
   }
 
+  // Trang Hướng dẫn Trực quan (Visual Guide Page)
+  if (currentPage === 'visual-guide-page') {
+    return (
+      <VisualGuidePage
+        onBack={() => setCurrentPage('two-digit-page')}
+        onOpenChallenge={() => setCurrentPage('challenge-page')}
+      />
+    );
+  }
+
   // Trang Luyện tập Phép nhân 2 chữ số
   if (currentPage === 'two-digit-page') {
     return (
@@ -30,6 +41,7 @@ export const MentalMathTab: React.FC = () => {
           if (topic) setChallengeTopic(topic);
           setCurrentPage('challenge-page');
         }}
+        onOpenVisualGuide={() => setCurrentPage('visual-guide-page')}
       />
     );
   }

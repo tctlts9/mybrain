@@ -19,6 +19,7 @@ export interface Translations {
   // Mental Math Content
   mentalMathTitle: string;
   mentalMathDesc: string;
+  mentalMathChallenge: string;
   cardMultiply2Title: string;
   cardMultiply2Desc: string;
   cardMultiply2Tag: string;
@@ -107,6 +108,7 @@ export const translations: Record<Language, Translations> = {
     // Content
     mentalMathTitle: 'Tính Nhẩm',
     mentalMathDesc: 'Học viện huấn luyện não bộ, rèn luyện kỹ năng tính nhẩm siêu trí tuệ và phương pháp tư duy số học Super Brain.',
+    mentalMathChallenge: 'Thử Thách Tính Nhẩm',
     cardMultiply2Title: 'Phép nhân 2 chữ số',
     cardMultiply2Desc: 'Rèn luyện phản xạ tính nhẩm tích 2 chữ số với 2 chữ số nhanh chóng, chính xác không cần dùng giấy bút hay máy tính.',
     cardMultiply2Tag: 'Cơ bản & Nâng cao',
@@ -193,6 +195,7 @@ export const translations: Record<Language, Translations> = {
     // Content
     mentalMathTitle: 'Mental Math',
     mentalMathDesc: 'Brain training academy for advanced cognitive arithmetic, lightning-speed calculation, and brain agility development.',
+    mentalMathChallenge: 'Mental Math Challenge',
     cardMultiply2Title: '2-Digit Multiplication',
     cardMultiply2Desc: 'Master mental calculation reflexes for multiplying 2-digit numbers with speed and precision without a calculator.',
     cardMultiply2Tag: 'Core & Intermediate',

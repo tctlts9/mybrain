@@ -301,10 +301,19 @@ async function loadBufferFromUrl(url: string): Promise<AudioBuffer | null> {
   }
 }
 
+let currentSequenceId = 0;
+let activeSequenceTimeout: any = null;
+
 /**
  * Stop any current female voice announcement
  */
 export function stopCurrentSpeech() {
+  currentSequenceId++;
+  if (activeSequenceTimeout) {
+    clearTimeout(activeSequenceTimeout);
+    activeSequenceTimeout = null;
+  }
+
   activeAudioSources.forEach((src) => {
     try {
       src.stop();
@@ -329,46 +338,126 @@ export function stopCurrentSpeech() {
 }
 
 /**
- * Play a sequence of audio URLs via HTMLAudioElement (Reliable Fallback)
+ * Play a sequence of audio URLs via HTMLAudioElement with GUARANTEED pitch preservation.
+ * Crucial: audio.preservesPitch = true ensures that regardless of whether speed is 0.75x, 1x, 1.25x, or 1.5x,
+ * the voice timbre and pitch remain 100% IDENTICAL to the natural 1x recording (1 người duy nhất cho toàn bộ app).
  */
-function playAudioSequenceElements(urls: string[], onEnd?: () => void, speed: number = 1.0) {
+const audioPreloadCache = new Map<string, HTMLAudioElement>();
+
+export function preloadAllVoiceClips() {
+  if (typeof window === 'undefined') return;
+  const urls = [
+    './audio/tts/chinh-xac.mp3',
+    './audio/tts/chua-chinh-xac.mp3',
+    './audio/tts/nhan.mp3',
+    './audio/tts/en-correct.mp3',
+    './audio/tts/en-incorrect.mp3',
+    './audio/tts/en-times.mp3',
+    ...Array.from({ length: 10 }, (_, i) => `./audio/tts/${i}.mp3`),
+    ...Array.from({ length: 10 }, (_, i) => `./audio/tts/en-${i}.mp3`),
+  ];
+  urls.forEach((u) => {
+    try {
+      if (!audioPreloadCache.has(u)) {
+        const a = new Audio(u);
+        a.preload = 'auto';
+        audioPreloadCache.set(u, a);
+      }
+    } catch {}
+  });
+}
+
+// Auto-preload on file load in browser
+if (typeof window !== 'undefined') {
+  setTimeout(preloadAllVoiceClips, 100);
+}
+
+function playAudioSequenceElements(
+  urls: string[],
+  onEnd?: () => void,
+  speed: number = 1.0,
+  isQuestion: boolean = false
+) {
+  stopCurrentSpeech();
+  const sequenceId = currentSequenceId;
+  const safeSpeed = Math.max(0.5, Math.min(2.0, speed || 1.0));
   let idx = 0;
+
   function playNext() {
+    if (sequenceId !== currentSequenceId) return;
+
     if (idx >= urls.length) {
       if (onEnd) onEnd();
       return;
     }
-    const currentUrl = urls[idx++];
+
+    const currentUrl = urls[idx];
     const audio = new Audio(currentUrl);
     activeHtmlAudio = audio;
-    try {
-      audio.playbackRate = speed;
-    } catch {}
-    audio.onended = () => {
-      // Natural gap between spoken words adjusted by speed
-      const gap = (idx === 1 ? 160 : 90) / speed;
-      setTimeout(playNext, gap);
+
+    const applyPitchAndRate = () => {
+      try {
+        // BẮT BUỘC: preservesPitch giữ nguyên tần số và cao độ giọng đọc,
+        // đảm bảo 1 người đọc duy nhất như 1x trên toàn bộ app (không bị méo tiếng ở 0.75x hay 1.5x)
+        audio.preservesPitch = true;
+        (audio as any).mozPreservesPitch = true;
+        (audio as any).webkitPreservesPitch = true;
+        audio.defaultPlaybackRate = safeSpeed;
+        audio.playbackRate = safeSpeed;
+      } catch {}
     };
+
+    applyPitchAndRate();
+    audio.addEventListener('play', applyPitchAndRate);
+    audio.addEventListener('loadedmetadata', applyPitchAndRate);
+
+    const currentIdx = idx;
+    idx++;
+
+    audio.onended = () => {
+      if (sequenceId !== currentSequenceId) return;
+
+      // Khoảng nghỉ tự nhiên giữa các từ, co giãn nhịp nhàng theo tốc độ
+      let rawGap = 85;
+      if (isQuestion) {
+        rawGap = currentUrl.includes('nhan') || currentUrl.includes('times') ? 130 : 80;
+      } else {
+        rawGap = currentIdx === 0 ? 190 : 80;
+      }
+      const gap = Math.max(25, rawGap / safeSpeed);
+
+      activeSequenceTimeout = setTimeout(() => {
+        if (sequenceId === currentSequenceId) {
+          playNext();
+        }
+      }, gap);
+    };
+
     audio.onerror = () => {
+      if (sequenceId !== currentSequenceId) return;
       playNext();
     };
+
     audio.play().catch(() => {
+      if (sequenceId !== currentSequenceId) return;
       playNext();
     });
   }
+
   playNext();
 }
 
 /**
- * GUARANTEED Female Voice Announcement for Mental Math Results:
- * Uses pre-bundled natural Google Vietnamese Female voice MP3s in /audio/tts/
- * Works on Local Dev, Cloud Run, Vercel, PWA, Mobile, Windows, Mac, Android.
+ * GUARANTEED Single Natural Female Voice for Result Announcements:
+ * Uses pre-bundled natural female voice MP3s in /audio/tts/
+ * Guaranteed 1 người duy nhất như 1x trên mọi nền tảng và tốc độ.
  */
 export async function announceResultFemaleVoice(
   isCorrect: boolean,
   targetAnswer: number,
   lang: 'vi' | 'en',
-  onEnd?: () => void
+  onEnd?: () => void,
+  speed: number = 1.0
 ) {
   if (typeof window === 'undefined') {
     if (onEnd) onEnd();
@@ -386,49 +475,13 @@ export async function announceResultFemaleVoice(
   const digitUrls = digits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
   const allUrls = [prefixUrl, ...digitUrls];
 
-  // 1. Try High-Performance Web Audio API (Precise scheduling with zero latency)
-  const ctx = getSharedAudioContext();
-  if (ctx) {
-    try {
-      const buffers = await Promise.all(allUrls.map((u) => loadBufferFromUrl(u)));
-      if (buffers.every((b) => b !== null)) {
-        let startTime = ctx.currentTime + 0.05;
-        const newSources: AudioBufferSourceNode[] = [];
-
-        for (let i = 0; i < buffers.length; i++) {
-          const buf = buffers[i]!;
-          const source = ctx.createBufferSource();
-          source.buffer = buf;
-          source.connect(ctx.destination);
-          source.start(startTime);
-          newSources.push(source);
-
-          // Word duration + natural pause between words
-          const duration = buf.duration;
-          const pause = i === 0 ? 0.22 : 0.12;
-          startTime += duration + pause;
-        }
-
-        activeAudioSources = newSources;
-        const totalDurationMs = Math.max(100, (startTime - ctx.currentTime) * 1000);
-        setTimeout(() => {
-          if (onEnd) onEnd();
-        }, totalDurationMs);
-        return;
-      }
-    } catch (e) {
-      console.warn('Web Audio playback failed, falling back to sequential Audio elements', e);
-    }
-  }
-
-  // 2. Fallback: Sequential HTMLAudioElements with bundled static MP3s
-  playAudioSequenceElements(allUrls, onEnd);
+  playAudioSequenceElements(allUrls, onEnd, speed, false);
 }
 
 /**
  * Pronounces a math question aloud (e.g. 52 × 11 -> "Năm Hai nhân Một Một")
  * with adjustable speed (0.75x, 1.0x, 1.25x, 1.5x)
- * using bundled static female audio clips for guaranteed quality in dev and deploy.
+ * using the EXACT SAME female voice and pitch as the 1x result audio.
  */
 export async function pronounceQuestionFemaleVoice(
   a: number,
@@ -449,53 +502,11 @@ export async function pronounceQuestionFemaleVoice(
   const bDigits = String(b).split('');
 
   const operatorUrl = isVi ? './audio/tts/nhan.mp3' : './audio/tts/en-times.mp3';
-
   const aUrls = aDigits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
   const bUrls = bDigits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
-
   const allUrls = [...aUrls, operatorUrl, ...bUrls];
 
-  const safeSpeed = Math.max(0.5, Math.min(2.5, speed || 1.0));
-
-  // 1. Try High-Performance Web Audio API
-  const ctx = getSharedAudioContext();
-  if (ctx) {
-    try {
-      const buffers = await Promise.all(allUrls.map((u) => loadBufferFromUrl(u)));
-      if (buffers.every((b) => b !== null)) {
-        let startTime = ctx.currentTime + 0.05;
-        const newSources: AudioBufferSourceNode[] = [];
-
-        for (let i = 0; i < buffers.length; i++) {
-          const buf = buffers[i]!;
-          const source = ctx.createBufferSource();
-          source.buffer = buf;
-          source.playbackRate.value = safeSpeed;
-          source.connect(ctx.destination);
-          source.start(startTime);
-          newSources.push(source);
-
-          const duration = buf.duration / safeSpeed;
-          // Natural cadence: small pause around operator "nhân", scaled by speed
-          const rawPause = i === aUrls.length - 1 || i === aUrls.length ? 0.16 : 0.1;
-          const pause = rawPause / safeSpeed;
-          startTime += duration + pause;
-        }
-
-        activeAudioSources = newSources;
-        const totalDurationMs = Math.max(100, (startTime - ctx.currentTime) * 1000);
-        setTimeout(() => {
-          if (onEnd) onEnd();
-        }, totalDurationMs);
-        return;
-      }
-    } catch (e) {
-      console.warn('Web Audio question playback failed, falling back to sequential audio', e);
-    }
-  }
-
-  // 2. Fallback: Sequential HTMLAudioElements with bundled static MP3s
-  playAudioSequenceElements(allUrls, onEnd, safeSpeed);
+  playAudioSequenceElements(allUrls, onEnd, speed, true);
 }
 
 // -------------------------------------------------------------
@@ -569,7 +580,7 @@ export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | nu
 
     const appleFemale = langVoices.find((v) => {
       const n = v.name.toLowerCase();
-      return (n.includes('linh') || n.includes('mai') || n.includes('thảo') || n.includes('thao') || n.includes('ngọc')) && !isMaleVoiceName(n);
+      return (n.includes('linh') || n.includes('mai') || n.includes('thảo') || n.includes('thao') || n.includes('ngọc')) && !isMaleVoiceName(n);      
     });
     if (appleFemale) return appleFemale;
 
@@ -588,6 +599,7 @@ export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | nu
     if (strictlyFemale) return strictlyFemale;
 
     return null;
+  
   }
 }
 

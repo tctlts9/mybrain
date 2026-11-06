@@ -14,9 +14,10 @@ import {
   AlertTriangle,
   Zap,
   Gauge,
+  BookOpen,
+  Delete,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { MentalMathGuideCarousel } from './MentalMathGuideCarousel';
 import {
   playSpeakerChime,
   announceResultFemaleVoice,
@@ -31,6 +32,7 @@ export type TrainingTopic = 'multiply11' | 'sameTensSum10' | 'twoDigit';
 interface TwoDigitMultiplicationPageProps {
   onBack: () => void;
   onOpenChallenge?: (topic?: TrainingTopic) => void;
+  onOpenVisualGuide?: () => void;
 }
 
 interface Question {
@@ -108,6 +110,7 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
 export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProps> = ({
   onBack,
   onOpenChallenge,
+  onOpenVisualGuide,
 }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
@@ -172,11 +175,12 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           isCorrect,
           targetAnswer,
           isVi ? 'vi' : 'en',
-          () => setIsSpeaking(false)
+          () => setIsSpeaking(false),
+          questionSpeed
         );
       }, 280);
     },
-    [isSpeakerEnabled, isVi]
+    [isSpeakerEnabled, isVi, questionSpeed]
   );
 
   const previewToggleRef = useRef<boolean>(false);
@@ -195,10 +199,11 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
         isSampleCorrect,
         isSampleCorrect ? 858 : 792,
         isVi ? 'vi' : 'en',
-        () => setIsSpeaking(false)
+        () => setIsSpeaking(false),
+        questionSpeed
       );
     }, 280);
-  }, [isVi]);
+  }, [isVi, questionSpeed]);
 
   // Phát âm thông tin câu hỏi bằng giọng nữ (VD: "Năm Hai nhân Một Một")
   const pronounceQuestion = useCallback(
@@ -499,6 +504,36 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
     };
   }, [generateNewQuestion]);
 
+  // Phím số ảo 0-9 nhập kết quả nhanh
+  const handleKeypadDigit = useCallback(
+    (digit: string) => {
+      if (feedback === 'correct') return;
+      if (feedback === 'incorrect') {
+        setFeedback('idle');
+      }
+      setUserAnswer((prev) => {
+        if (prev.length >= 6) return prev;
+        return prev + digit;
+      });
+    },
+    [feedback]
+  );
+
+  const handleKeypadBackspace = useCallback(() => {
+    if (feedback === 'correct') return;
+    if (feedback === 'incorrect') {
+      setFeedback('idle');
+    }
+    setUserAnswer((prev) => prev.slice(0, -1));
+  }, [feedback]);
+
+  const handleKeypadClear = useCallback(() => {
+    if (feedback === 'correct') return;
+    setUserAnswer('');
+    setFeedback('idle');
+    inputRef.current?.focus();
+  }, [feedback]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = parseInt(userAnswer.trim(), 10);
@@ -521,14 +556,26 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
         </button>
 
         <div className="flex items-center gap-2">
+          {onOpenVisualGuide && (
+            <button
+              type="button"
+              onClick={onOpenVisualGuide}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+              title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Visual Guide</span>
+            </button>
+          )}
+
           {onOpenChallenge && (
             <button
               onClick={() => onOpenChallenge(selectedTopic)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-rose-500/15 hover:from-amber-500/25 hover:to-rose-500/25 border border-amber-500/35 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title="Mental Math Challenge (5s / 10s)"
+              title={isVi ? 'Thử thách Tính nhẩm (5s / 10s)' : 'Mental Math Challenge (5s / 10s)'}
             >
               <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <span>Mental Math Challenge</span>
+              <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
             </button>
           )}
 
@@ -542,15 +589,12 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
         </div>
       </div>
 
-      {/* Section 1: Scroll Image các Image hướng dẫn */}
-      <MentalMathGuideCarousel />
-
-      {/* Section 2: Training Section */}
+      {/* Training Section */}
       <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-4 sm:p-7 shadow-xl relative overflow-hidden space-y-5">
         {/* Subtle backdrop glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top Header Row: Title, Mental Math Challenge Button & Result Audio Announcement Toggle */}
+        {/* Top Header Row: Title, Action Buttons & Result Audio Announcement Toggle */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-400" />
@@ -560,16 +604,30 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
 
           <div className="flex items-center gap-2 text-xs">
+            {/* Button: Visual Guide */}
+            {onOpenVisualGuide && (
+              <button
+                type="button"
+                onClick={onOpenVisualGuide}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer active:scale-95 text-xs"
+                title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
+              >
+                <BookOpen className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                <span>{isVi ? 'Hướng dẫn' : 'Visual Guide'}</span>
+                //<span>Visual Guide</span>
+              </button>
+            )}
+
             {/* Button: Mental Math Challenge */}
             {onOpenChallenge && (
               <button
                 type="button"
                 onClick={() => onOpenChallenge(selectedTopic)}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
-                title={isVi ? 'Thử thách tính nhẩm trong 5s hoặc 10s (Nhân 2 chữ số tổng quát)' : 'Mental Math Challenge in 5s or 10s (General 2D × 2D)'}
+                title={isVi ? 'Thử thách tính nhẩm trong 5s hoặc 10s' : 'Mental Math Challenge in 5s or 10s'}
               >
                 <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>Mental Math Challenge</span>
+                <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
               </button>
             )}
 
@@ -766,8 +824,8 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                       ? '🎙️ Đang nghe... Hãy đọc to đáp án của bạn'
                       : '🎙️ Listening... Speak your answer aloud'
                     : isVi
-                    ? 'Nhập kết quả hoặc bấm nút Trả lời Voice...'
-                    : 'Type answer or click Voice button...'
+                    ? 'Nhập kết quả hoặc bấm phím số bên dưới...'
+                    : 'Type answer or tap numeric keys below...'
                 }
                 disabled={feedback === 'correct'}
                 className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
@@ -776,6 +834,68 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                     : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
                 }`}
               />
+              {userAnswer && feedback !== 'correct' && (
+                <button
+                  type="button"
+                  onClick={handleKeypadClear}
+                  className="absolute right-3.5 p-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-850 transition-colors"
+                  title={isVi ? 'Xóa ô nhập' : 'Clear'}
+                >
+                  <Delete className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Bàn phím số từ 0 đến 9 để Nhập kết quả trả lời nhanh */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-sm mx-auto w-full">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                  <button
+                    key={digit}
+                    type="button"
+                    onClick={() => handleKeypadDigit(String(digit))}
+                    disabled={feedback === 'correct'}
+                    className="h-11 sm:h-12 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-xl sm:text-2xl font-black border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    aria-label={`Digit ${digit}`}
+                  >
+                    {digit}
+                  </button>
+                ))}
+
+                {/* Xóa toàn bộ */}
+                <button
+                  type="button"
+                  onClick={handleKeypadClear}
+                  disabled={feedback === 'correct' || !userAnswer}
+                  className="h-11 sm:h-12 rounded-xl bg-slate-900/60 hover:bg-rose-500/20 active:bg-rose-500 active:text-white text-slate-400 hover:text-rose-300 font-semibold text-xs sm:text-sm border border-slate-800 hover:border-rose-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  title={isVi ? 'Xóa toàn bộ' : 'Clear all'}
+                >
+                  {isVi ? 'Xóa' : 'Clear'}
+                </button>
+
+                {/* Phím 0 */}
+                <button
+                  type="button"
+                  onClick={() => handleKeypadDigit('0')}
+                  disabled={feedback === 'correct'}
+                  className="h-11 sm:h-12 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-xl sm:text-2xl font-black border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  aria-label="Digit 0"
+                >
+                  0
+                </button>
+
+                {/* Xóa 1 số lùi */}
+                <button
+                  type="button"
+                  onClick={handleKeypadBackspace}
+                  disabled={feedback === 'correct' || !userAnswer}
+                  className="h-11 sm:h-12 rounded-xl bg-slate-900/60 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  title={isVi ? 'Xóa 1 số' : 'Backspace'}
+                  aria-label="Backspace"
+                >
+                  <Delete className="w-5 h-5 text-slate-400 hover:text-amber-300" />
+                </button>
+              </div>
             </div>
 
             {/* Live voice feedback indicator when listening */}

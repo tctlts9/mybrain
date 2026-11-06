@@ -20,6 +20,7 @@ import {
   Award,
   AlertTriangle,
   Gauge,
+  Delete,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import {
@@ -251,11 +252,12 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
           isCorrect,
           targetAnswer,
           isVi ? 'vi' : 'en',
-          () => setIsSpeaking(false)
+          () => setIsSpeaking(false),
+          questionSpeed
         );
       }, 280);
     },
-    [isSpeakerEnabled, isVi]
+    [isSpeakerEnabled, isVi, questionSpeed]
   );
 
   // Pronounce Question (e.g. 52 x 11 -> "Năm Hai nhân Một Một") with speed
@@ -413,6 +415,29 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
     questionRef.current = newQ;
   };
 
+  // Phím số ảo 0-9 nhập kết quả nhanh trong Thử thách
+  const handleKeypadDigit = useCallback(
+    (digit: string) => {
+      if (gameStatus !== 'running') return;
+      setUserAnswer((prev) => {
+        if (prev.length >= 6) return prev;
+        return prev + digit;
+      });
+    },
+    [gameStatus]
+  );
+
+  const handleKeypadBackspace = useCallback(() => {
+    if (gameStatus !== 'running') return;
+    setUserAnswer((prev) => prev.slice(0, -1));
+  }, [gameStatus]);
+
+  const handleKeypadClear = useCallback(() => {
+    if (gameStatus !== 'running') return;
+    setUserAnswer('');
+    inputRef.current?.focus();
+  }, [gameStatus]);
+
   // Form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -541,7 +566,7 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
           <span className="text-slate-600">/</span>
           <span className="text-amber-400 font-bold flex items-center gap-1">
             <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span>Mental Math Challenge</span>
+            <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
           </span>
         </div>
       </div>
@@ -559,7 +584,7 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
             </div>
             <div>
               <h1 className="font-bold text-white text-base sm:text-lg flex flex-wrap items-center gap-2">
-                <span>Mental Math Challenge</span>
+                <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
                 <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
                 </span>
@@ -867,8 +892,8 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
                       ? '🎙️ Đang nghe... Hãy đọc to đáp án của bạn'
                       : '🎙️ Listening... Speak your answer'
                     : isVi
-                    ? 'Nhập kết quả thật nhanh...'
-                    : 'Type answer quickly...'
+                    ? 'Nhập kết quả hoặc bấm phím số...'
+                    : 'Type answer or tap numeric keys...'
                 }
                 disabled={gameStatus !== 'running'}
                 className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
@@ -879,6 +904,68 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
                     : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
                 }`}
               />
+              {userAnswer && gameStatus === 'running' && (
+                <button
+                  type="button"
+                  onClick={handleKeypadClear}
+                  className="absolute right-3.5 p-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-850 transition-colors"
+                  title={isVi ? 'Xóa ô nhập' : 'Clear'}
+                >
+                  <Delete className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Bàn phím số từ 0 đến 9 nhập kết quả nhanh trong Thử thách */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-sm mx-auto w-full">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                  <button
+                    key={digit}
+                    type="button"
+                    onClick={() => handleKeypadDigit(String(digit))}
+                    disabled={gameStatus !== 'running'}
+                    className="h-11 sm:h-12 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-xl sm:text-2xl font-black border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    aria-label={`Digit ${digit}`}
+                  >
+                    {digit}
+                  </button>
+                ))}
+
+                {/* Xóa toàn bộ */}
+                <button
+                  type="button"
+                  onClick={handleKeypadClear}
+                  disabled={gameStatus !== 'running' || !userAnswer}
+                  className="h-11 sm:h-12 rounded-xl bg-slate-900/60 hover:bg-rose-500/20 active:bg-rose-500 active:text-white text-slate-400 hover:text-rose-300 font-semibold text-xs sm:text-sm border border-slate-800 hover:border-rose-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  title={isVi ? 'Xóa toàn bộ' : 'Clear all'}
+                >
+                  {isVi ? 'Xóa' : 'Clear'}
+                </button>
+
+                {/* Phím 0 */}
+                <button
+                  type="button"
+                  onClick={() => handleKeypadDigit('0')}
+                  disabled={gameStatus !== 'running'}
+                  className="h-11 sm:h-12 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-xl sm:text-2xl font-black border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  aria-label="Digit 0"
+                >
+                  0
+                </button>
+
+                {/* Xóa 1 số lùi */}
+                <button
+                  type="button"
+                  onClick={handleKeypadBackspace}
+                  disabled={gameStatus !== 'running' || !userAnswer}
+                  className="h-11 sm:h-12 rounded-xl bg-slate-900/60 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  title={isVi ? 'Xóa 1 số' : 'Backspace'}
+                  aria-label="Backspace"
+                >
+                  <Delete className="w-5 h-5 text-slate-400 hover:text-amber-300" />
+                </button>
+              </div>
             </div>
 
             {/* Live voice feedback indicator when listening */}

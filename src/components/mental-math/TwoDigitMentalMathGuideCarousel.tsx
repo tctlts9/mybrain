@@ -51,7 +51,7 @@ const slides: Slide[] = [
   },
 ];
 
-export const MentalMathGuideCarousel: React.FC = () => {
+export const TwoDigitMentalMathGuideCarousel: React.FC = () => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -291,3 +291,5 @@ export const MentalMathGuideCarousel: React.FC = () => {
     </div>
   );
 };
+
+export const MentalMathGuideCarousel = TwoDigitMentalMathGuideCarousel;

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { TwoDigitMultiplicationPage } from './TwoDigitMultiplicationPage';
-import { MentalMathChallengePage } from './MentalMathChallengePage';
-import { VisualGuidePage } from './VisualGuidePage';
+import { TwoDigitMentalMathChallengePage } from './TwoDigitMentalMathChallengePage';
+import { TwoDigitMentalMathVisualGuidePage } from './TwoDigitMentalMathVisualGuidePage';
 import cardBg from '../../assets/images/mental_math_bg_1793487233435.jpg';
 
 type MentalMathPage = 'card' | 'two-digit-page' | 'challenge-page' | 'visual-guide-page';
@@ -15,7 +15,7 @@ export const MentalMathTab: React.FC = () => {
   // Trang Thử thách Mental Math Challenge (5s / 10s) -> Quay lại trang Luyện tập (Training Page)
   if (currentPage === 'challenge-page') {
     return (
-      <MentalMathChallengePage
+      <TwoDigitMentalMathChallengePage
         initialTopic={challengeTopic}
         onBack={() => setCurrentPage('two-digit-page')}
       />
@@ -25,7 +25,7 @@ export const MentalMathTab: React.FC = () => {
   // Trang Hướng dẫn Trực quan (Visual Guide Page)
   if (currentPage === 'visual-guide-page') {
     return (
-      <VisualGuidePage
+      <TwoDigitMentalMathVisualGuidePage
         onBack={() => setCurrentPage('two-digit-page')}
         onOpenChallenge={() => setCurrentPage('challenge-page')}
       />

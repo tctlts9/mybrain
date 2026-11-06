@@ -113,7 +113,7 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
   return digits.map((d) => words[d] || d).join(' ');
 };
 
-export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = ({
+export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePageProps> = ({
   onBack,
   initialTopic,
 }) => {
@@ -1061,3 +1061,5 @@ export const MentalMathChallengePage: React.FC<MentalMathChallengePageProps> = (
     </div>
   );
 };
+
+export const MentalMathChallengePage = TwoDigitMentalMathChallengePage;

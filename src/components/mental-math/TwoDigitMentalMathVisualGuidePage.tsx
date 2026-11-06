@@ -1,14 +1,14 @@
 import React from 'react';
 import { ArrowLeft, BookOpen, Brain, Zap, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { MentalMathGuideCarousel } from './MentalMathGuideCarousel';
+import { TwoDigitMentalMathGuideCarousel } from './TwoDigitMentalMathGuideCarousel';
 
 interface VisualGuidePageProps {
   onBack: () => void;
   onOpenChallenge?: () => void;
 }
 
-export const VisualGuidePage: React.FC<VisualGuidePageProps> = ({
+export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> = ({
   onBack,
   onOpenChallenge,
 }) => {
@@ -121,7 +121,7 @@ export const VisualGuidePage: React.FC<VisualGuidePageProps> = ({
       </div>
 
       {/* Main Visual Guide Carousel Component */}
-      <MentalMathGuideCarousel />
+      <TwoDigitMentalMathGuideCarousel />
 
       {/* 4 Step Summary Breakdown Cards */}
       <div className="space-y-3">
@@ -185,3 +185,5 @@ export const VisualGuidePage: React.FC<VisualGuidePageProps> = ({
     </div>
   );
 };
+
+export const VisualGuidePage = TwoDigitMentalMathVisualGuidePage;

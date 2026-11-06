@@ -83,7 +83,7 @@ export const VisualGuidePage: React.FC<VisualGuidePageProps> = ({
             <span className="text-slate-600">/</span>
             <span className="text-cyan-400 font-semibold flex items-center gap-1">
               <BookOpen className="w-3 h-3 text-cyan-400" />
-              <span>Visual Guide</span>
+              <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
             </span>
           </div>
         </div>
@@ -100,7 +100,7 @@ export const VisualGuidePage: React.FC<VisualGuidePageProps> = ({
               <span>{isVi ? 'Hướng dẫn trực quan chuyên sâu' : 'Visual Guide & Mind Mapping'}</span>
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>Visual Guide</span>
+              <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
               <Sparkles className="w-5 h-5 text-amber-400" />
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">

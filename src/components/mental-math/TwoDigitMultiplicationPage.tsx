@@ -126,13 +126,13 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState<boolean>(false);
 
-  // Tốc độ phát loa câu hỏi (0.75x, 1.0x, 1.25x, 1.5x)
+  // Tốc độ phát loa câu hỏi (1x, 1.25x, 1.5x, 1.75x)
   const [questionSpeed, setQuestionSpeed] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('mental_math_question_speed');
       if (saved) {
         const parsed = parseFloat(saved);
-        if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2.0) return parsed;
+        if ([1.0, 1.25, 1.5, 1.75].includes(parsed)) return parsed;
       }
     }
     return 1.0;
@@ -162,7 +162,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   const lastParsedRef = useRef<number | null>(null);
   const hasSubmittedRef = useRef<boolean>(false);
 
-  // Thông báo kết quả bằng giọng nữ truyền cảm (Voice Announcement)
+  // Thông báo kết quả qua loa khi trả lời đúng hoặc sai
   const announceResult = useCallback(
     (isCorrect: boolean, targetAnswer: number) => {
       if (!isSpeakerEnabled) return;
@@ -178,7 +178,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           () => setIsSpeaking(false),
           questionSpeed
         );
-      }, 280);
+      }, 200);
     },
     [isSpeakerEnabled, isVi, questionSpeed]
   );
@@ -564,7 +564,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
               title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
             >
               <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Visual Guide</span>
+              <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
             </button>
           )}
 
@@ -604,7 +604,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            {/* Button: Visual Guide */}
+            {/* Button: Visual Guide / Hướng Dẫn Trực Quan */}
             {onOpenVisualGuide && (
               <button
                 type="button"
@@ -613,8 +613,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
               >
                 <BookOpen className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Hướng dẫn' : 'Visual Guide'}</span>
-                //<span>Visual Guide</span>
+                <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
               </button>
             )}
 
@@ -743,14 +742,14 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 </button>
               </div>
 
-              {/* Tùy chỉnh tốc độ loa phát câu hỏi (0.75x, 1x, 1.25x, 1.5x) */}
+              {/* Tùy chỉnh tốc độ loa phát câu hỏi (1x, 1.25x, 1.5x, 1.75x) */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
                   <Gauge className="w-3.5 h-3.5 text-amber-400" />
                   <span>{isVi ? 'Tốc độ loa:' : 'Voice Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
-                  {[0.75, 1.0, 1.25, 1.5].map((s) => (
+                  {[1.0, 1.25, 1.5, 1.75].map((s) => (
                     <button
                       key={s}
                       type="button"

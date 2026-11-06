@@ -372,11 +372,35 @@ if (typeof window !== 'undefined') {
   setTimeout(preloadAllVoiceClips, 100);
 }
 
+function resolveAudioUrl(path: string): string {
+  if (typeof window === 'undefined') return path;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const clean = path.replace(/^\.\//, '/');
+  return `${window.location.origin}${clean.startsWith('/') ? clean : '/' + clean}`;
+}
+
+// Ensure AudioContext is unlocked on first user interaction
+if (typeof window !== 'undefined') {
+  const resumeSharedAudio = () => {
+    try {
+      const ctx = getSharedAudioContext();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+    } catch {}
+  };
+  window.addEventListener('click', resumeSharedAudio, { passive: true });
+  window.addEventListener('touchstart', resumeSharedAudio, { passive: true });
+  window.addEventListener('keydown', resumeSharedAudio, { passive: true });
+}
+
 function playAudioSequenceElements(
   urls: string[],
   onEnd?: () => void,
   speed: number = 1.0,
-  isQuestion: boolean = false
+  isQuestion: boolean = false,
+  fallbackText?: string,
+  fallbackLang: 'vi' | 'en' = 'vi'
 ) {
   stopCurrentSpeech();
   const sequenceId = currentSequenceId;
@@ -391,7 +415,7 @@ function playAudioSequenceElements(
       return;
     }
 
-    const currentUrl = urls[idx];
+    const currentUrl = resolveAudioUrl(urls[idx]);
     const audio = new Audio(currentUrl);
     activeHtmlAudio = audio;
 
@@ -433,14 +457,20 @@ function playAudioSequenceElements(
       }, gap);
     };
 
-    audio.onerror = () => {
+    const handleAudioFailure = () => {
       if (sequenceId !== currentSequenceId) return;
-      playNext();
+      if (fallbackText) {
+        speakText(fallbackText, fallbackLang, onEnd);
+      } else {
+        playNext();
+      }
     };
 
-    audio.play().catch(() => {
-      if (sequenceId !== currentSequenceId) return;
-      playNext();
+    audio.onerror = handleAudioFailure;
+
+    audio.play().catch((err) => {
+      console.warn('Audio play failed, falling back to speech synthesis:', currentUrl, err);
+      handleAudioFailure();
     });
   }
 
@@ -466,16 +496,17 @@ export async function announceResultFemaleVoice(
 
   stopCurrentSpeech();
 
+  // Phát âm thông báo kết quả Đúng ("Chính xác" / "Correct") hoặc Sai ("Chưa chính xác" / "Incorrect")
   const isVi = lang === 'vi';
   const prefixUrl = isVi
-    ? (isCorrect ? './audio/tts/chinh-xac.mp3' : './audio/tts/chua-chinh-xac.mp3')
-    : (isCorrect ? './audio/tts/en-correct.mp3' : './audio/tts/en-incorrect.mp3');
+    ? (isCorrect ? '/audio/tts/chinh-xac.mp3' : '/audio/tts/chua-chinh-xac.mp3')
+    : (isCorrect ? '/audio/tts/en-correct.mp3' : '/audio/tts/en-incorrect.mp3');
 
-  const digits = String(targetAnswer).split('');
-  const digitUrls = digits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
-  const allUrls = [prefixUrl, ...digitUrls];
+  const fallbackText = isVi
+    ? (isCorrect ? 'Chính xác' : 'Chưa chính xác')
+    : (isCorrect ? 'Correct' : 'Incorrect');
 
-  playAudioSequenceElements(allUrls, onEnd, speed, false);
+  playAudioSequenceElements([prefixUrl], onEnd, speed, false, fallbackText, lang);
 }
 
 /**

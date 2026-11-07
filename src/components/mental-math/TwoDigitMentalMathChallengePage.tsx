@@ -81,7 +81,17 @@ interface Question {
 }
 
 type TimeLimit = 5 | 10;
-type GameStatus = 'idle' | 'running' | 'paused' | 'answered';
+type GameStatus = 'idle' | 'running' | 'paused' | 'answered' | 'completed';
+
+const TOTAL_QUESTIONS = 10;
+
+interface RoundHistoryItem {
+  qIndex: number;
+  a: number;
+  b: number;
+  userAnswer: string;
+  isCorrect: boolean;
+}
 
 const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
   const digits = String(num).split('');
@@ -128,6 +138,10 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
   const [timeLeft, setTimeLeft] = useState<number>(10);
   const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
 
+  // 10 Phép nhân trong 1 lượt thử thách
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
+  const [roundHistory, setRoundHistory] = useState<RoundHistoryItem[]>([]);
+
   // Math Problem
   const [question, setQuestion] = useState<Question>(() => {
     const topic = initialTopic ?? 'twoDigit';
@@ -150,12 +164,14 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect' | 'timeout'>('idle');
 
-  // Score & Performance Stats
+  // Thống kê: Chuỗi đúng, Chuỗi sai, Độ chính xác
   const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
+  const [wrongStreak, setWrongStreak] = useState<number>(0);
   const [bestStreak, setBestStreak] = useState<number>(0);
   const [totalAttempts, setTotalAttempts] = useState<number>(0);
   const [correctCount, setCorrectCount] = useState<number>(0);
+  const [incorrectCount, setIncorrectCount] = useState<number>(0);
 
   // Sound & Voice
   const [isSpeakerEnabled, setIsSpeakerEnabled] = useState<boolean>(true);
@@ -290,9 +306,21 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
       }
       setIsListening(false);
 
+      const isCorrect = parsedAns === questionRef.current.answer;
       setTotalAttempts((prev) => prev + 1);
 
-      if (parsedAns === questionRef.current.answer) {
+      setRoundHistory((prev) => [
+        ...prev,
+        {
+          qIndex: currentQuestionIndex,
+          a: questionRef.current.a,
+          b: questionRef.current.b,
+          userAnswer: String(parsedAns),
+          isCorrect,
+        },
+      ]);
+
+      if (isCorrect) {
         setFeedback('correct');
         setCorrectCount((prev) => prev + 1);
         setStreak((prev) => {
@@ -300,16 +328,19 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
           setBestStreak((b) => Math.max(b, next));
           return next;
         });
+        setWrongStreak(0);
         const pointsAwarded = timeLimit === 5 ? 20 : 10;
         setScore((prev) => prev + pointsAwarded);
         announceResult(true, questionRef.current.answer);
       } else {
         setFeedback('incorrect');
+        setIncorrectCount((prev) => prev + 1);
         setStreak(0);
+        setWrongStreak((prev) => prev + 1);
         announceResult(false, questionRef.current.answer);
       }
     },
-    [clearCountdown, timeLimit, announceResult]
+    [clearCountdown, timeLimit, announceResult, currentQuestionIndex]
   );
 
   // Handle Timeout
@@ -325,10 +356,24 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
     setIsListening(false);
 
     setTotalAttempts((prev) => prev + 1);
+    setIncorrectCount((prev) => prev + 1);
     setFeedback('timeout');
     setStreak(0);
+    setWrongStreak((prev) => prev + 1);
+
+    setRoundHistory((prev) => [
+      ...prev,
+      {
+        qIndex: currentQuestionIndex,
+        a: questionRef.current.a,
+        b: questionRef.current.b,
+        userAnswer: isVi ? 'Hết giờ' : 'Timeout',
+        isCorrect: false,
+      },
+    ]);
+
     announceResult(false, questionRef.current.answer);
-  }, [clearCountdown, announceResult]);
+  }, [clearCountdown, announceResult, currentQuestionIndex, isVi]);
 
   // Start Countdown Timer
   const startCountdown = useCallback(
@@ -353,8 +398,8 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
     [clearCountdown, handleTimeout]
   );
 
-  // Start Next Round / Start Challenge
-  const startNextRound = useCallback(
+  // Bắt đầu đợt thử thách 10 phép nhân
+  const startChallengeSession = useCallback(
     (explicitTimeLimit?: TimeLimit, explicitTopic?: ChallengeTopic) => {
       stopCurrentSpeech();
       clearCountdown();
@@ -362,6 +407,16 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
       const activeLimit = explicitTimeLimit ?? timeLimit;
       const activeTopic = explicitTopic ?? selectedTopic;
       const newQ = generateProblemForTopic(activeTopic);
+
+      setCurrentQuestionIndex(1);
+      setRoundHistory([]);
+      setStreak(0);
+      setWrongStreak(0);
+      setTotalAttempts(0);
+      setCorrectCount(0);
+      setIncorrectCount(0);
+      setScore(0);
+
       setQuestion(newQ);
       questionRef.current = newQ;
       setUserAnswer('');
@@ -376,12 +431,33 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
     [timeLimit, selectedTopic, generateProblemForTopic, clearCountdown, startCountdown]
   );
 
+  // Chuyển sang câu tiếp theo trong 10 câu
+  const goToNextQuestion = useCallback(() => {
+    stopCurrentSpeech();
+    clearCountdown();
+
+    const nextIdx = currentQuestionIndex + 1;
+    setCurrentQuestionIndex(nextIdx);
+
+    const newQ = generateProblemForTopic(selectedTopic);
+    setQuestion(newQ);
+    questionRef.current = newQ;
+    setUserAnswer('');
+    setFeedback('idle');
+    setVoiceTranscript('');
+    setVoiceError('');
+    setGameStatus('running');
+
+    startCountdown(timeLimit);
+    setTimeout(() => inputRef.current?.focus(), 60);
+  }, [currentQuestionIndex, generateProblemForTopic, selectedTopic, clearCountdown, startCountdown, timeLimit]);
+
   // Switch Time Limit (5s / 10s)
   const handleSelectTimeLimit = (newLimit: TimeLimit) => {
     setTimeLimit(newLimit);
     setTimeLeft(newLimit);
     if (gameStatus === 'running' || gameStatus === 'answered') {
-      startNextRound(newLimit);
+      startChallengeSession(newLimit);
     }
   };
 
@@ -389,7 +465,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
   const handleSelectTopic = (newTopic: ChallengeTopic) => {
     setSelectedTopic(newTopic);
     if (gameStatus === 'running' || gameStatus === 'answered') {
-      startNextRound(undefined, newTopic);
+      startChallengeSession(undefined, newTopic);
     } else {
       const newQ = generateProblemForTopic(newTopic);
       setQuestion(newQ);
@@ -402,11 +478,15 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
     stopCurrentSpeech();
     clearCountdown();
     setGameStatus('idle');
+    setCurrentQuestionIndex(1);
+    setRoundHistory([]);
     setScore(0);
     setStreak(0);
+    setWrongStreak(0);
     setBestStreak(0);
     setTotalAttempts(0);
     setCorrectCount(0);
+    setIncorrectCount(0);
     setUserAnswer('');
     setFeedback('idle');
     setTimeLeft(timeLimit);
@@ -681,68 +761,181 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
           ))}
         </div>
 
-        {/* Real-time Stats Scoreboard Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {/* Score */}
-          <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-              <Trophy className="w-4 h-4" />
+        {/* Real-time Stats Scoreboard Row: Chỉ 3 Button Chuỗi đúng, Chuỗi sai, Độ chính xác */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {/* 1. Chuỗi đúng */}
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <Flame className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
             </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
-                {isVi ? 'Điểm số' : 'Score'}
-              </span>
-              <span className="text-lg font-black text-white font-mono">{score}</span>
-            </div>
-          </div>
-
-          {/* Current Streak */}
-          <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
-              <Flame className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
                 {isVi ? 'Chuỗi đúng' : 'Streak'}
               </span>
-              <span className="text-lg font-black text-rose-400 font-mono">
-                {streak} {streak >= 3 && '🔥'}
-              </span>
+              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+                <span className="text-base sm:text-xl font-black text-emerald-400 font-mono">
+                  {streak} {streak >= 3 && '🔥'}
+                </span>
+                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                  ({isVi ? `Đúng: ${correctCount}` : `Correct: ${correctCount}`})
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Best Streak */}
-          <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-              <Award className="w-4 h-4" />
+          {/* 2. Chuỗi sai */}
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+              <AlertCircle className="w-4 h-4 text-rose-400" />
             </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
-                {isVi ? 'Kỷ lục chuỗi' : 'Best Streak'}
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
+                {isVi ? 'Chuỗi sai' : 'Wrong Streak'}
               </span>
-              <span className="text-lg font-black text-emerald-400 font-mono">{bestStreak}</span>
+              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+                <span className="text-base sm:text-xl font-black text-rose-400 font-mono">
+                  {wrongStreak}
+                </span>
+                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                  ({isVi ? `Sai: ${incorrectCount}` : `Wrong: ${incorrectCount}`})
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Accuracy */}
-          <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
+          {/* 3. Độ chính xác */}
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
+              <CheckCircle2 className="w-4 h-4 text-sky-400" />
             </div>
-            <div>
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
                 {isVi ? 'Độ chính xác' : 'Accuracy'}
               </span>
-              <span className="text-lg font-black text-sky-400 font-mono">
-                {totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0}%
-              </span>
+              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+                <span className="text-base sm:text-xl font-black text-sky-400 font-mono">
+                  {totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0}%
+                </span>
+                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                  ({correctCount}/{totalAttempts})
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Central Problem & Dynamic Countdown Timer Card */}
+        {/* Central Problem & Dynamic Countdown Timer Card OR Completed View */}
         <div className="max-w-xl mx-auto space-y-4">
-          <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-inner relative overflow-hidden">
+          {gameStatus === 'completed' ? (
+            <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400 shadow-lg shadow-amber-500/20">
+                <Trophy className="w-8 h-8 text-amber-400" />
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1">
+                {isVi ? 'Hoàn thành thử thách 10 phép nhân!' : '10-Problem Challenge Completed!'}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mb-6">
+                {isVi
+                  ? `Chuyên đề: ${currentTopicMeta.labelVi} • Thời gian: ${timeLimit}s / phép tính`
+                  : `Topic: ${currentTopicMeta.labelEn} • Time limit: ${timeLimit}s / problem`}
+              </p>
+
+              {/* Thống kê 3 chỉ số Đúng, Sai, % Độ chính xác */}
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-4 max-w-lg mx-auto mb-6">
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+                  <span className="text-[10px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+                    {isVi ? 'Đúng' : 'Correct'}
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-emerald-300 font-mono">
+                    {correctCount}
+                  </span>
+                  <span className="text-[11px] text-emerald-500/80 block mt-0.5">
+                    / {TOTAL_QUESTIONS}
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30">
+                  <span className="text-[10px] sm:text-xs font-bold text-rose-400 uppercase tracking-wider block mb-1">
+                    {isVi ? 'Sai' : 'Incorrect'}
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-rose-300 font-mono">
+                    {incorrectCount}
+                  </span>
+                  <span className="text-[11px] text-rose-500/80 block mt-0.5">
+                    / {TOTAL_QUESTIONS}
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/30">
+                  <span className="text-[10px] sm:text-xs font-bold text-sky-400 uppercase tracking-wider block mb-1">
+                    {isVi ? '% Độ chính xác' : 'Accuracy'}
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-sky-300 font-mono">
+                    {Math.round((correctCount / TOTAL_QUESTIONS) * 100)}%
+                  </span>
+                  <span className="text-[11px] text-sky-500/80 block mt-0.5">
+                    {correctCount >= 8 ? (isVi ? 'Xuất sắc! 🌟' : 'Great! 🌟') : (isVi ? 'Cần luyện thêm' : 'Keep practicing')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Chi tiết từng câu trong 10 câu */}
+              {roundHistory.length > 0 && (
+                <div className="max-w-lg mx-auto mb-6 bg-slate-900/60 rounded-2xl border border-slate-800/80 p-3 sm:p-4 text-left">
+                  <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-800 text-xs font-bold text-slate-400">
+                    <span>{isVi ? 'Chi tiết 10 phép nhân' : 'Problem Breakdown'}</span>
+                    <span>{isVi ? 'Kết quả' : 'Result'}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {roundHistory.map((item, i) => (
+                      <div
+                        key={i}
+                        className={`p-2 rounded-xl border flex items-center justify-between ${
+                          item.isCorrect
+                            ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300'
+                            : 'bg-rose-500/5 border-rose-500/20 text-rose-300'
+                        }`}
+                      >
+                        <span className="font-mono font-medium">
+                          #{item.qIndex}: {item.a} × {item.b}
+                        </span>
+                        <span className="font-bold font-mono">
+                          {item.isCorrect ? '✓' : `✗ (${item.a * item.b})`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Nút hành động */}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => startChallengeSession()}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all cursor-pointer active:scale-95"
+                >
+                  <Play className="w-4 h-4 fill-slate-950" />
+                  <span>{isVi ? 'Bắt đầu thử thách mới (10 câu)' : 'Start New Challenge (10 Problems)'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopCurrentSpeech();
+                    clearCountdown();
+                    onBack();
+                  }}
+                  className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 font-semibold text-xs sm:text-sm transition-all cursor-pointer active:scale-95"
+                >
+                  <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Practice'}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-inner relative overflow-hidden">
             {/* Top Timer Bar */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
               <div
@@ -757,30 +950,49 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               />
             </div>
 
-            {/* Topic Badge */}
-            <div className="flex items-center justify-center mb-1.5 mt-1">
+            {/* Badges: Topic, Question Progress 10/10, and Countdown */}
+            <div className="flex items-center justify-center gap-2 flex-wrap mb-2 mt-1">
               <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
                 {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
               </span>
-            </div>
-
-            {/* Countdown Badge */}
-            <div className="flex items-center justify-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-cyan-300 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25">
+                <span>{isVi ? `Câu ${currentQuestionIndex}/${TOTAL_QUESTIONS}` : `Problem ${currentQuestionIndex}/${TOTAL_QUESTIONS}`}</span>
+              </span>
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold border transition-colors ${
                   isUrgent && gameStatus === 'running'
                     ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
                     : 'bg-slate-900 text-slate-300 border-slate-800'
                 }`}
               >
-                <Timer className={`w-3.5 h-3.5 ${isUrgent && gameStatus === 'running' ? 'text-rose-400' : 'text-amber-400'}`} />
-                <span className="font-mono text-sm">
+                <Timer className={`w-3 h-3 ${isUrgent && gameStatus === 'running' ? 'text-rose-400' : 'text-amber-400'}`} />
+                <span className="font-mono">
                   {gameStatus === 'idle' ? `${timeLimit}s` : `${timeLeft}s`}
                 </span>
-                <span className="text-slate-500 font-normal">
-                  ({timeLimit === 5 ? (isVi ? 'Siêu tốc' : 'Extreme') : (isVi ? 'Tốc độ' : 'Speed')})
-                </span>
               </span>
+            </div>
+
+            {/* 10 Phép nhân mini-tracker dots */}
+            <div className="grid grid-cols-10 gap-1 sm:gap-1.5 max-w-xs mx-auto mb-3 px-2">
+              {Array.from({ length: TOTAL_QUESTIONS }).map((_, idx) => {
+                const qNum = idx + 1;
+                const record = roundHistory[idx];
+                let bg = 'bg-slate-800 border-slate-700/60';
+                if (record) {
+                  bg = record.isCorrect
+                    ? 'bg-emerald-500 border-emerald-400 shadow-xs shadow-emerald-500/40'
+                    : 'bg-rose-500 border-rose-400 shadow-xs shadow-rose-500/40';
+                } else if (qNum === currentQuestionIndex && (gameStatus === 'running' || gameStatus === 'answered')) {
+                  bg = 'bg-amber-400 border-amber-300 animate-pulse';
+                }
+                return (
+                  <div
+                    key={idx}
+                    className={`h-1.5 rounded-full border transition-all duration-300 ${bg}`}
+                    title={isVi ? `Câu ${qNum}` : `Problem ${qNum}`}
+                  />
+                );
+              })}
             </div>
 
             {/* Math Formula Display (Nhân 2 chữ số tổng quát) with Speaker Button & Speed Selector */}
@@ -999,21 +1211,33 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               {gameStatus === 'idle' ? (
                 <button
                   type="button"
-                  onClick={() => startNextRound()}
+                  onClick={() => startChallengeSession()}
                   className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95 text-xs sm:text-sm"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
-                  <span>{isVi ? `Bắt đầu thử thách (${timeLimit}s)` : `Start Challenge (${timeLimit}s)`}</span>
+                  <span>{isVi ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} phép nhân)` : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
                 </button>
               ) : gameStatus === 'answered' ? (
-                <button
-                  type="button"
-                  onClick={() => startNextRound()}
-                  className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
-                >
-                  <span>{isVi ? 'Câu tiếp theo' : 'Next Problem'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                currentQuestionIndex < TOTAL_QUESTIONS ? (
+                  <button
+                    type="button"
+                    onClick={goToNextQuestion}
+                    className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                  >
+                    <span>{isVi ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})` : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})`}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setGameStatus('completed')}
+                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                  >
+                    <Trophy className="w-4 h-4" />
+                    <span>{isVi ? 'Xem kết quả thử thách' : 'View Results'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )
               ) : (
                 <button
                   type="submit"
@@ -1060,9 +1284,11 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               </button>
             </div>
           </form>
-        </div>
-      </div>
+        </>
+      )}
     </div>
+  </div>
+</div>
   );
 };
 

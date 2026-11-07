@@ -916,16 +916,31 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               )}
             </div>
 
-            {/* Bàn phím số từ 0 đến 9 nhập kết quả nhanh trong Thử thách */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-sm mx-auto w-full">
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+            {/* Bàn phím số từ 0 đến 9 nhập kết quả nhanh trong Thử thách - 2 hàng 6 cột nhỏ gọn */}
+            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md mx-auto w-full">
+              <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
+                {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
+                {[1, 2, 3, 4, 5, 6].map((digit) => (
                   <button
                     key={digit}
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={gameStatus !== 'running'}
-                    className="h-11 sm:h-12 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-xl sm:text-2xl font-black border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    aria-label={`Digit ${digit}`}
+                  >
+                    {digit}
+                  </button>
+                ))}
+
+                {/* Hàng 2: 7, 8, 9, 0, Xóa, Backspace */}
+                {[7, 8, 9, 0].map((digit) => (
+                  <button
+                    key={digit}
+                    type="button"
+                    onClick={() => handleKeypadDigit(String(digit))}
+                    disabled={gameStatus !== 'running'}
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -937,21 +952,10 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
                   type="button"
                   onClick={handleKeypadClear}
                   disabled={gameStatus !== 'running' || !userAnswer}
-                  className="h-11 sm:h-12 rounded-xl bg-slate-900/60 hover:bg-rose-500/20 active:bg-rose-500 active:text-white text-slate-400 hover:text-rose-300 font-semibold text-xs sm:text-sm border border-slate-800 hover:border-rose-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-rose-500/20 active:bg-rose-500 active:text-white text-slate-400 hover:text-rose-300 font-semibold text-xs sm:text-sm border border-slate-800 hover:border-rose-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
                   title={isVi ? 'Xóa toàn bộ' : 'Clear all'}
                 >
                   {isVi ? 'Xóa' : 'Clear'}
-                </button>
-
-                {/* Phím 0 */}
-                <button
-                  type="button"
-                  onClick={() => handleKeypadDigit('0')}
-                  disabled={gameStatus !== 'running'}
-                  className="h-11 sm:h-12 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-xl sm:text-2xl font-black border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
-                  aria-label="Digit 0"
-                >
-                  0
                 </button>
 
                 {/* Xóa 1 số lùi */}
@@ -959,11 +963,11 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
                   type="button"
                   onClick={handleKeypadBackspace}
                   disabled={gameStatus !== 'running' || !userAnswer}
-                  className="h-11 sm:h-12 rounded-xl bg-slate-900/60 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
                   title={isVi ? 'Xóa 1 số' : 'Backspace'}
                   aria-label="Backspace"
                 >
-                  <Delete className="w-5 h-5 text-slate-400 hover:text-amber-300" />
+                  <Delete className="w-4 h-4 text-slate-400 hover:text-amber-300" />
                 </button>
               </div>
             </div>

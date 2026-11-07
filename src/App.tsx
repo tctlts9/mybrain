@@ -101,7 +101,8 @@ function DashboardApp() {
               <Mail className="w-3.5 h-3.5 text-sky-400" />
               <span>{t.email}</span>
             </button>
-
+            {/* Ẩn tạm thời nút Buy Coffee */}
+            {/*
             <button
               onClick={() => setIsCoffeeModalOpen(true)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 hover:text-amber-200 transition-all text-xs font-semibold cursor-pointer shadow-sm shadow-amber-500/10 active:scale-95"
@@ -109,6 +110,7 @@ function DashboardApp() {
               <Coffee className="w-3.5 h-3.5 text-amber-400" />
               <span>{t.buyCoffee}</span>
             </button>
+            */}
           </div>
         </div>
       </footer>

@@ -613,7 +613,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
               >
                 <BookOpen className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
+                <span>{isVi ? 'Hướng Dẫn' : 'Guide'}</span>
               </button>
             )}
 
@@ -626,7 +626,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 title={isVi ? 'Thử thách tính nhẩm trong 5s hoặc 10s' : 'Mental Math Challenge in 5s or 10s'}
               >
                 <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
+                <span>{isVi ? 'Thử Thách' : 'Challenge'}</span>
               </button>
             )}
 
@@ -746,7 +746,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
                   <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{isVi ? 'Tốc độ loa:' : 'Voice Speed:'}</span>
+                  <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
                   {[1.25, 1.5, 1.75].map((s) => (
@@ -949,7 +949,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                   type="submit"
                   className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Kiểm tra kết quả' : 'Check Answer'}</span>
+                  <span>{isVi ? 'Kiểm tra KQ' : 'Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}

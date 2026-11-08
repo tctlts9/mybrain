@@ -1009,7 +1009,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
                   <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{isVi ? 'Tốc độ loa:' : 'Voice Speed:'}</span>
+                  <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
                   {[1.25, 1.5, 1.75].map((s) => (

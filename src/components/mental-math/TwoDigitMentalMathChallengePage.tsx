@@ -1071,7 +1071,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
-                type="number"
+                type="None"
                 inputMode="None"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}

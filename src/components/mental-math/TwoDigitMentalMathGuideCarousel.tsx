@@ -2,52 +2,36 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, X, Brain, Sparkles, ZoomIn } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-import step1Img from '../../assets/images/guide_step1_1793536046845.jpg';
-import step2Img from '../../assets/images/guide_step2_1793536061230.jpg';
-import step3Img from '../../assets/images/guide_step3_1793536073790.jpg';
-import step4Img from '../../assets/images/guide_step4_1793536087412.jpg';
+import step1Img from '../../assets/images/TwoDigitGuide1.jpg';
+import step2Img from '../../assets/images/TwoDigitGuide2.jpg';
+import step3Img from '../../assets/images/TwoDigitGuide3.jpg';
+import step4Img from '../../assets/images/TwoDigitGuide4.jpg';
 
 interface Slide {
   id: number;
   image: string;
-  titleVi: string;
-  titleEn: string;
-  badgeVi: string;
-  badgeEn: string;
+  titleVi?: string;
+  titleEn?: string;
+  badgeVi?: string;
+  badgeEn?: string;
 }
 
 const slides: Slide[] = [
   {
     id: 1,
     image: step1Img,
-    titleVi: 'Bước 1: Tách thừa số & Nhân hàng chục (86 × 60 = 5,160)',
-    titleEn: 'Step 1: Splitting & Tens Multiplication (86 × 60 = 5,160)',
-    badgeVi: 'Bước 1 / 4 • Tách số',
-    badgeEn: 'Step 1 / 4 • Split Tens',
   },
   {
     id: 2,
     image: step2Img,
-    titleVi: 'Bước 2: Tính tích phần hàng đơn vị (86 × 8 = 688)',
-    titleEn: 'Step 2: Units Multiplication (86 × 8 = 688)',
-    badgeVi: 'Bước 2 / 4 • Hàng đơn vị',
-    badgeEn: 'Step 2 / 4 • Split Ones',
   },
   {
     id: 3,
     image: step3Img,
-    titleVi: 'Bước 3: Cộng dồn hai tích riêng phần (5,160 + 688 = 5,848)',
-    titleEn: 'Step 3: Combine Partial Products (5,160 + 688 = 5,848)',
-    badgeVi: 'Bước 3 / 4 • Cộng dồn',
-    badgeEn: 'Step 3 / 4 • Sum Total',
   },
   {
     id: 4,
     image: step4Img,
-    titleVi: 'Phương pháp 2: Nhân chéo Vedic siêu tốc (86 × 68 = 5,848)',
-    titleEn: 'Method 2: Vedic Cross Multiplication (86 × 68 = 5,848)',
-    badgeVi: 'Phương pháp 2 • Nhân chéo',
-    badgeEn: 'Method 2 • Cross Multiply',
   },
 ];
 
@@ -188,7 +172,7 @@ export const TwoDigitMentalMathGuideCarousel: React.FC = () => {
               <div className="carousel-slide-media relative flex items-center justify-center overflow-hidden bg-[#061830]">
                 <img
                   src={slide.image}
-                  alt={isVi ? slide.titleVi : slide.titleEn}
+                  alt={isVi ? (slide.titleVi || 'Hướng dẫn tính nhẩm') : (slide.titleEn || 'Mental math guide')}
                   className="w-full h-full object-contain cursor-zoom-in select-none transition-transform duration-500 group-hover:scale-[1.01]"
                   onClick={() => setZoomImage(slide.image)}
                   draggable={false}
@@ -208,10 +192,12 @@ export const TwoDigitMentalMathGuideCarousel: React.FC = () => {
                   <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
 
-                {/* Top-Left Step Badge */}
-                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950/85 border border-amber-500/30 text-[10px] sm:text-xs font-semibold text-amber-300 backdrop-blur-md shadow-sm">
-                  {isVi ? slide.badgeVi : slide.badgeEn}
-                </div>
+                {/* Top-Left Step Badge (rendered only if badge text exists) */}
+                {(isVi ? slide.badgeVi : slide.badgeEn) && (
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950/85 border border-amber-500/30 text-[10px] sm:text-xs font-semibold text-amber-300 backdrop-blur-md shadow-sm">
+                    {isVi ? slide.badgeVi : slide.badgeEn}
+                  </div>
+                )}
 
                 {/* Tap to zoom hint (visible on mobile / small devices) */}
                 <div

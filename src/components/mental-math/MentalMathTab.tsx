@@ -3,7 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { TwoDigitMultiplicationPage } from './TwoDigitMultiplicationPage';
 import { TwoDigitMentalMathChallengePage } from './TwoDigitMentalMathChallengePage';
 import { TwoDigitMentalMathVisualGuidePage } from './TwoDigitMentalMathVisualGuidePage';
-import cardBg from '../../assets/images/mental_math_bg_1793487233435.jpg';
+import cardBg from '../../assets/images/TwoDigitBg.jpg';
 
 type MentalMathPage = 'card' | 'two-digit-page' | 'challenge-page' | 'visual-guide-page';
 

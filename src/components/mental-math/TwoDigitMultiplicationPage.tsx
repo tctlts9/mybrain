@@ -813,7 +813,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
-                type="none"
+                type="text"
                 inputMode="none"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}

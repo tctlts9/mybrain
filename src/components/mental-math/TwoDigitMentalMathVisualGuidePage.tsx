@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, BookOpen, Brain, Zap, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Brain, Zap, Sparkles } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { TwoDigitMentalMathGuideCarousel } from './TwoDigitMentalMathGuideCarousel';
 
@@ -14,45 +14,6 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
 }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
-
-  const stepsSummary = [
-    {
-      step: 1,
-      title: isVi ? 'Bước 1: Tách hàng chục' : 'Step 1: Split Tens',
-      desc: isVi
-        ? 'Tách số thứ hai thành hàng chục tròn trịa (VD: 68 -> 60) rồi nhân nhẩm: 86 × 60 = 5,160.'
-        : 'Split the second number into rounded tens (e.g. 68 -> 60) and multiply: 86 × 60 = 5,160.',
-      formula: '86 × 60 = 5,160',
-      color: 'border-amber-500/30 text-amber-400 bg-amber-500/10',
-    },
-    {
-      step: 2,
-      title: isVi ? 'Bước 2: Nhân hàng đơn vị' : 'Step 2: Multiply Units',
-      desc: isVi
-        ? 'Lấy số ban đầu nhân với hàng đơn vị còn lại (VD: 8): 86 × 8 = 688.'
-        : 'Multiply the initial number by the remaining units (e.g. 8): 86 × 8 = 688.',
-      formula: '86 × 8 = 688',
-      color: 'border-cyan-500/30 text-cyan-400 bg-cyan-500/10',
-    },
-    {
-      step: 3,
-      title: isVi ? 'Bước 3: Cộng dồn tích' : 'Step 3: Combine Products',
-      desc: isVi
-        ? 'Cộng hai kết quả riêng phần lại để ra đáp số cuối cùng: 5,160 + 688 = 5,848.'
-        : 'Add both partial products together for the final answer: 5,160 + 688 = 5,848.',
-      formula: '5,160 + 688 = 5,848',
-      color: 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10',
-    },
-    {
-      step: 4,
-      title: isVi ? 'Cách 2: Nhân chéo Vedic' : 'Method 2: Vedic Cross',
-      desc: isVi
-        ? 'Nhân hàng đơn vị (6×8=48), nhân chéo cộng dồn (8×8 + 6×6 = 100), nhân hàng chục (8×6=48).'
-        : 'Units multiply (6×8=48), cross-multiply and sum (8×8 + 6×6 = 100), tens multiply (8×6=48).',
-      formula: '86 × 68 = 5,848',
-      color: 'border-purple-500/30 text-purple-400 bg-purple-500/10',
-    },
-  ];
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-5 animate-in fade-in duration-300 pb-12">
@@ -122,39 +83,6 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
 
       {/* Main Visual Guide Carousel Component */}
       <TwoDigitMentalMathGuideCarousel />
-
-      {/* 4 Step Summary Breakdown Cards */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>{isVi ? 'Tóm tắt các bước tính nhẩm' : 'Method Summary & Key Steps'}</span>
-          </h2>
-          <span className="text-xs text-slate-400">
-            {isVi ? 'Ví dụ mẫu: 86 × 68' : 'Example: 86 × 68'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {stepsSummary.map((item) => (
-            <div
-              key={item.step}
-              className="rounded-2xl border border-slate-800/90 bg-slate-900/70 p-4 space-y-2.5 hover:border-slate-700 transition-all shadow-md relative overflow-hidden"
-            >
-              <div className="flex items-center justify-between">
-                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${item.color}`}>
-                  Step {item.step}
-                </span>
-                <span className="text-xs font-mono font-bold text-amber-300">
-                  {item.formula}
-                </span>
-              </div>
-              <h3 className="font-bold text-white text-xs sm:text-sm">{item.title}</h3>
-              <p className="text-[11px] text-slate-400 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Bottom Action Footer */}
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl border border-slate-800 bg-slate-900/60">

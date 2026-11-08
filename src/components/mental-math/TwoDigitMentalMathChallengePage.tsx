@@ -178,16 +178,16 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState<boolean>(false);
 
-  // Tốc độ phát loa câu hỏi (1x, 1.25x, 1.5x, 1.75x)
+  // Tốc độ phát loa câu hỏi (1.25x, 1.5x, 1.75x)
   const [questionSpeed, setQuestionSpeed] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('mental_math_question_speed');
       if (saved) {
         const parsed = parseFloat(saved);
-        if ([1.0, 1.25, 1.5, 1.75].includes(parsed)) return parsed;
+        if ([1.25, 1.5, 1.75].includes(parsed)) return parsed;
       }
     }
-    return 1.0;
+    return 1.25;
   });
 
   const handleSetSpeed = (newSpeed: number) => {
@@ -761,8 +761,8 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
           ))}
         </div>
 
-        {/* Real-time Stats Scoreboard Row: Chỉ 3 Button Chuỗi đúng, Chuỗi sai, Độ chính xác */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {/* Real-time Stats Scoreboard Row: Chuỗi đúng & Chuỗi sai */}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
           {/* 1. Chuỗi đúng */}
           <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
@@ -802,27 +802,8 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               </div>
             </div>
           </div>
-
-          {/* 3. Độ chính xác */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-sky-400" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
-                {isVi ? 'Độ chính xác' : 'Accuracy'}
-              </span>
-              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
-                <span className="text-base sm:text-xl font-black text-sky-400 font-mono">
-                  {totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0}%
-                </span>
-                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-                  ({correctCount}/{totalAttempts})
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
+
 
         {/* Central Problem & Dynamic Countdown Timer Card OR Completed View */}
         <div className="max-w-xl mx-auto space-y-4">
@@ -1024,14 +1005,14 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
                 </button>
               </div>
 
-              {/* Tùy chỉnh tốc độ loa phát câu hỏi (1x, 1.25x, 1.5x, 1.75x) */}
+              {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
                   <Gauge className="w-3.5 h-3.5 text-amber-400" />
                   <span>{isVi ? 'Tốc độ loa:' : 'Voice Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
-                  {[1.0, 1.25, 1.5, 1.75].map((s) => (
+                  {[1.25, 1.5, 1.75].map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -1043,7 +1024,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
                       }`}
                       title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
                     >
-                      {s === 1.0 ? '1x' : `${s}x`}
+                      {`${s}x`}
                     </button>
                   ))}
                 </div>

@@ -664,10 +664,10 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                 {isSpeakerEnabled
                   ? isVi
                     ? 'Kết quả: Bật'
-                    : 'Result: ON'
+                    : 'Result:ON'
                   : isVi
                   ? 'Kết quả: Tắt'
-                  : 'Result: OFF'}
+                  : 'Result:OFF'}
               </span>
             </button>
           </div>
@@ -814,7 +814,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
               <input
                 ref={inputRef}
                 type="number"
-                inputMode="numeric"
+                inputMode="none"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
                 placeholder={

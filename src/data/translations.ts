@@ -23,6 +23,12 @@ export interface Translations {
   cardMultiply2Title: string;
   cardMultiply2Desc: string;
   cardMultiply2Tag: string;
+  cardMultiply11Title: string;
+  cardMultiply11Desc: string;
+  cardMultiply11Tag: string;
+  cardMultiply1DigitTitle: string;
+  cardMultiply1DigitDesc: string;
+  cardMultiply1DigitTag: string;
   cardMultiply3Title: string;
   cardMultiply3Desc: string;
   cardMultiply3Tag: string;
@@ -112,6 +118,12 @@ export const translations: Record<Language, Translations> = {
     cardMultiply2Title: 'Phép nhân 2 chữ số',
     cardMultiply2Desc: 'Rèn luyện phản xạ tính nhẩm tích 2 chữ số với 2 chữ số nhanh chóng, chính xác không cần dùng giấy bút hay máy tính.',
     cardMultiply2Tag: 'Cơ bản & Nâng cao',
+    cardMultiply11Title: 'Nhân với số 11',
+    cardMultiply11Desc: 'Bí quyết tính nhẩm nhân nhanh với số 11 từ 2 chữ số đến nhiều chữ số siêu tốc.',
+    cardMultiply11Tag: 'Bí quyết siêu tốc',
+    cardMultiply1DigitTitle: 'Nhân với 1 chữ số',
+    cardMultiply1DigitDesc: 'Bí quyết tính nhẩm nhân nhanh số có nhiều chữ số với 1 chữ số (từ 2 đến 9) siêu tốc.',
+    cardMultiply1DigitTag: 'Nền tảng & Phản xạ',
     cardMultiply3Title: 'Phép nhân 3 số',
     cardMultiply3Desc: 'Thử thách nâng cao bộ nhớ làm việc và tốc độ tư duy với kỹ thuật tính nhẩm tích 3 số siêu trí tuệ.',
     cardMultiply3Tag: 'Siêu trí tuệ',
@@ -128,7 +140,7 @@ export const translations: Record<Language, Translations> = {
     // Footer & Common Actions
     copyright: 'Bản quyền © 2026 MY BRAIN ACADEMY',
     footerQuoteLine1: 'Chuyên môn không bằng kỹ năng',
-    footerQuoteLine2: 'Tôi hy vọng các em có thể xây dựng cho mình kỹ năng cần thiết nhất',
+    footerQuoteLine2: 'Hy vọng các em có thể xây dựng cho mình kỹ năng cần thiết nhất',
     installApp: 'Cài Đặt App',
     youtube: 'Youtube',
     email: 'Email',
@@ -199,6 +211,12 @@ export const translations: Record<Language, Translations> = {
     cardMultiply2Title: '2-Digit Multiplication',
     cardMultiply2Desc: 'Master mental calculation reflexes for multiplying 2-digit numbers with speed and precision without a calculator.',
     cardMultiply2Tag: 'Core & Intermediate',
+    cardMultiply11Title: 'Multiply by 11',
+    cardMultiply11Desc: 'Fast mental math shortcut for multiplying 2-digit and multi-digit numbers by 11.',
+    cardMultiply11Tag: 'Fast Shortcut',
+    cardMultiply1DigitTitle: 'Multiply by 1-Digit',
+    cardMultiply1DigitDesc: 'Mental math mastery for multiplying multi-digit numbers by a single digit (2 to 9) with speed and precision.',
+    cardMultiply1DigitTag: 'Core Foundation',
     cardMultiply3Title: '3-Number Multiplication',
     cardMultiply3Desc: 'Push your working memory and mental agility to the limit with advanced 3-number multiplication mastery.',
     cardMultiply3Tag: 'Advanced Mastery',

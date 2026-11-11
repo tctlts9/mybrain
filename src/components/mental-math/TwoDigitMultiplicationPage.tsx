@@ -33,6 +33,7 @@ interface TwoDigitMultiplicationPageProps {
   onBack: () => void;
   onOpenChallenge?: (topic?: TrainingTopic) => void;
   onOpenVisualGuide?: () => void;
+  initialTopic?: TrainingTopic;
 }
 
 interface Question {
@@ -111,12 +112,13 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   onBack,
   onOpenChallenge,
   onOpenVisualGuide,
+  initialTopic,
 }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
 
   // Training Mode State
-  const [selectedTopic, setSelectedTopic] = useState<TrainingTopic>('multiply11');
+  const [selectedTopic, setSelectedTopic] = useState<TrainingTopic>(initialTopic || 'multiply11');
   const [question, setQuestion] = useState<Question>({ a: 35, b: 11, answer: 385 });
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');

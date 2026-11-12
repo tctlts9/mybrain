@@ -164,7 +164,7 @@ interface Question {
   answer: number;
 }
 
-type TimeLimit = 5 | 10;
+type TimeLimit = 3 | 5 | 10;
 type GameStatus = 'idle' | 'running' | 'paused' | 'answered' | 'completed';
 
 const TOTAL_QUESTIONS = 10;
@@ -442,7 +442,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
           return next;
         });
         setWrongStreak(0);
-        const earnedPoints = timeLimit === 5 ? 20 : 10;
+        const earnedPoints = timeLimit === 3 ? 30 : timeLimit === 5 ? 20 : 10;
         setScore((prev) => prev + earnedPoints);
         announceResult(true, questionRef.current.answer);
       } else {
@@ -695,9 +695,9 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
 
   const timerColor =
-    timeLeft <= 2
+    timeLeft <= (timeLimit === 3 ? 1 : 2)
       ? 'text-rose-500 border-rose-500/40 bg-rose-500/10 animate-pulse'
-      : timeLeft <= 4
+      : timeLeft <= (timeLimit === 3 ? 2 : 4)
       ? 'text-amber-400 border-amber-500/40 bg-amber-500/10'
       : 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10';
 
@@ -782,13 +782,13 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
             </div>
           </div>
 
-          {/* Time Selector: 5s hoặc 10s */}
+          {/* Time Selector: 3s, 5s hoặc 10s */}
           <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
             <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
               <Clock className="w-3 h-3 text-amber-400" />
               <span>{isVi ? 'Thời gian:' : 'Timer:'}</span>
             </span>
-            {[5, 10].map((t) => (
+            {[3, 5, 10].map((t) => (
               <button
                 key={t}
                 type="button"

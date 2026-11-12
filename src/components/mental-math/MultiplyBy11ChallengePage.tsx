@@ -170,7 +170,7 @@ interface Question {
   answer: number;
 }
 
-type TimeLimit = 5 | 10;
+type TimeLimit = 3 | 5 | 10;
 type GameStatus = 'idle' | 'running' | 'paused' | 'answered' | 'completed';
 
 const TOTAL_QUESTIONS = 10;
@@ -420,7 +420,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
           return next;
         });
         setWrongStreak(0);
-        const pointsAwarded = timeLimit === 5 ? 20 : 10;
+        const pointsAwarded = timeLimit === 3 ? 30 : timeLimit === 5 ? 20 : 10;
         setScore((prev) => prev + pointsAwarded);
         announceResult(true, questionRef.current.answer);
       } else {
@@ -706,7 +706,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
   // Timer Progress Calculation
   const timerPercentage = Math.max(0, Math.min(100, (timeLeft / timeLimit) * 100));
-  const isUrgent = timeLeft <= (timeLimit === 5 ? 2 : 3);
+  const isUrgent = timeLeft <= (timeLimit === 3 ? 1 : timeLimit === 5 ? 2 : 3);
 
   const currentTopicMeta =
     MULTIPLY_11_TOPICS.find((t) => t.id === selectedTopic) ||
@@ -787,37 +787,29 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
             </div>
           </div>
 
-          {/* Right Controls: 5s/10s selector & Speaker Toggle */}
+          {/* Right Controls: 3s/5s/10s selector & Speaker Toggle */}
           <div className="flex items-center gap-2 text-xs">
-            {/* Mode Selector (5s vs 10s) */}
-            <div className="flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800">
-              <button
-                type="button"
-                onClick={() => handleSelectTimeLimit(5)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  timeLimit === 5
-                    ? 'bg-rose-500 text-white shadow-sm shadow-rose-500/40 ring-1 ring-rose-400'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title={isVi ? 'Thử thách siêu tốc 5 giây' : '5-second extreme mode'}
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>5s</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectTimeLimit(10)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  timeLimit === 10
-                    ? 'bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/30 ring-1 ring-amber-400'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title={isVi ? 'Thử thách tiêu chuẩn 10 giây' : '10-second standard mode'}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                <span>10s</span>
-              </button>
+            {/* Mode Selector (3s, 5s, 10s) */}
+            <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+              <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-400" />
+                <span>{isVi ? 'Thời gian:' : 'Timer:'}</span>
+              </span>
+              {[3, 5, 10].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => handleSelectTimeLimit(t as TimeLimit)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    timeLimit === t
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title={isVi ? `Thử thách ${t} giây` : `${t}-second mode`}
+                >
+                  {t}s
+                </button>
+              ))}
             </div>
 
             {/* Sound Toggle */}
@@ -1041,6 +1033,8 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                     className={`h-full transition-all duration-200 ease-linear ${
                       isUrgent
                         ? 'bg-rose-500 shadow-sm shadow-rose-500/50'
+                        : timeLimit === 3
+                        ? 'bg-purple-400'
                         : timeLimit === 5
                         ? 'bg-amber-400'
                         : 'bg-emerald-400'

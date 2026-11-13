@@ -634,7 +634,12 @@ export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | nu
   }
 }
 
-export async function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => void) {
+export async function speakText(
+  text: string,
+  lang: 'vi' | 'en',
+  onEnd?: () => void,
+  customRate?: number
+) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     if (onEnd) onEnd();
     return;
@@ -650,11 +655,11 @@ export async function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => v
     const femaleVoice = getBestFemaleVoice(lang);
     if (femaleVoice) {
       utterance.voice = femaleVoice;
-      utterance.rate = 0.95;
+      utterance.rate = customRate ?? 0.95;
       utterance.pitch = 1.15;
     } else {
       // Pitch shift to female register if only male voice is present on OS
-      utterance.rate = 1.0;
+      utterance.rate = customRate ?? 1.0;
       utterance.pitch = 1.5;
     }
     utterance.volume = 1.0;
@@ -672,6 +677,28 @@ export async function speakText(text: string, lang: 'vi' | 'en', onEnd?: () => v
     console.warn('Speech synthesis error:', err);
     if (onEnd) onEnd();
   }
+}
+
+export async function speakSchulteNumber(
+  num: number,
+  lang: 'vi' | 'en',
+  onEnd?: () => void
+) {
+  if (typeof window === 'undefined') {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  if ('speechSynthesis' in window) {
+    await speakText(String(num), lang, onEnd, 1.2);
+    return;
+  }
+
+  const digits = String(num).split('');
+  const urls = digits.map((d) =>
+    lang === 'vi' ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`
+  );
+  playAudioSequenceElements(urls, onEnd, 1.25, true);
 }
 
 // Play instant audio chime feedback through speaker

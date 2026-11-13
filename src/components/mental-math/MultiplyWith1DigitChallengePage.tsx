@@ -277,6 +277,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
   const recognitionRef = useRef<any>(null);
   const questionRef = useRef<Question>(question);
   questionRef.current = question;
+  const autoNextTimerRef = useRef<any>(null);
 
   // Generate random problem based on Selected Topic for Multiply by 1-Digit
   const generateProblemForTopic = useCallback(
@@ -547,6 +548,10 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
 
   // Load next question or finish round
   const goToNextQuestion = useCallback(() => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     stopCurrentSpeech();
     stopListening();
 
@@ -576,9 +581,37 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
     stopListening,
   ]);
 
+  // Tự động chuyển câu hỏi sau 3 giây khi có kết quả (chính xác / chưa chính xác / hết giờ)
+  useEffect(() => {
+    if (gameStatus === 'answered') {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+      }
+      autoNextTimerRef.current = setTimeout(() => {
+        goToNextQuestion();
+      }, 3000);
+    } else {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
+    };
+  }, [gameStatus, goToNextQuestion]);
+
   // Start a new Challenge Round (10 Questions)
   const startNewChallenge = useCallback(
     (topicOverride?: Multiply1DigitTopic) => {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
       stopCurrentSpeech();
       stopListening();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -611,12 +644,20 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
 
   // Switch topic
   const handleSelectTopic = (newTopic: Multiply1DigitTopic) => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     setSelectedTopic(newTopic);
     startNewChallenge(newTopic);
   };
 
-  // Switch Time Limit (5s / 10s)
+  // Switch Time Limit (3s / 5s / 10s)
   const handleSelectTimeLimit = (limit: TimeLimit) => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     setTimeLimit(limit);
     if (gameStatus === 'running') {
       setTimeLeft(limit);
@@ -637,6 +678,9 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
   useEffect(() => {
     startNewChallenge(initialTopic);
     return () => {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+      }
       stopCurrentSpeech();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (recognitionRef.current) {
@@ -1205,11 +1249,11 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
                     <span>
                       {currentQuestionIndex >= TOTAL_QUESTIONS
                         ? isVi
-                          ? 'Xem Tổng Kết'
-                          : 'View Results'
+                          ? 'Xem Tổng Kết (tự chuyển sau 3s)'
+                          : 'View Results (auto in 3s)'
                         : isVi
-                        ? 'Câu tiếp theo'
-                        : 'Next Problem'}
+                        ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - tự chuyển sau 3s`
+                        : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - auto in 3s`}
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>

@@ -283,6 +283,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
   const recognitionRef = useRef<any>(null);
   const questionRef = useRef<Question>(question);
   questionRef.current = question;
+  const autoNextTimerRef = useRef<any>(null);
 
   // Generate random problem based on Selected Topic for Multiply by 11
   const generateProblemForTopic = useCallback(
@@ -492,6 +493,10 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
   // Bắt đầu đợt thử thách 10 phép nhân
   const startChallengeSession = useCallback(
     (explicitTimeLimit?: TimeLimit, explicitTopic?: Multiply11Topic) => {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
       stopCurrentSpeech();
       clearCountdown();
 
@@ -524,8 +529,17 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
   // Chuyển sang câu tiếp theo trong 10 câu
   const goToNextQuestion = useCallback(() => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     stopCurrentSpeech();
     clearCountdown();
+
+    if (currentQuestionIndex >= TOTAL_QUESTIONS) {
+      setGameStatus('completed');
+      return;
+    }
 
     const nextIdx = currentQuestionIndex + 1;
     setCurrentQuestionIndex(nextIdx);
@@ -543,8 +557,36 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
     setTimeout(() => inputRef.current?.focus(), 60);
   }, [currentQuestionIndex, generateProblemForTopic, selectedTopic, clearCountdown, startCountdown, timeLimit]);
 
-  // Switch Time Limit (5s / 10s)
+  // Tự động chuyển câu hỏi sau 3 giây khi có kết quả (chính xác / chưa chính xác / hết giờ)
+  useEffect(() => {
+    if (gameStatus === 'answered') {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+      }
+      autoNextTimerRef.current = setTimeout(() => {
+        goToNextQuestion();
+      }, 3000);
+    } else {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
+    };
+  }, [gameStatus, goToNextQuestion]);
+
+  // Switch Time Limit (3s / 5s / 10s)
   const handleSelectTimeLimit = (newLimit: TimeLimit) => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     setTimeLimit(newLimit);
     setTimeLeft(newLimit);
     if (gameStatus === 'running' || gameStatus === 'answered') {
@@ -554,6 +596,10 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
   // Switch Topic: 2 đến 10 chữ số
   const handleSelectTopic = (newTopic: Multiply11Topic) => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     setSelectedTopic(newTopic);
     if (gameStatus === 'running' || gameStatus === 'answered') {
       startChallengeSession(undefined, newTopic);
@@ -566,6 +612,10 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
   // Reset Session
   const handleReset = () => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
     stopCurrentSpeech();
     clearCountdown();
     setGameStatus('idle');
@@ -687,6 +737,9 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (autoNextTimerRef.current) {
+        clearTimeout(autoNextTimerRef.current);
+      }
       clearCountdown();
       stopCurrentSpeech();
       if (recognitionRef.current) {
@@ -1317,17 +1370,23 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                         onClick={goToNextQuestion}
                         className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
                       >
-                        <span>{isVi ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})` : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})`}</span>
+                        <span>{isVi ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - tự chuyển sau 3s` : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - auto in 3s`}</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setGameStatus('completed')}
+                        onClick={() => {
+                          if (autoNextTimerRef.current) {
+                            clearTimeout(autoNextTimerRef.current);
+                            autoNextTimerRef.current = null;
+                          }
+                          setGameStatus('completed');
+                        }}
                         className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <Trophy className="w-4 h-4" />
-                        <span>{isVi ? 'Xem kết quả thử thách' : 'View Results'}</span>
+                        <span>{isVi ? 'Xem kết quả thử thách (tự chuyển sau 3s)' : 'View Results (auto in 3s)'}</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     )

@@ -18,7 +18,8 @@ import step1Img from '../../assets/images/TwoDigitGuide1.jpg';
 import step2Img from '../../assets/images/TwoDigitGuide2.jpg';
 import step3Img from '../../assets/images/TwoDigitGuide3.jpg';
 import step4Img from '../../assets/images/TwoDigitGuide4.jpg';
-import twoDigitPdf from '../../assets/images/TwoDigitMultiplicationGuide.pdf';
+import Guide from '../../assets/images/Guide.pdf';
+import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 
 interface Slide {
   id: number;
@@ -31,26 +32,26 @@ const slides: Slide[] = [
   {
     id: 1,
     image: step1Img,
-    badgeVi: 'Bước 1: Tính tích riêng thứ nhất',
-    badgeEn: 'Step 1: First Partial Product',
+    //badgeVi: 'Bước 1: Tính tích riêng thứ nhất',
+    //badgeEn: 'Step 1: First Partial Product',
   },
   {
     id: 2,
     image: step2Img,
-    badgeVi: 'Bước 2: Tích riêng thứ hai (86 × 8)',
-    badgeEn: 'Step 2: Second Partial Product (86 × 8)',
+    //badgeVi: 'Bước 2: Tích riêng thứ hai (86 × 8)',
+    //badgeEn: 'Step 2: Second Partial Product (86 × 8)',
   },
   {
     id: 3,
     image: step3Img,
-    badgeVi: 'Bước 3: Kết hợp các tích riêng',
-    badgeEn: 'Step 3: Combining Partial Products',
+    //badgeVi: 'Bước 3: Kết hợp các tích riêng',
+    //badgeEn: 'Step 3: Combining Partial Products',
   },
   {
     id: 4,
     image: step4Img,
-    badgeVi: 'Bước 4: Nhân chéo Vedic (86 × 68)',
-    badgeEn: 'Step 4: Vedic Cross Multiplication',
+    //badgeVi: 'Bước 4: Nhân chéo Vedic (86 × 68)',
+    //badgeEn: 'Step 4: Vedic Cross Multiplication',
   },
 ];
 
@@ -440,18 +441,16 @@ export const TwoDigitMentalMathGuideCarousel: React.FC = () => {
         {/* Counter, Download Button & Arrow Buttons */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Download Guide PDF Button */}
-          <a
-            href={twoDigitPdf}
-            download="TwoDigitMultiplication_VisualGuide.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => downloadGuidePdf('Guide.pdf')}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 hover:text-white text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
             title={isVi ? 'Tải hướng dẫn định dạng PDF' : 'Download Guide (PDF)'}
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden sm:inline">{isVi ? 'Tải Guide' : 'Download Guide'}</span>
             <span className="sm:hidden">{isVi ? 'Tải PDF' : 'PDF'}</span>
-          </a>
+          </button>
 
           <span className="px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950 border border-slate-800 text-[11px] sm:text-xs font-mono font-bold text-amber-400 shadow-xs">
             {activeIndex + 1} / {slides.length}

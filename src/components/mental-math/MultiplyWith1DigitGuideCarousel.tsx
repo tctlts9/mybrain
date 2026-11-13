@@ -14,7 +14,8 @@ import { useLanguage } from '../../context/LanguageContext';
 
 import step1Img from '../../assets/images/MultiplyingWith1DigitGuide1.jpg';
 import step2Img from '../../assets/images/MultiplyingWith1DigitGuide2.jpg';
-import multiplyWith1DigitPdf from '../../assets/images/MultiplyWith1DigitGuide.pdf';
+import Guide from '../../assets/images/Guide.pdf';
+import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 
 interface Slide {
   id: number;
@@ -371,18 +372,16 @@ export const MultiplyWith1DigitGuideCarousel: React.FC = () => {
 
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Download Guide PDF Button */}
-          <a
-            href={multiplyWith1DigitPdf}
-            download="MultiplyWith1Digit_VisualGuide.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => downloadGuidePdf('Guide.pdf')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 hover:text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
             title={isVi ? 'Tải hướng dẫn định dạng PDF' : 'Download Guide (PDF)'}
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden sm:inline">{isVi ? 'Tải Guide' : 'Download Guide'}</span>
             <span className="sm:hidden">{isVi ? 'Tải PDF' : 'PDF'}</span>
-          </a>
+          </button>
 
           {/* Zoom Quick Button */}
           <button

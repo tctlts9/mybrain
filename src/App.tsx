@@ -3,6 +3,7 @@ import { TabType } from './types/tab';
 import { Header } from './components/Header';
 import { MentalMathTab } from './components/mental-math/MentalMathTab';
 import { LociJourneyTab } from './components/loci-journey/LociJourneyTab';
+import { BrainTrainingTab } from './components/brain-training/BrainTrainingTab';
 import { MobileTabBar } from './components/common/MobileTabBar';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { EmailModal } from './components/common/EmailModal';
@@ -15,7 +16,7 @@ function DashboardApp() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam === 'loci-journey' || tabParam === 'mental-math') {
+      if (tabParam === 'loci-journey' || tabParam === 'mental-math' || tabParam === 'brain-training') {
         return tabParam as TabType;
       }
     }
@@ -42,6 +43,7 @@ function DashboardApp() {
         <main className="pb-24 md:pb-6">
           {activeTab === 'mental-math' && <MentalMathTab />}
           {activeTab === 'loci-journey' && <LociJourneyTab />}
+          {activeTab === 'brain-training' && <BrainTrainingTab />}
         </main>
       </div>
 

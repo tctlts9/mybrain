@@ -13,8 +13,10 @@ export interface Translations {
   // Tabs
   tabMentalMath: string;
   tabLociJourney: string;
+  tabBrainTraining: string;
   mobileMentalMath: string;
   mobileLociJourney: string;
+  mobileBrainTraining: string;
 
   // Mental Math Content
   mentalMathTitle: string;
@@ -108,8 +110,10 @@ export const translations: Record<Language, Translations> = {
     // Tabs
     tabMentalMath: 'Tính Nhẩm',
     tabLociJourney: 'Ký Ức Loci',
+    tabBrainTraining: 'Luyện Não Bộ',
     mobileMentalMath: 'Tính Nhẩm',
     mobileLociJourney: 'Ký Ức Loci',
+    mobileBrainTraining: 'Luyện Não',
 
     // Content
     mentalMathTitle: 'Tính Nhẩm',
@@ -201,8 +205,10 @@ export const translations: Record<Language, Translations> = {
     // Tabs
     tabMentalMath: 'Mental Math',
     tabLociJourney: 'Loci Memory',
+    tabBrainTraining: 'Brain Training',
     mobileMentalMath: 'Mental Math',
     mobileLociJourney: 'Loci Memory',
+    mobileBrainTraining: 'Brain Training',
 
     // Content
     mentalMathTitle: 'Mental Math',

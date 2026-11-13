@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabType } from '../types/tab';
-import { Brain, Compass } from 'lucide-react';
+import { Brain, Compass, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
@@ -88,6 +88,19 @@ export const Header: React.FC<HeaderProps> = ({
               <Compass className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 ${activeTab === 'loci-journey' ? 'animate-pulse' : ''}`} />
               <span>{t.tabLociJourney}</span>
             </button>
+
+            {/* Tab 3: Brain Training */}
+            <button
+              onClick={() => onTabChange('brain-training')}
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'brain-training'
+                  ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40 shadow-sm shadow-sky-500/10'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 ${activeTab === 'brain-training' ? 'animate-pulse' : ''}`} />
+              <span>{t.tabBrainTraining}</span>
+            </button>
           </nav>
 
           {/* Right Action: Active Tab Badge (Thể hiện trên header) & Clean Language Toggle */}
@@ -100,10 +113,15 @@ export const Header: React.FC<HeaderProps> = ({
                   <Brain className="w-3.5 h-3.5 text-amber-400" />
                   <span>{t.tabMentalMath}</span>
                 </span>
-              ) : (
+              ) : activeTab === 'loci-journey' ? (
                 <span className="text-emerald-400 font-semibold flex items-center gap-1">
                   <Compass className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{t.tabLociJourney}</span>
+                </span>
+              ) : (
+                <span className="text-sky-400 font-semibold flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{t.tabBrainTraining}</span>
                 </span>
               )}
             </div>

@@ -21,7 +21,6 @@ import { useLanguage } from '../../context/LanguageContext';
 import {
   playSpeakerChime,
   speakSchulteNumber,
-  speakText,
   stopCurrentSpeech,
 } from '../../utils/speechUtils';
 import { parseSchulteVoiceActions } from '../../utils/schulteVoice';
@@ -77,8 +76,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
 
-  // Voice Guide & Mic Voice Input State
-  const [isVoiceGuideOn, setIsVoiceGuideOn] = useState<boolean>(false);
+  // Target Speaker & Mic Voice Input State
   const [isSpeakingTarget, setIsSpeakingTarget] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string>('');
@@ -161,12 +159,8 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
         const saved = localStorage.getItem(getRecordKey(targetSize, targetMode));
         setBestTimeMs(saved ? parseFloat(saved) : null);
       }
-
-      if (isVoiceGuideOn) {
-        speakTargetAloud(initialTarget);
-      }
     },
-    [gridSize, orderMode, stopTimer, isVoiceGuideOn, speakTargetAloud]
+    [gridSize, orderMode, stopTimer]
   );
 
   useEffect(() => {
@@ -240,21 +234,9 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               setIsNewRecord(true);
             }
           }
-
-          if (isVoiceGuideOn) {
-            speakText(
-              isVi
-                ? `Hoàn thành xuất sắc trong ${(finalMs / 1000).toFixed(1)} giây`
-                : `Completed in ${(finalMs / 1000).toFixed(1)} seconds`,
-              isVi ? 'vi' : 'en'
-            );
-          }
         } else {
           const updatedTarget = orderMode === 'asc' ? nextTarget + 1 : nextTarget - 1;
           setNextTarget(updatedTarget);
-          if (isVoiceGuideOn) {
-            speakTargetAloud(updatedTarget);
-          }
         }
       } else {
         if (isSoundOn) playSpeakerChime('incorrect');
@@ -272,11 +254,8 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
       elapsedMs,
       gridSize,
       isSoundOn,
-      isVi,
-      isVoiceGuideOn,
       nextTarget,
       orderMode,
-      speakTargetAloud,
       startTimer,
       status,
       stopTimer,
@@ -453,17 +432,6 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
     }
   };
 
-  const toggleVoiceGuide = () => {
-    const next = !isVoiceGuideOn;
-    setIsVoiceGuideOn(next);
-    if (next) {
-      speakTargetAloud(nextTarget);
-    } else {
-      stopCurrentSpeech();
-      setIsSpeakingTarget(false);
-    }
-  };
-
   const handleSizeChange = (size: GridSize) => {
     setGridSize(size);
     resetBoard(size, orderMode);
@@ -538,7 +506,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               title={isVi ? 'Thử thách tốc độ Bảng Schulte' : 'Schulte Table Speed Challenge'}
             >
               <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950 text-slate-950" />
-              <span>Challenge</span>
+              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
             </button>
           )}
 
@@ -558,7 +526,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               }
             >
               <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-              <span>Difficulty level challenge</span>
+              <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficulty level challenge'}</span>
             </button>
           )}
 
@@ -595,12 +563,12 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </div>
             <div>
               <h2 className="font-bold text-white text-base sm:text-xl flex items-center gap-2">
-                <span>{isVi ? 'Bảng Schulte — Luyện Tập Trung & Thị Giác' : 'Schulte Table — Focus & Peripheral Vision'}</span>
+                <span>{isVi ? 'Bảng Schulte — Luyện Tập Trung & Thị Giác (Siêu trí tuệ)' : 'Schulte Table-Focus&Peripheral Vision(Super Intelligence)'}</span>
               </h2>
               <p className="text-[11px] sm:text-xs text-slate-400">
                 {isVi
-                  ? 'Nhìn vào tâm bảng và bấm hoặc dùng Voice đọc số tìm được để ghi nhận Mark Found'
-                  : 'Fixate on the center and tap or use Voice to answer found numbers and record Mark Found'}
+                  ? 'Nhìn vào tâm bảng và bấm hoặc dùng giọng nói đọc số tìm được'
+                  : 'Fixate on the center and tap or use Voice to answer found numbers'}
               </p>
             </div>
           </div>
@@ -625,9 +593,8 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
         </div>
 
         {/* Mode & Options Row */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs relative z-10">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Asc / Desc Toggle */}
+        <div className="flex flex-wrap items-center gap-2 text-xs relative z-10">
+          {/* Asc / Desc Toggle */}
             <button
               type="button"
               onClick={() => handleModeChange(orderMode === 'asc' ? 'desc' : 'asc')}
@@ -656,7 +623,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               }`}
             >
               <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span>{isVi ? 'Điểm tâm' : 'Center Dot'}</span>
+              <span>{isVi ? 'Tâm điểm' : 'Center Dot'}</span>
             </button>
 
             {/* Mark Found / No Mark Found Toggle */}
@@ -672,32 +639,15 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               <CheckCircle2
                 className={`w-3.5 h-3.5 ${highlightFound ? 'text-emerald-400' : 'text-slate-500'}`}
               />
-              <span>{highlightFound ? 'Mark Found' : 'No Mark Found'}</span>
-            </button>
-
-            {/* Voice Prompt Toggle */}
-            <button
-              type="button"
-              onClick={toggleVoiceGuide}
-              title={
-                isVi
-                  ? 'Tự động đọc số mục tiêu bằng giọng nói để bạn không cần rời mắt khỏi tâm bảng'
-                  : 'Automatically announce target numbers aloud so your eyes stay fixed on the center'
-              }
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
-                isVoiceGuideOn
-                  ? 'bg-violet-500/20 text-violet-300 border-violet-500/45 shadow-xs'
-                  : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-white hover:border-violet-500/40'
-              }`}
-            >
-              <Volume2
-                className={`w-3.5 h-3.5 ${
-                  isVoiceGuideOn
-                    ? `text-violet-400 ${isSpeakingTarget ? 'animate-bounce' : ''}`
-                    : 'text-slate-400'
-                }`}
-              />
-              <span>{isVi ? 'Đọc số Voice' : 'Voice Prompt'}</span>
+              <span>
+                {isVi
+                  ? highlightFound
+                    ? 'Đánh dấu đã tìm'
+                    : 'Không đánh dấu'
+                  : highlightFound
+                  ? 'Mark Found'
+                  : 'No Mark Found'}
+              </span>
             </button>
 
             {/* Mic Voice Toggle */}
@@ -706,8 +656,8 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               onClick={toggleListening}
               title={
                 isVi
-                  ? 'Trả lời kết quả số tìm được bằng giọng nói để ghi nhận Mark Found'
-                  : 'Answer the found number by voice to record Mark Found'
+                  ? 'Trả lời kết quả số tìm được bằng giọng nói'
+                  : 'Answer the found number by voice'
               }
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
                 isListening
@@ -723,19 +673,17 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               ) : (
                 <>
                   <Mic className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Voice</span>
+                  <span>{isVi ? 'Trả lời bằng Giọng nói' : 'Voice'}</span>
                 </>
               )}
             </button>
-          </div>
-
           <button
             type="button"
             onClick={() => resetBoard()}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-semibold transition-all cursor-pointer active:scale-95"
+            className="sm:ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-semibold transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>{isVi ? 'Xáo trộn mới' : 'New Board'}</span>
+            <span>{isVi ? 'Đặt lại' : 'Reset'}</span>
           </button>
         </div>
 
@@ -747,7 +695,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               {voiceTranscript
                 ? `${isVi ? 'Đang nghe:' : 'Heard:'} "${voiceTranscript}"`
                 : isVi
-                ? `🎙️ Đang nghe (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Đọc số tìm được hoặc tọa độ ("A1", "B3")`
+                ? `🎙️ Đang nghe (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Đọc số tìm được hoặc tọa độ ("A1", "B3")`
                 : `🎙️ Listening (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Speak found number or coordinate ("A1", "B3")`}
             </span>
           </div>
@@ -759,10 +707,10 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             <span>
               {highlightFound
                 ? isVi
-                  ? `Đã ghi nhận (Mark Found): Số ${lastMarkedByVoice}`
+                  ? `Đã ghi nhận (Đánh dấu đã tìm): Số ${lastMarkedByVoice}`
                   : `Recorded (Mark Found): Number ${lastMarkedByVoice}`
                 : isVi
-                ? `Đã ghi nhận (No Mark Found): Số ${lastMarkedByVoice}`
+                ? `Đã ghi nhận (Không đánh dấu): Số ${lastMarkedByVoice}`
                 : `Recorded (No Mark Found): Number ${lastMarkedByVoice}`}
             </span>
           </div>
@@ -952,7 +900,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                     <MicOff className="w-4 h-4 text-white" />
                     <span>
                       {isVi
-                        ? 'Đang nghe Voice... (Bấm để dừng)'
+                        ? 'Đang nghe giọng nói... (Bấm để dừng)'
                         : 'Listening Voice... (Click to stop)'}
                     </span>
                   </>
@@ -961,7 +909,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                     <Mic className="w-4 h-4 text-amber-400" />
                     <span>
                       {isVi
-                        ? `Voice — Trả lời số tìm được (${highlightFound ? 'Mark Found' : 'No Mark Found'})`
+                        ? `Giọng nói — Trả lời số tìm được (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
                         : `Voice — Speak Found Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
                     </span>
                   </>
@@ -971,7 +919,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               <button
                 type="button"
                 onClick={() => resetBoard()}
-                title={isVi ? 'Xáo trộn bảng mới' : 'New board'}
+                title={isVi ? 'Đặt lại' : 'Reset'}
                 className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
               >
                 <RotateCcw className="w-4 h-4" />

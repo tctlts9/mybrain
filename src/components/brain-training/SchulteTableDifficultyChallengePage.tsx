@@ -26,7 +26,7 @@ import type { SchulteGridSize } from './SchulteTableChallengePage';
 
 type OrderMode = 'asc' | 'desc';
 type TimeLimit = 10 | 20 | 30 | 40 | 50 | 60;
-type DifficultyLevel = 'medium' | 'hard' | 'pro';
+type DifficultyLevel = 'hard' | 'pro';
 type ChallengeStatus = 'idle' | 'running' | 'round-ended' | 'completed';
 
 interface SchulteTableDifficultyChallengePageProps {
@@ -57,18 +57,11 @@ const DIFFICULTY_LEVELS: {
   descEn: string;
 }[] = [
   {
-    id: 'medium',
-    labelVi: 'Trung bình',
-    labelEn: 'Medium',
-    descVi: 'Bảng cố định • Đảo ngược (N → 1)',
-    descEn: 'Static grid • Reverse order (N → 1)',
-  },
-  {
     id: 'hard',
     labelVi: 'Khó',
     labelEn: 'Hard',
-    descVi: 'No Mark Found • 4 màu ngẫu nhiên • Bảng cố định',
-    descEn: 'No Mark Found • 4 random colors • Static grid',
+    descVi: '4 màu ngẫu nhiên • Bảng cố định',
+    descEn: '4 random colors • Static grid',
   },
   {
     id: 'pro',
@@ -162,12 +155,12 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const isVi = language === 'vi';
 
   // Challenge Config
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('hard');
   const [gridSize, setGridSize] = useState<SchulteGridSize>(initialGridSize);
   const [orderMode, setOrderMode] = useState<OrderMode>('desc');
   const [timeLimit, setTimeLimit] = useState<TimeLimit>(30);
   const [showCenterDot, setShowCenterDot] = useState<boolean>(true);
-  const [highlightFound, setHighlightFound] = useState<boolean>(true);
+  const [highlightFound, setHighlightFound] = useState<boolean>(false);
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
 
   // Session & Board State
@@ -807,10 +800,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     let nextMode: OrderMode = orderMode;
     let nextHighlight = highlightFound;
 
-    if (newDiff === 'medium') {
-      nextMode = 'desc';
-      nextHighlight = true;
-    } else if (newDiff === 'hard') {
+    if (newDiff === 'hard') {
       nextMode = 'desc';
       nextHighlight = false;
     } else if (newDiff === 'pro') {
@@ -983,7 +973,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       </div>
 
       {/* Main Challenge Container */}
-      <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-violet-950/30 p-4 sm:p-7 shadow-2xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-violet-950/30 p-4 sm:p-6 shadow-2xl relative overflow-hidden space-y-3.5 sm:space-y-4">
         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Title + Time Limit Selector */}
@@ -1027,38 +1017,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           </div>
         </div>
 
-        {/* Difficulty Level Selector Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs relative z-10">
-          <div className="flex flex-wrap items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-            <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
-              <Zap className="w-3 h-3 text-violet-400" />
-              <span>{isVi ? 'Cấp độ:' : 'Difficulty:'}</span>
-            </span>
-            {DIFFICULTY_LEVELS.map((lvl) => (
-              <button
-                key={lvl.id}
-                type="button"
-                onClick={() => handleSelectDifficulty(lvl.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                  difficulty === lvl.id
-                    ? lvl.id === 'pro'
-                      ? 'bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white shadow-sm'
-                      : lvl.id === 'hard'
-                      ? 'bg-amber-500 text-slate-950 shadow-sm'
-                      : 'bg-violet-500 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                {isVi ? lvl.labelVi : lvl.labelEn}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Grid Size & Options Row */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs relative z-10">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Grid Size */}
+        <div className="flex flex-wrap items-center gap-2 text-xs relative z-10">
+          {/* Grid Size */}
             <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
               {GRID_SIZES.map((s) => (
                 <button
@@ -1101,7 +1062,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               }`}
             >
               <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span>{isVi ? 'Điểm tâm' : 'Center Dot'}</span>
+              <span>{isVi ? ' Tâm điểm' : 'Center Dot'}</span>
             </button>
 
             {/* Mark Found / No Mark Found Toggle */}
@@ -1117,7 +1078,15 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               <CheckCircle2
                 className={`w-3.5 h-3.5 ${highlightFound ? 'text-emerald-400' : 'text-slate-500'}`}
               />
-              <span>{highlightFound ? 'Mark Found' : 'No Mark Found'}</span>
+              <span>
+                {isVi
+                  ? highlightFound
+                    ? 'Đánh dấu đã tìm'
+                    : 'Không đánh dấu'
+                  : highlightFound
+                  ? 'Mark Found'
+                  : 'No Mark Found'}
+              </span>
             </button>
 
             {/* Voice Answer Toggle */}
@@ -1135,14 +1104,12 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               ) : (
                 <Mic className="w-3.5 h-3.5 text-amber-400" />
               )}
-              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : 'Voice'}</span>
+              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời bằng Giọng nói' : 'Voice'}</span>
             </button>
-          </div>
-
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-semibold transition-all cursor-pointer active:scale-95"
+            className="sm:ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-semibold transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>{isVi ? 'Đặt lại' : 'Reset'}</span>
@@ -1156,12 +1123,12 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             <span className="truncate">
               {status === 'idle'
                 ? isVi
-                  ? `🎙️ Voice sẵn sàng (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Bấm Bắt đầu rồi đọc số hoặc tọa độ`
+                  ? `🎙️ Giọng nói sẵn sàng (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Bấm Bắt đầu rồi đọc số hoặc tọa độ`
                   : `🎙️ Voice ready (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Press Start then speak number or coordinate`
                 : voiceTranscript
                 ? `${isVi ? 'Đang nghe:' : 'Heard:'} "${voiceTranscript}"`
                 : isVi
-                ? `🎙️ Đang nghe (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Đọc số tìm được hoặc tọa độ (VD: "A1", "B3")`
+                ? `🎙️ Đang nghe (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Đọc số tìm được hoặc tọa độ (VD: "A1", "B3")`
                 : `🎙️ Listening (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Speak found number or coordinate (e.g. "A1", "B3")`}
             </span>
           </div>
@@ -1173,10 +1140,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             <span>
               {highlightFound
                 ? isVi
-                  ? `Đã ghi nhận (Mark Found): Số ${lastMarkedByVoice}`
+                  ? `Đã ghi nhận (Đánh dấu đã tìm): Số ${lastMarkedByVoice}`
                   : `Recorded (Mark Found): Number ${lastMarkedByVoice}`
                 : isVi
-                ? `Đã ghi nhận (No Mark Found): Số ${lastMarkedByVoice}`
+                ? `Đã ghi nhận (Không đánh dấu): Số ${lastMarkedByVoice}`
                 : `Recorded (No Mark Found): Number ${lastMarkedByVoice}`}
             </span>
           </div>
@@ -1205,16 +1172,65 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           </div>
         )}
 
-        {/* Passed Progress Stat */}
-        <div className="flex justify-center relative z-10">
-          <div className="px-6 py-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center gap-3 shadow-sm">
-            <span className="text-xs sm:text-sm text-slate-400 font-semibold">
+        {/* Compact Horizontal Row: Cấp độ - Hoàn thành - Số cần tìm */}
+        <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-3 py-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-xs relative z-10">
+          {/* Cấp độ */}
+          <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 shrink-0">
+            <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
+              <Zap className="w-3 h-3 text-violet-400" />
+              <span>{isVi ? 'Cấp độ:' : 'Difficulty:'}</span>
+            </span>
+            {DIFFICULTY_LEVELS.map((lvl) => (
+              <button
+                key={lvl.id}
+                type="button"
+                onClick={() => handleSelectDifficulty(lvl.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                  difficulty === lvl.id
+                    ? lvl.id === 'pro'
+                      ? 'bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white shadow-sm'
+                      : 'bg-amber-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                {isVi ? lvl.labelVi : lvl.labelEn}
+              </button>
+            ))}
+          </div>
+
+          {/* Hoàn thành */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/70 border border-slate-800/80 shrink-0">
+            <span className="text-xs text-slate-400 font-semibold">
               {isVi ? 'Hoàn thành:' : 'Passed:'}
             </span>
-            <span className="text-lg sm:text-2xl font-black text-emerald-400 font-mono">
+            <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
               {passedCount}/{TOTAL_ROUNDS}
             </span>
           </div>
+
+          {/* Số cần tìm + Timer */}
+          {status !== 'completed' && (
+            <div className="flex items-center gap-2.5 px-3 py-1 rounded-xl bg-slate-900/70 border border-slate-800/80 shrink-0">
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
+                <span className="text-slate-400 font-semibold">
+                  {isVi ? 'Số cần tìm:' : 'Target:'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-violet-400 font-mono">
+                  {roundOutcome === 'passed' ? '✓' : nextTarget}
+                </span>
+                <span className="text-slate-500 text-xs font-mono">
+                  ({foundCount}/{totalNumbers})
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
+              >
+                <Timer className="w-3.5 h-3.5 animate-spin" />
+                <span>{timeLeft}s</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Summary Screen or Active Challenge Board */}
@@ -1287,28 +1303,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             </div>
           </div>
         ) : (
-          <div className="max-w-lg mx-auto w-full space-y-4 relative z-10">
-            {/* Arena Header: Target + Countdown */}
-            <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <div className="flex items-center gap-3 text-xs sm:text-sm">
-                <span className="text-slate-400 font-semibold">
-                  {isVi ? 'Số cần tìm:' : 'Target:'}
-                </span>
-                <span className="text-lg sm:text-xl font-black text-violet-400 font-mono">
-                  {roundOutcome === 'passed' ? '✓' : nextTarget}
-                </span>
-                <span className="text-slate-500 text-xs font-mono">
-                  ({foundCount}/{totalNumbers})
-                </span>
-              </div>
-
-              <div
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs sm:text-sm font-black font-mono transition-all ${timerColor}`}
-              >
-                <Timer className="w-4 h-4 animate-spin" />
-                <span>{timeLeft}s</span>
-              </div>
-            </div>
+          <div className="max-w-lg mx-auto w-full space-y-3.5 relative z-10">
 
             {/* Schulte Grid Arena */}
             <div className="relative p-2.5 sm:p-4 rounded-3xl bg-slate-950/90 border border-violet-500/30 shadow-inner">
@@ -1465,7 +1460,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                     <MicOff className="w-4 h-4 text-white" />
                     <span>
                       {isVi
-                        ? 'Đang nghe Voice... (Bấm để dừng)'
+                        ? 'Đang nghe giọng nói... (Bấm để dừng)'
                         : 'Listening Voice... (Click to stop)'}
                     </span>
                   </>
@@ -1474,7 +1469,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                     <Mic className="w-4 h-4 text-amber-400" />
                     <span>
                       {isVi
-                        ? `Voice — Trả lời số tìm được (${highlightFound ? 'Mark Found' : 'No Mark Found'})`
+                        ? `Giọng nói — Trả lời số tìm được (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
                         : `Voice — Speak Found Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
                     </span>
                   </>

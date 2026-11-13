@@ -113,7 +113,7 @@ export const translations: Record<Language, Translations> = {
     tabBrainTraining: 'Luyện Não Bộ',
     mobileMentalMath: 'Tính Nhẩm',
     mobileLociJourney: 'Ký Ức Loci',
-    mobileBrainTraining: 'Luyện Não',
+    mobileBrainTraining: 'Luyện Não Bộ',
 
     // Content
     mentalMathTitle: 'Tính Nhẩm',

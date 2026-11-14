@@ -45,7 +45,6 @@ interface RoundHistoryItem {
 }
 
 const TOTAL_ROUNDS = 3;
-const AUTO_NEXT_DELAY_SEC = 5;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
 const TIME_LIMITS: TimeLimit[] = [10, 20, 30, 40, 50, 60];
 const ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -96,13 +95,10 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
   // Stats & Transition
   const [passedCount, setPassedCount] = useState<number>(0);
   const [roundHistory, setRoundHistory] = useState<RoundHistoryItem[]>([]);
-  const [autoNextSeconds, setAutoNextSeconds] = useState<number>(AUTO_NEXT_DELAY_SEC);
 
   const countdownRef = useRef<number | null>(null);
   const roundStartRef = useRef<number>(0);
   const wrongTimeoutRef = useRef<number | null>(null);
-  const autoNextTimerRef = useRef<number | null>(null);
-  const autoNextIntervalRef = useRef<number | null>(null);
   const markedBannerTimeoutRef = useRef<number | null>(null);
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef<boolean>(false);
@@ -136,14 +132,6 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
     if (wrongTimeoutRef.current !== null) {
       window.clearTimeout(wrongTimeoutRef.current);
       wrongTimeoutRef.current = null;
-    }
-    if (autoNextTimerRef.current !== null) {
-      window.clearTimeout(autoNextTimerRef.current);
-      autoNextTimerRef.current = null;
-    }
-    if (autoNextIntervalRef.current !== null) {
-      window.clearInterval(autoNextIntervalRef.current);
-      autoNextIntervalRef.current = null;
     }
     if (markedBannerTimeoutRef.current !== null) {
       window.clearTimeout(markedBannerTimeoutRef.current);
@@ -231,7 +219,6 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
       setCurrentRound(1);
       setPassedCount(0);
       setRoundHistory([]);
-      setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
 
       prepareBoard(activeSize, activeMode);
       setStatus('running');
@@ -241,15 +228,6 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
   );
 
   const goToNextRound = useCallback(() => {
-    if (autoNextTimerRef.current !== null) {
-      window.clearTimeout(autoNextTimerRef.current);
-      autoNextTimerRef.current = null;
-    }
-    if (autoNextIntervalRef.current !== null) {
-      window.clearInterval(autoNextIntervalRef.current);
-      autoNextIntervalRef.current = null;
-    }
-
     if (currentRoundRef.current >= TOTAL_ROUNDS) {
       setStatus('completed');
       return;
@@ -261,47 +239,6 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
     setStatus('running');
     startCountdown(timeLimit);
   }, [gridSize, orderMode, prepareBoard, startCountdown, timeLimit]);
-
-  // Tự động chuyển sang vòng tiếp theo sau 5 giây khi kết thúc 1 vòng
-  useEffect(() => {
-    if (status === 'round-ended') {
-      if (autoNextTimerRef.current !== null) {
-        window.clearTimeout(autoNextTimerRef.current);
-      }
-      if (autoNextIntervalRef.current !== null) {
-        window.clearInterval(autoNextIntervalRef.current);
-      }
-
-      setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
-      autoNextIntervalRef.current = window.setInterval(() => {
-        setAutoNextSeconds((prev) => (prev > 1 ? prev - 1 : 1));
-      }, 1000);
-
-      autoNextTimerRef.current = window.setTimeout(() => {
-        goToNextRound();
-      }, AUTO_NEXT_DELAY_SEC * 1000);
-    } else {
-      if (autoNextTimerRef.current !== null) {
-        window.clearTimeout(autoNextTimerRef.current);
-        autoNextTimerRef.current = null;
-      }
-      if (autoNextIntervalRef.current !== null) {
-        window.clearInterval(autoNextIntervalRef.current);
-        autoNextIntervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (autoNextTimerRef.current !== null) {
-        window.clearTimeout(autoNextTimerRef.current);
-        autoNextTimerRef.current = null;
-      }
-      if (autoNextIntervalRef.current !== null) {
-        window.clearInterval(autoNextIntervalRef.current);
-        autoNextIntervalRef.current = null;
-      }
-    };
-  }, [status, goToNextRound]);
 
   useEffect(() => {
     return () => {
@@ -570,7 +507,6 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
     setCurrentRound(1);
     setPassedCount(0);
     setRoundHistory([]);
-    setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
     setTimeLeft(timeLimit);
     setRoundElapsedMs(0);
     prepareBoard(gridSize, orderMode);
@@ -686,11 +622,11 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
       </div>
 
       {/* Main Challenge Container */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3">
+      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3 sm:p-4 shadow-2xl relative overflow-hidden space-y-2.5">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Title + Time Limit Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-800/80 relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80 relative z-10">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30">
               <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
@@ -876,41 +812,6 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
           </div>
         )}
 
-        {/* Compact Horizontal Row: Hoàn thành - Số cần tìm */}
-        <div className="w-full flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 px-3 py-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 relative z-10">
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-900/70 border border-slate-800/80 shrink-0">
-            <span className="text-xs text-slate-400 font-semibold">
-              {isVi ? 'Hoàn thành:' : 'Passed:'}
-            </span>
-            <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
-              {passedCount}/{TOTAL_ROUNDS}
-            </span>
-          </div>
-
-          {status !== 'completed' && (
-            <div className="flex items-center gap-2.5 px-2.5 py-1 rounded-xl bg-slate-900/70 border border-slate-800/80 shrink-0">
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <span className="text-slate-400 font-semibold">
-                  {isVi ? 'Số cần tìm:' : 'Target:'}
-                </span>
-                <span className="text-base sm:text-lg font-black text-amber-400 font-mono">
-                  {roundOutcome === 'passed' ? '✓' : nextTarget}
-                </span>
-                <span className="text-slate-500 text-xs font-mono">
-                  ({foundCount}/{totalNumbers})
-                </span>
-              </div>
-
-              <div
-                className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
-              >
-                <Timer className="w-3.5 h-3.5 animate-spin" />
-                <span>{timeLeft}s</span>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Summary Screen or Side-by-Side Challenge Workspace */}
         {status === 'completed' ? (
           <div className="rounded-3xl bg-slate-950/90 border border-amber-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200 relative z-10 max-w-2xl mx-auto">
@@ -981,10 +882,45 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-6 items-center relative z-10">
-            {/* Block A: Desktop Round Progress & Info */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end space-y-2.5">
-              <div className="hidden lg:block p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-5 items-start relative z-10">
+            {/* Block A: Separated Compact Status Cards + Desktop Round Progress */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-start space-y-2.5">
+              {/* Separated Cards: Hoàn thành & Số cần tìm */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {/* Hoàn thành */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800/90 shrink-0">
+                  <span className="text-xs text-slate-400 font-semibold">
+                    {isVi ? 'Hoàn thành:' : 'Passed:'}
+                  </span>
+                  <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
+                    {passedCount}/{TOTAL_ROUNDS}
+                  </span>
+                </div>
+
+                {/* Số cần tìm + Timer */}
+                <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-amber-500/30 shrink-0">
+                  <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                    <span className="text-slate-400 font-semibold">
+                      {isVi ? 'Số cần tìm:' : 'Target:'}
+                    </span>
+                    <span className="text-base sm:text-lg font-black text-amber-400 font-mono">
+                      {roundOutcome === 'passed' ? '✓' : nextTarget}
+                    </span>
+                    <span className="text-slate-500 text-xs font-mono">
+                      ({foundCount}/{totalNumbers})
+                    </span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
+                  >
+                    <Timer className="w-3 h-3 animate-spin" />
+                    <span>{timeLeft}s</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hidden lg:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300">
                     {isVi ? 'Tiến trình thử thách' : 'Challenge Progress'}
@@ -1003,7 +939,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                     return (
                       <div
                         key={roundNum}
-                        className={`p-2 rounded-xl border text-center text-xs transition-all ${
+                        className={`p-1.5 rounded-xl border text-center text-xs transition-all ${
                           item
                             ? item.passed
                               ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
@@ -1036,8 +972,8 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
             </div>
 
             {/* Block B: Schulte Grid Arena */}
-            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-center w-full max-w-[430px] xl:max-w-[460px] mx-auto">
-              <div className="relative p-2.5 sm:p-3.5 rounded-3xl bg-slate-950/90 border border-amber-500/30 shadow-inner">
+            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-start w-full max-w-[390px] xl:max-w-[420px] mx-auto">
+              <div className="relative p-2 sm:p-3 rounded-3xl bg-slate-950/90 border border-amber-500/30 shadow-inner">
                 <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
                 {numbers.map((num, idx) => {
                   const found = isAlreadyFound(num);
@@ -1148,7 +1084,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                 </button>
               )}
 
-              {/* Round Result Banner + Auto-advance */}
+              {/* Round Result Banner + Manual Next Round */}
               {status === 'round-ended' && (
                 <div className="space-y-2.5 animate-in zoom-in-95 duration-150">
                   {roundOutcome === 'passed' ? (
@@ -1179,11 +1115,11 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                     <span>
                       {currentRound >= TOTAL_ROUNDS
                         ? isVi
-                          ? `Xem Tổng Kết (tự chuyển sau ${autoNextSeconds}s)`
-                          : `View Results (auto in ${autoNextSeconds}s)`
+                          ? 'Xem Tổng Kết'
+                          : 'View Results'
                         : isVi
-                        ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS}) - tự chuyển sau ${autoNextSeconds}s`
-                        : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS}) - auto in ${autoNextSeconds}s`}
+                        ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS})`
+                        : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS})`}
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>

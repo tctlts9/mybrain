@@ -46,7 +46,6 @@ interface RoundHistoryItem {
 }
 
 const TOTAL_ROUNDS = 3;
-const AUTO_NEXT_DELAY_SEC = 5;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
 const TIME_LIMITS: TimeLimit[] = [10, 20, 30, 40, 50, 60];
 const DIFFICULTY_LEVELS: {
@@ -194,13 +193,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   // Stats & Transition
   const [passedCount, setPassedCount] = useState<number>(0);
   const [roundHistory, setRoundHistory] = useState<RoundHistoryItem[]>([]);
-  const [autoNextSeconds, setAutoNextSeconds] = useState<number>(AUTO_NEXT_DELAY_SEC);
 
   const countdownRef = useRef<number | null>(null);
   const roundStartRef = useRef<number>(0);
   const wrongTimeoutRef = useRef<number | null>(null);
-  const autoNextTimerRef = useRef<number | null>(null);
-  const autoNextIntervalRef = useRef<number | null>(null);
   const markedBannerTimeoutRef = useRef<number | null>(null);
   const shuffleNoticeTimeoutRef = useRef<number | null>(null);
   const proHintTimeoutRef = useRef<number | null>(null);
@@ -237,14 +233,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     if (wrongTimeoutRef.current !== null) {
       window.clearTimeout(wrongTimeoutRef.current);
       wrongTimeoutRef.current = null;
-    }
-    if (autoNextTimerRef.current !== null) {
-      window.clearTimeout(autoNextTimerRef.current);
-      autoNextTimerRef.current = null;
-    }
-    if (autoNextIntervalRef.current !== null) {
-      window.clearInterval(autoNextIntervalRef.current);
-      autoNextIntervalRef.current = null;
     }
     if (markedBannerTimeoutRef.current !== null) {
       window.clearTimeout(markedBannerTimeoutRef.current);
@@ -370,7 +358,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       setCurrentRound(1);
       setPassedCount(0);
       setRoundHistory([]);
-      setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
 
       prepareBoard(activeSize, activeMode);
       setStatus('running');
@@ -380,15 +367,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   );
 
   const goToNextRound = useCallback(() => {
-    if (autoNextTimerRef.current !== null) {
-      window.clearTimeout(autoNextTimerRef.current);
-      autoNextTimerRef.current = null;
-    }
-    if (autoNextIntervalRef.current !== null) {
-      window.clearInterval(autoNextIntervalRef.current);
-      autoNextIntervalRef.current = null;
-    }
-
     if (currentRoundRef.current >= TOTAL_ROUNDS) {
       setStatus('completed');
       return;
@@ -400,47 +378,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     setStatus('running');
     startCountdown(timeLimit);
   }, [gridSize, orderMode, prepareBoard, startCountdown, timeLimit]);
-
-  // Tự động chuyển sang vòng tiếp theo sau 5 giây khi kết thúc 1 vòng
-  useEffect(() => {
-    if (status === 'round-ended') {
-      if (autoNextTimerRef.current !== null) {
-        window.clearTimeout(autoNextTimerRef.current);
-      }
-      if (autoNextIntervalRef.current !== null) {
-        window.clearInterval(autoNextIntervalRef.current);
-      }
-
-      setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
-      autoNextIntervalRef.current = window.setInterval(() => {
-        setAutoNextSeconds((prev) => (prev > 1 ? prev - 1 : 1));
-      }, 1000);
-
-      autoNextTimerRef.current = window.setTimeout(() => {
-        goToNextRound();
-      }, AUTO_NEXT_DELAY_SEC * 1000);
-    } else {
-      if (autoNextTimerRef.current !== null) {
-        window.clearTimeout(autoNextTimerRef.current);
-        autoNextTimerRef.current = null;
-      }
-      if (autoNextIntervalRef.current !== null) {
-        window.clearInterval(autoNextIntervalRef.current);
-        autoNextIntervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (autoNextTimerRef.current !== null) {
-        window.clearTimeout(autoNextTimerRef.current);
-        autoNextTimerRef.current = null;
-      }
-      if (autoNextIntervalRef.current !== null) {
-        window.clearInterval(autoNextIntervalRef.current);
-        autoNextIntervalRef.current = null;
-      }
-    };
-  }, [status, goToNextRound]);
 
   useEffect(() => {
     return () => {
@@ -827,7 +764,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
         setCurrentRound(1);
         setPassedCount(0);
         setRoundHistory([]);
-        setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
         setRoundOutcome('idle');
         setStatus('running');
         startCountdown(timeLimit);
@@ -874,7 +810,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     setCurrentRound(1);
     setPassedCount(0);
     setRoundHistory([]);
-    setAutoNextSeconds(AUTO_NEXT_DELAY_SEC);
     setTimeLeft(timeLimit);
     setRoundElapsedMs(0);
     prepareBoard(gridSize, orderMode);
@@ -973,11 +908,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       </div>
 
       {/* Main Challenge Container */}
-      <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-violet-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3">
+      <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-violet-950/30 p-3 sm:p-4 shadow-2xl relative overflow-hidden space-y-2.5">
         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Title + Time Limit Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-800/80 relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80 relative z-10">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-violet-500/20 border border-violet-500/30">
               <Gauge className="w-5 h-5 text-violet-400" />
@@ -1172,67 +1107,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           </div>
         )}
 
-        {/* Compact Horizontal Row: Cấp độ - Hoàn thành - Số cần tìm */}
-        <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 px-3 py-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-xs relative z-10">
-          {/* Cấp độ */}
-          <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 shrink-0">
-            <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
-              <Zap className="w-3 h-3 text-violet-400" />
-              <span>{isVi ? 'Cấp độ:' : 'Difficulty:'}</span>
-            </span>
-            {DIFFICULTY_LEVELS.map((lvl) => (
-              <button
-                key={lvl.id}
-                type="button"
-                onClick={() => handleSelectDifficulty(lvl.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                  difficulty === lvl.id
-                    ? lvl.id === 'pro'
-                      ? 'bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white shadow-sm'
-                      : 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                {isVi ? lvl.labelVi : lvl.labelEn}
-              </button>
-            ))}
-          </div>
-
-          {/* Hoàn thành */}
-          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/70 border border-slate-800/80 shrink-0">
-            <span className="text-xs text-slate-400 font-semibold">
-              {isVi ? 'Hoàn thành:' : 'Passed:'}
-            </span>
-            <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
-              {passedCount}/{TOTAL_ROUNDS}
-            </span>
-          </div>
-
-          {/* Số cần tìm + Timer */}
-          {status !== 'completed' && (
-            <div className="flex items-center gap-2.5 px-3 py-1 rounded-xl bg-slate-900/70 border border-slate-800/80 shrink-0">
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <span className="text-slate-400 font-semibold">
-                  {isVi ? 'Số cần tìm:' : 'Target:'}
-                </span>
-                <span className="text-base sm:text-lg font-black text-violet-400 font-mono">
-                  {roundOutcome === 'passed' ? '✓' : nextTarget}
-                </span>
-                <span className="text-slate-500 text-xs font-mono">
-                  ({foundCount}/{totalNumbers})
-                </span>
-              </div>
-
-              <div
-                className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
-              >
-                <Timer className="w-3.5 h-3.5 animate-spin" />
-                <span>{timeLeft}s</span>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Summary Screen or Side-by-Side Challenge Workspace */}
         {status === 'completed' ? (
           <div className="rounded-3xl bg-slate-950/90 border border-violet-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200 relative z-10 max-w-2xl mx-auto">
@@ -1303,10 +1177,70 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-6 items-center relative z-10">
-            {/* Block A: Desktop Level Rules & Round Progress + Pro Hint */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end space-y-2.5">
-              <div className="hidden lg:block p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-5 items-start relative z-10">
+            {/* Block A: Separated Compact Control & Status Cards + Desktop Round Progress */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-start space-y-2.5">
+              {/* Separated Row 1: Cấp độ + Hoàn thành */}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                {/* Cấp độ */}
+                <div className="flex items-center gap-1 bg-slate-950/85 p-1 rounded-xl border border-slate-800 shrink-0">
+                  <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-violet-400" />
+                    <span>{isVi ? 'Cấp độ:' : 'Difficulty:'}</span>
+                  </span>
+                  {DIFFICULTY_LEVELS.map((lvl) => (
+                    <button
+                      key={lvl.id}
+                      type="button"
+                      onClick={() => handleSelectDifficulty(lvl.id)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                        difficulty === lvl.id
+                          ? lvl.id === 'pro'
+                            ? 'bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white shadow-sm'
+                            : 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      {isVi ? lvl.labelVi : lvl.labelEn}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Hoàn thành */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800/90 shrink-0">
+                  <span className="text-xs text-slate-400 font-semibold">
+                    {isVi ? 'Hoàn thành:' : 'Passed:'}
+                  </span>
+                  <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
+                    {passedCount}/{TOTAL_ROUNDS}
+                  </span>
+                </div>
+              </div>
+
+              {/* Separated Card 2: Số cần tìm + Timer */}
+              <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-2xl bg-slate-950/85 border border-violet-500/30">
+                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                  <span className="text-slate-400 font-semibold">
+                    {isVi ? 'Số cần tìm:' : 'Target:'}
+                  </span>
+                  <span className="text-base sm:text-lg font-black text-violet-400 font-mono">
+                    {roundOutcome === 'passed' ? '✓' : nextTarget}
+                  </span>
+                  <span className="text-slate-500 text-xs font-mono">
+                    ({foundCount}/{totalNumbers})
+                  </span>
+                </div>
+
+                <div
+                  className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
+                >
+                  <Timer className="w-3.5 h-3.5 animate-spin" />
+                  <span>{timeLeft}s</span>
+                </div>
+              </div>
+
+              {/* Round Progress Card (Desktop) */}
+              <div className="hidden lg:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300">
                     {isVi ? `Cấp độ ${activeDiffInfo.labelVi}` : `${activeDiffInfo.labelEn} Mode`}
@@ -1329,7 +1263,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                     return (
                       <div
                         key={roundNum}
-                        className={`p-2 rounded-xl border text-center text-xs transition-all ${
+                        className={`p-1.5 rounded-xl border text-center text-xs transition-all ${
                           item
                             ? item.passed
                               ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
@@ -1361,16 +1295,23 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               </div>
 
               {difficulty === 'pro' && proRuleHint && (
-                <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-center text-xs font-bold text-rose-300 animate-in fade-in duration-150">
+                <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/40 text-center text-xs font-bold text-rose-300 animate-in fade-in duration-150">
                   {proRuleHint}
                 </div>
               )}
             </div>
 
-            {/* Block B: Schulte Grid Arena */}
-            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-center w-full max-w-[430px] xl:max-w-[460px] mx-auto">
-              <div className="relative p-2.5 sm:p-3.5 rounded-3xl bg-slate-950/90 border border-violet-500/30 shadow-inner">
-                <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
+            {/* Block B: Schulte Grid Arena + Vertical Pro Color Bar */}
+            <div
+              className={`lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-start w-full mx-auto ${
+                difficulty === 'pro' && status === 'running'
+                  ? 'max-w-[495px] xl:max-w-[530px]'
+                  : 'max-w-[390px] xl:max-w-[420px]'
+              }`}
+            >
+              <div className="flex items-stretch justify-center gap-2 sm:gap-3">
+                <div className="relative flex-1 min-w-0 p-2 sm:p-3 rounded-3xl bg-slate-950/90 border border-violet-500/30 shadow-inner">
+                  <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
                 {numbers.map((num, idx) => {
                   const found = isAlreadyFound(num);
                   const isWrong = wrongTile === num;
@@ -1464,42 +1405,44 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   </button>
                 </div>
               )}
-              </div>
-            </div>
+                </div>
 
-            {/* Block C: Pro Color Answer Bar, Voice Action & Round Result */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start space-y-2.5">
-              {/* Pro Mode Color Answer Bar */}
-              {difficulty === 'pro' && status === 'running' && (
-                <div className="p-3 rounded-2xl bg-slate-950/85 border border-violet-500/30 space-y-2">
-                  <p className="text-[11px] font-semibold text-slate-300 text-center">
-                    {isVi
-                      ? 'Nếu số mục tiêu CÓ MÀU NỀN → Chọn hoặc nói MÀU • Không nền → Bấm hoặc nói SỐ'
-                      : 'If target has COLORED BG → Tap or speak COLOR • No bg → Tap or speak NUMBER'}
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
+                {/* Pro Mode: 3 Color Buttons in 1 vertical column next to Schulte table */}
+                {difficulty === 'pro' && status === 'running' && (
+                  <div className="w-[68px] sm:w-[96px] shrink-0 p-1.5 sm:p-2 rounded-3xl bg-slate-950/90 border border-violet-500/30 flex flex-col gap-1.5 sm:gap-2.5 shadow-inner">
                     <button
                       type="button"
                       onClick={() => handleColorAnswer('green', false)}
-                      className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
+                      className="flex-1 min-h-[56px] rounded-2xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center"
                     >
                       {isVi ? 'Xanh' : 'Green'}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleColorAnswer('yellow', false)}
-                      className="h-10 rounded-xl bg-amber-500 hover:bg-amber-400 border border-amber-300 text-slate-950 font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
+                      className="flex-1 min-h-[56px] rounded-2xl bg-amber-500 hover:bg-amber-400 border border-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center"
                     >
                       {isVi ? 'Vàng' : 'Yellow'}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleColorAnswer('purple', false)}
-                      className="h-10 rounded-xl bg-violet-600 hover:bg-violet-500 border border-violet-400 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
+                      className="flex-1 min-h-[56px] rounded-2xl bg-violet-600 hover:bg-violet-500 border border-violet-400 text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center"
                     >
                       {isVi ? 'Tím' : 'Purple'}
                     </button>
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Block C: Voice Action & Round Result */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start space-y-2.5">
+              {difficulty === 'pro' && status === 'running' && (
+                <div className="lg:hidden px-3 py-2 rounded-xl bg-slate-950/85 border border-violet-500/30 text-[11px] font-semibold text-slate-300 text-center">
+                  {isVi
+                    ? 'Có màu nền → Chọn MÀU bên cạnh bảng • Không nền → Bấm hoặc nói SỐ'
+                    : 'Colored bg → Tap COLOR beside grid • No bg → Tap or speak NUMBER'}
                 </div>
               )}
 
@@ -1536,7 +1479,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 </button>
               )}
 
-              {/* Round Result Banner + Auto-advance */}
+              {/* Round Result Banner + Manual Next Round */}
               {status === 'round-ended' && (
                 <div className="space-y-2.5 animate-in zoom-in-95 duration-150">
                   {roundOutcome === 'passed' ? (
@@ -1567,11 +1510,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                     <span>
                       {currentRound >= TOTAL_ROUNDS
                         ? isVi
-                          ? `Xem Tổng Kết (tự chuyển sau ${autoNextSeconds}s)`
-                          : `View Results (auto in ${autoNextSeconds}s)`
+                          ? 'Xem Tổng Kết'
+                          : 'View Results'
                         : isVi
-                        ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS}) - tự chuyển sau ${autoNextSeconds}s`
-                        : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS}) - auto in ${autoNextSeconds}s`}
+                        ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS})`
+                        : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS})`}
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>

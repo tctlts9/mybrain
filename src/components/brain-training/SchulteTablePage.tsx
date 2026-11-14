@@ -875,8 +875,8 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </div>
 
             {/* Block B: Schulte Grid Arena */}
-            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-center w-full max-w-[440px] xl:max-w-[470px] mx-auto">
-              <div className="relative p-2.5 sm:p-3.5 rounded-3xl bg-slate-950/90 border border-sky-500/30 shadow-inner">
+            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-start w-full max-w-[400px] xl:max-w-[430px] mx-auto">
+              <div className="relative p-2 sm:p-3 rounded-3xl bg-slate-950/90 border border-sky-500/30 shadow-inner">
                 <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
                   {numbers.map((num, idx) => {
                     const found = isAlreadyFound(num);

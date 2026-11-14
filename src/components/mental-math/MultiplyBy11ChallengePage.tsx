@@ -777,9 +777,9 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
       : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-5 sm:space-y-7 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar: Back & Title */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-900">
+      <div className="flex items-center justify-between pb-2.5 border-b border-slate-900">
         <button
           onClick={() => {
             stopCurrentSpeech();
@@ -815,12 +815,12 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
       </div>
 
       {/* Main Challenge Arena Container */}
-      <div className="rounded-3xl border border-amber-500/35 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-4 sm:p-7 shadow-2xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-amber-500/35 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5">
         {/* Ambient Top Glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header Row: Title, Mode Toggles & Sound */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-md shadow-amber-500/25">
               <Zap className="w-5 h-5 fill-slate-950" />
@@ -897,8 +897,8 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
           </div>
         </div>
 
-        {/* 9 Topic Selector Buttons (3 Cột, text ngắn gọn: Tổng quát & 3 đến 10 chữ số) */}
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-950/80 rounded-2xl border border-slate-800">
+        {/* 9 Topic Selector Buttons */}
+        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
           {MULTIPLY_11_TOPICS.map((topic) => {
             const isSelected =
               selectedTopic === topic.id ||
@@ -912,13 +912,13 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                 type="button"
                 onClick={() => handleSelectTopic(topic.id)}
                 title={isVi ? topic.fullNameVi : topic.fullNameEn}
-                className={`py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 ${
+                className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   isSelected
                     ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
                     : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                 }`}
               >
-                <span className="text-sm sm:text-base shrink-0">{topic.icon}</span>
+                <span className="text-sm shrink-0">{topic.icon}</span>
                 <span className="truncate whitespace-nowrap">{isVi ? topic.labelVi : topic.labelEn}</span>
               </button>
             );
@@ -928,50 +928,46 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
         {/* Real-time Stats Scoreboard Row: Chuỗi đúng & Chuỗi sai */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
           {/* 1. Chuỗi đúng */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
               <Flame className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
             </div>
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
-                {isVi ? 'Chuỗi đúng' : 'Streak'}
+            <div className="min-w-0 flex items-baseline gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider truncate">
+                {isVi ? 'Chuỗi đúng:' : 'Streak:'}
               </span>
-              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
-                <span className="text-base sm:text-xl font-black text-emerald-400 font-mono">
-                  {streak} {streak >= 3 && '🔥'}
-                </span>
-                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-                  ({isVi ? `Đúng: ${correctCount}` : `Correct: ${correctCount}`})
-                </span>
-              </div>
+              <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                {streak} {streak >= 3 && '🔥'}
+              </span>
+              <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                ({isVi ? `Đúng: ${correctCount}` : `Correct: ${correctCount}`})
+              </span>
             </div>
           </div>
 
           {/* 2. Chuỗi sai */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
               <AlertCircle className="w-4 h-4 text-rose-400" />
             </div>
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
-                {isVi ? 'Chuỗi sai' : 'Wrong Streak'}
+            <div className="min-w-0 flex items-baseline gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider truncate">
+                {isVi ? 'Chuỗi sai:' : 'Wrong Streak:'}
               </span>
-              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
-                <span className="text-base sm:text-xl font-black text-rose-400 font-mono">
-                  {wrongStreak}
-                </span>
-                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-                  ({isVi ? `Sai: ${incorrectCount}` : `Wrong: ${incorrectCount}`})
-                </span>
-              </div>
+              <span className="text-base sm:text-lg font-black text-rose-400 font-mono">
+                {wrongStreak}
+              </span>
+              <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                ({isVi ? `Sai: ${incorrectCount}` : `Wrong: ${incorrectCount}`})
+              </span>
             </div>
           </div>
         </div>
 
         {/* Central Problem & Dynamic Countdown Timer Card OR Completed View */}
-        <div className="max-w-xl mx-auto space-y-4">
+        <div className="w-full space-y-3">
           {gameStatus === 'completed' ? (
-            <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+            <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
               <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400 shadow-lg shadow-amber-500/20">
                 <Trophy className="w-8 h-8 text-amber-400" />
               </div>
@@ -1078,8 +1074,8 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
               </div>
             </div>
           ) : (
-            <>
-              <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-inner relative overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
+              <div className="lg:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
                 {/* Top Timer Bar */}
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
                   <div
@@ -1232,7 +1228,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
               </div>
 
               {/* Answer Input Form */}
-              <form onSubmit={handleSubmit} className="space-y-3">
+              <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
                 <div className="relative flex items-center">
                   <input
                     ref={inputRef}
@@ -1254,7 +1250,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                         : 'Type answer or tap numeric keys...'
                     }
                     disabled={gameStatus !== 'running'}
-                    className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                    className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
                       gameStatus === 'running'
                         ? isListening
                           ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
@@ -1275,7 +1271,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                 </div>
 
                 {/* Bàn phím số từ 0 đến 9: 2 hàng 6 cột nhỏ gọn */}
-                <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md mx-auto w-full">
+                <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
                   <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                     {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
                     {[1, 2, 3, 4, 5, 6].map((digit) => (
@@ -1436,7 +1432,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                   </button>
                 </div>
               </form>
-            </>
+            </div>
           )}
         </div>
       </div>

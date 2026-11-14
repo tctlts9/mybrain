@@ -16,7 +16,7 @@ export const MultiplyBy11VisualGuidePage: React.FC<MultiplyBy11VisualGuidePagePr
   const isVi = language === 'vi';
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-5 animate-in fade-in duration-300 pb-12">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300 pb-6">
       {/* Top Navigation Bar: Back button, Challenge button & Breadcrumbs */}
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
         <button

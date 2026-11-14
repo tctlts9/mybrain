@@ -746,9 +746,9 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       : 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10';
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
@@ -805,11 +805,11 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       </div>
 
       {/* Main Challenge Container */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-4 sm:p-7 shadow-2xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5">
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Title + Mode Settings (5s / 10s) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30">
               <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
@@ -858,7 +858,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-950/80 rounded-2xl border border-slate-800">
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
             {MULTIPLY_1_DIGIT_TOPICS.map((mode) => {
               const isSelected = selectedTopic === mode.id;
               return (
@@ -867,13 +867,13 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
                   type="button"
                   onClick={() => handleSelectTopic(mode.id)}
                   title={isVi ? mode.fullNameVi : mode.fullNameEn}
-                  className={`py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 ${
+                  className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                     isSelected
                       ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
                       : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                   }`}
                 >
-                  <span className="text-sm sm:text-base shrink-0">{mode.icon}</span>
+                  <span className="text-sm shrink-0">{mode.icon}</span>
                   <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
                 </button>
               );
@@ -883,40 +883,40 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
 
         {/* Live Score & Streak Bar */}
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
             <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
               {isVi ? 'Điểm số' : 'Score'}
             </span>
-            <span className="text-lg sm:text-2xl font-black text-amber-400 font-mono">
+            <span className="text-base sm:text-xl font-black text-amber-400 font-mono">
               {score}
             </span>
           </div>
 
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
             <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
               <Flame className="w-3 h-3 text-orange-400" />
               <span>{isVi ? 'Chuỗi đúng' : 'Streak'}</span>
             </span>
-            <span className="text-lg sm:text-2xl font-black text-orange-400 font-mono">
+            <span className="text-base sm:text-xl font-black text-orange-400 font-mono">
               {streak}
             </span>
           </div>
 
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
             <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
               <Trophy className="w-3 h-3 text-yellow-400" />
               <span>{isVi ? 'Kỷ lục chuỗi' : 'Best'}</span>
             </span>
-            <span className="text-lg sm:text-2xl font-black text-yellow-400 font-mono">
+            <span className="text-base sm:text-xl font-black text-yellow-400 font-mono">
               {bestStreak}
             </span>
           </div>
 
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
             <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
               {isVi ? 'Đúng / Tổng' : 'Accuracy'}
             </span>
-            <span className="text-lg sm:text-2xl font-black text-emerald-400 font-mono">
+            <span className="text-base sm:text-xl font-black text-emerald-400 font-mono">
               {correctCount}/{totalAttempts}
             </span>
           </div>
@@ -924,7 +924,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
 
         {/* If Challenge Completed: Show Summary Screen */}
         {gameStatus === 'completed' ? (
-          <div className="rounded-3xl bg-slate-950/90 border border-amber-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200">
+          <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950/90 border border-amber-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200">
             <div className="inline-flex p-4 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-400">
               <Trophy className="w-12 h-12" />
             </div>
@@ -983,9 +983,9 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
             </div>
           </div>
         ) : (
-          /* Math Problem Arena */
-          <div className="max-w-xl mx-auto space-y-5 pt-1">
-            <div className="rounded-3xl bg-slate-950/80 border border-slate-800 p-6 sm:p-9 text-center shadow-inner relative group">
+          /* Math Problem Arena — Side-by-Side on Desktop */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch pt-0.5">
+            <div className="lg:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
               {/* Header: Progress & Timer Countdown */}
               <div className="flex items-center justify-between mb-3 px-2">
                 <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
@@ -1119,7 +1119,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
             </div>
 
             {/* Input Form */}
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
               <div className="relative flex items-center">
                 <input
                   ref={inputRef}
@@ -1137,7 +1137,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
                       : 'Type answer or tap numeric keys below...'
                   }
                   disabled={gameStatus !== 'running'}
-                  className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                  className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
                     isListening
                       ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                       : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
@@ -1156,7 +1156,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
               </div>
 
               {/* Bàn phím số ảo từ 0 đến 9 */}
-              <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md mx-auto w-full">
+              <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
                 <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                   {[1, 2, 3, 4, 5, 6].map((digit) => (
                     <button

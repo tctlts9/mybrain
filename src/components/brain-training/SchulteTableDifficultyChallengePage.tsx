@@ -925,9 +925,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const centerTileIndex = gridSize % 2 === 1 ? Math.floor((gridSize * gridSize) / 2) : -1;
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-5 sm:space-y-7 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           type="button"
           onClick={() => {
@@ -973,11 +973,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       </div>
 
       {/* Main Challenge Container */}
-      <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-violet-950/30 p-4 sm:p-6 shadow-2xl relative overflow-hidden space-y-3.5 sm:space-y-4">
+      <div className="rounded-3xl border border-violet-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-violet-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3">
         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header: Title + Time Limit Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80 relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-800/80 relative z-10">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-violet-500/20 border border-violet-500/30">
               <Gauge className="w-5 h-5 text-violet-400" />
@@ -1233,9 +1233,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           )}
         </div>
 
-        {/* Summary Screen or Active Challenge Board */}
+        {/* Summary Screen or Side-by-Side Challenge Workspace */}
         {status === 'completed' ? (
-          <div className="rounded-3xl bg-slate-950/90 border border-violet-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200 relative z-10">
+          <div className="rounded-3xl bg-slate-950/90 border border-violet-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200 relative z-10 max-w-2xl mx-auto">
             <div className="inline-flex p-4 rounded-3xl bg-violet-500/15 border border-violet-500/30 text-violet-400">
               <Trophy className="w-12 h-12" />
             </div>
@@ -1303,11 +1303,74 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             </div>
           </div>
         ) : (
-          <div className="max-w-lg mx-auto w-full space-y-3.5 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-6 items-center relative z-10">
+            {/* Block A: Desktop Level Rules & Round Progress + Pro Hint */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end space-y-2.5">
+              <div className="hidden lg:block p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-300">
+                    {isVi ? `Cấp độ ${activeDiffInfo.labelVi}` : `${activeDiffInfo.labelEn} Mode`}
+                  </span>
+                  <span className="font-mono font-bold text-violet-400">
+                    {isVi ? `Lượt ${currentRound}/${TOTAL_ROUNDS}` : `Round ${currentRound}/${TOTAL_ROUNDS}`}
+                  </span>
+                </div>
 
-            {/* Schulte Grid Arena */}
-            <div className="relative p-2.5 sm:p-4 rounded-3xl bg-slate-950/90 border border-violet-500/30 shadow-inner">
-              <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2.5 aspect-square relative`}>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  {isVi ? activeDiffInfo.descVi : activeDiffInfo.descEn}
+                </p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {Array.from({ length: TOTAL_ROUNDS }, (_, idx) => {
+                    const roundNum = idx + 1;
+                    const item = roundHistory.find((r) => r.roundIndex === roundNum);
+                    const isActive = status === 'running' && currentRound === roundNum;
+
+                    return (
+                      <div
+                        key={roundNum}
+                        className={`p-2 rounded-xl border text-center text-xs transition-all ${
+                          item
+                            ? item.passed
+                              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                              : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                            : isActive
+                            ? 'bg-violet-500/15 border-violet-500/50 text-violet-300'
+                            : 'bg-slate-900/70 border-slate-800 text-slate-500'
+                        }`}
+                      >
+                        <div className="font-bold">#{roundNum}</div>
+                        <div className="font-mono text-[11px] mt-0.5">
+                          {item
+                            ? item.passed
+                              ? `${item.elapsedSec.toFixed(1)}s`
+                              : `${item.foundCount}/${item.totalCount}`
+                            : isActive
+                            ? `${timeLeft}s`
+                            : `${timeLimit}s`}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/70">
+                  <span>{isVi ? `Bảng ${gridSize}×${gridSize}` : `${gridSize}×${gridSize} Grid`}</span>
+                  <span>{isVi ? `Lỗi lượt này: ${mistakes}` : `Mistakes: ${mistakes}`}</span>
+                </div>
+              </div>
+
+              {difficulty === 'pro' && proRuleHint && (
+                <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-center text-xs font-bold text-rose-300 animate-in fade-in duration-150">
+                  {proRuleHint}
+                </div>
+              )}
+            </div>
+
+            {/* Block B: Schulte Grid Arena */}
+            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-center w-full max-w-[430px] xl:max-w-[460px] mx-auto">
+              <div className="relative p-2.5 sm:p-3.5 rounded-3xl bg-slate-950/90 border border-violet-500/30 shadow-inner">
+                <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
                 {numbers.map((num, idx) => {
                   const found = isAlreadyFound(num);
                   const isWrong = wrongTile === num;
@@ -1401,123 +1464,120 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   </button>
                 </div>
               )}
+              </div>
             </div>
 
-            {/* Pro Mode Rule Hint */}
-            {difficulty === 'pro' && proRuleHint && (
-              <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-center text-xs font-bold text-rose-300 animate-in fade-in duration-150">
-                {proRuleHint}
-              </div>
-            )}
-
-            {/* Pro Mode Color Answer Bar */}
-            {difficulty === 'pro' && status === 'running' && (
-              <div className="p-3 rounded-2xl bg-slate-950/85 border border-violet-500/30 space-y-2">
-                <p className="text-[11px] font-semibold text-slate-300 text-center">
-                  {isVi
-                    ? 'Nếu số mục tiêu CÓ MÀU NỀN → Chọn hoặc nói MÀU • Không nền → Bấm hoặc nói SỐ'
-                    : 'If target has COLORED BG → Tap or speak COLOR • No bg → Tap or speak NUMBER'}
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleColorAnswer('green', false)}
-                    className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
-                  >
-                    {isVi ? 'Xanh' : 'Green'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleColorAnswer('yellow', false)}
-                    className="h-10 rounded-xl bg-amber-500 hover:bg-amber-400 border border-amber-300 text-slate-950 font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
-                  >
-                    {isVi ? 'Vàng' : 'Yellow'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleColorAnswer('purple', false)}
-                    className="h-10 rounded-xl bg-violet-600 hover:bg-violet-500 border border-violet-400 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
-                  >
-                    {isVi ? 'Tím' : 'Purple'}
-                  </button>
+            {/* Block C: Pro Color Answer Bar, Voice Action & Round Result */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start space-y-2.5">
+              {/* Pro Mode Color Answer Bar */}
+              {difficulty === 'pro' && status === 'running' && (
+                <div className="p-3 rounded-2xl bg-slate-950/85 border border-violet-500/30 space-y-2">
+                  <p className="text-[11px] font-semibold text-slate-300 text-center">
+                    {isVi
+                      ? 'Nếu số mục tiêu CÓ MÀU NỀN → Chọn hoặc nói MÀU • Không nền → Bấm hoặc nói SỐ'
+                      : 'If target has COLORED BG → Tap or speak COLOR • No bg → Tap or speak NUMBER'}
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleColorAnswer('green', false)}
+                      className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
+                    >
+                      {isVi ? 'Xanh' : 'Green'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleColorAnswer('yellow', false)}
+                      className="h-10 rounded-xl bg-amber-500 hover:bg-amber-400 border border-amber-300 text-slate-950 font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
+                    >
+                      {isVi ? 'Vàng' : 'Yellow'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleColorAnswer('purple', false)}
+                      className="h-10 rounded-xl bg-violet-600 hover:bg-violet-500 border border-violet-400 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-sm"
+                    >
+                      {isVi ? 'Tím' : 'Purple'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Bottom Voice Button */}
-            {status === 'running' && (
-              <button
-                type="button"
-                onClick={toggleListening}
-                className={`w-full h-12 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 ${
-                  isListening
-                    ? 'bg-rose-500 hover:bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-500/35 animate-pulse'
-                    : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-md'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <MicOff className="w-4 h-4 text-white" />
-                    <span>
-                      {isVi
-                        ? 'Đang nghe giọng nói... (Bấm để dừng)'
-                        : 'Listening Voice... (Click to stop)'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-4 h-4 text-amber-400" />
-                    <span>
-                      {isVi
-                        ? `Giọng nói — Trả lời số tìm được (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
-                        : `Voice — Speak Found Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
-                    </span>
-                  </>
-                )}
-              </button>
-            )}
-
-            {/* Round Result Banner + Auto-advance */}
-            {status === 'round-ended' && (
-              <div className="space-y-3 animate-in zoom-in-95 duration-150">
-                {roundOutcome === 'passed' ? (
-                  <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>
-                      {isVi
-                        ? `Hoàn thành xuất sắc trong ${(roundElapsedMs / 1000).toFixed(2)}s! (Lỗi: ${mistakes})`
-                        : `Completed in ${(roundElapsedMs / 1000).toFixed(2)}s! (Mistakes: ${mistakes})`}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-md">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>
-                      {isVi
-                        ? `Hết giờ! Đã tìm được ${foundCount}/${totalNumbers} số`
-                        : `Time's up! Found ${foundCount}/${totalNumbers} numbers`}
-                    </span>
-                  </div>
-                )}
-
+              {/* Bottom Voice Button */}
+              {status === 'running' && (
                 <button
                   type="button"
-                  onClick={goToNextRound}
-                  className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                  onClick={toggleListening}
+                  className={`w-full h-12 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 px-3 ${
+                    isListening
+                      ? 'bg-rose-500 hover:bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-500/35 animate-pulse'
+                      : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-md'
+                  }`}
                 >
-                  <span>
-                    {currentRound >= TOTAL_ROUNDS
-                      ? isVi
-                        ? `Xem Tổng Kết (tự chuyển sau ${autoNextSeconds}s)`
-                        : `View Results (auto in ${autoNextSeconds}s)`
-                      : isVi
-                      ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS}) - tự chuyển sau ${autoNextSeconds}s`
-                      : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS}) - auto in ${autoNextSeconds}s`}
-                  </span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isListening ? (
+                    <>
+                      <MicOff className="w-4 h-4 text-white shrink-0" />
+                      <span className="truncate">
+                        {isVi
+                          ? 'Đang nghe giọng nói... (Bấm để dừng)'
+                          : 'Listening Voice... (Click to stop)'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="truncate">
+                        {isVi
+                          ? `Giọng nói — Trả lời số (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
+                          : `Voice — Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
+                      </span>
+                    </>
+                  )}
                 </button>
-              </div>
-            )}
+              )}
+
+              {/* Round Result Banner + Auto-advance */}
+              {status === 'round-ended' && (
+                <div className="space-y-2.5 animate-in zoom-in-95 duration-150">
+                  {roundOutcome === 'passed' ? (
+                    <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>
+                        {isVi
+                          ? `Hoàn thành xuất sắc trong ${(roundElapsedMs / 1000).toFixed(2)}s! (Lỗi: ${mistakes})`
+                          : `Completed in ${(roundElapsedMs / 1000).toFixed(2)}s! (Mistakes: ${mistakes})`}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-md">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>
+                        {isVi
+                          ? `Hết giờ! Đã tìm được ${foundCount}/${totalNumbers} số`
+                          : `Time's up! Found ${foundCount}/${totalNumbers} numbers`}
+                      </span>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={goToNextRound}
+                    className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                  >
+                    <span>
+                      {currentRound >= TOTAL_ROUNDS
+                        ? isVi
+                          ? `Xem Tổng Kết (tự chuyển sau ${autoNextSeconds}s)`
+                          : `View Results (auto in ${autoNextSeconds}s)`
+                        : isVi
+                        ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS}) - tự chuyển sau ${autoNextSeconds}s`
+                        : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS}) - auto in ${autoNextSeconds}s`}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -39,8 +39,8 @@ function DashboardApp() {
       />
 
       {/* Main Content Workspace */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-center">
-        <main className="pb-24 md:pb-6">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col justify-center">
+        <main className="pb-20 md:pb-4">
           {activeTab === 'mental-math' && <MentalMathTab />}
           {activeTab === 'loci-journey' && <LociJourneyTab />}
           {activeTab === 'brain-training' && <BrainTrainingTab />}

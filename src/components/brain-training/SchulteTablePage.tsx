@@ -477,9 +477,9 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
   const centerTileIndex = gridSize % 2 === 1 ? Math.floor((gridSize * gridSize) / 2) : -1;
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-5 sm:space-y-7 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           type="button"
           onClick={() => {
@@ -552,11 +552,11 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
       </div>
 
       {/* Main Schulte Table Container */}
-      <div className="rounded-3xl border border-sky-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/85 to-sky-950/30 p-4 sm:p-7 shadow-2xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-sky-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/85 to-sky-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3">
         <div className="absolute top-0 right-0 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header & Config Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80 relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-slate-800/80 relative z-10">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-sky-500/20 border border-sky-500/30">
               <Eye className="w-5 h-5 text-sky-400" />
@@ -687,243 +687,287 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
           </button>
         </div>
 
-        {/* Live Voice Status & Mark Found / No Mark Found Confirmation */}
-        {isListening && (
-          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-rose-300 animate-in fade-in duration-150 relative z-10">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
-            <span className="truncate">
-              {voiceTranscript
-                ? `${isVi ? 'Đang nghe:' : 'Heard:'} "${voiceTranscript}"`
-                : isVi
-                ? `🎙️ Đang nghe (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Đọc số tìm được hoặc tọa độ ("A1", "B3")`
-                : `🎙️ Listening (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Speak found number or coordinate ("A1", "B3")`}
-            </span>
-          </div>
-        )}
+        {/* Completion Banner or Side-by-Side Practice Workspace */}
+        {status === 'completed' ? (
+          <div className="space-y-4 relative z-10">
+            <div className="grid grid-cols-4 gap-2 sm:gap-3">
+              <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
+                  <Timer className="w-3 h-3 text-sky-400" />
+                  <span>{isVi ? 'Thời gian' : 'Time'}</span>
+                </span>
+                <span className="text-base sm:text-2xl font-black text-sky-400 font-mono">
+                  {formatTime(elapsedMs)}
+                </span>
+              </div>
+              <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
+                  {isVi ? 'Số cần tìm' : 'Target'}
+                </span>
+                <span className="text-base sm:text-2xl font-black text-amber-400 font-mono">✓</span>
+              </div>
+              <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
+                  {isVi ? 'Tiến độ / Lỗi' : 'Progress / Err'}
+                </span>
+                <span className="text-base sm:text-2xl font-black font-mono">
+                  <span className="text-emerald-400">{completedCount}</span>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-rose-400">{mistakes}</span>
+                </span>
+              </div>
+              <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
+                  <Trophy className="w-3 h-3 text-yellow-400" />
+                  <span>{isVi ? 'Kỷ lục' : 'Best'}</span>
+                </span>
+                <span className="text-base sm:text-2xl font-black text-yellow-400 font-mono">
+                  {bestTimeMs !== null ? formatTime(bestTimeMs) : '--'}
+                </span>
+              </div>
+            </div>
 
-        {lastMarkedByVoice !== null && (
-          <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center gap-2 text-xs font-bold text-emerald-300 animate-in zoom-in-95 duration-150 relative z-10">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>
-              {highlightFound
-                ? isVi
-                  ? `Đã ghi nhận (Đánh dấu đã tìm): Số ${lastMarkedByVoice}`
-                  : `Recorded (Mark Found): Number ${lastMarkedByVoice}`
-                : isVi
-                ? `Đã ghi nhận (Không đánh dấu): Số ${lastMarkedByVoice}`
-                : `Recorded (No Mark Found): Number ${lastMarkedByVoice}`}
-            </span>
-          </div>
-        )}
+            <div className="rounded-3xl bg-slate-950/90 border border-sky-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200 max-w-2xl mx-auto">
+              <div className="inline-flex p-4 rounded-3xl bg-sky-500/15 border border-sky-500/30 text-sky-400">
+                <Trophy className="w-12 h-12" />
+              </div>
 
-        {voiceError && (
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-start gap-2.5 text-xs text-amber-300 animate-in fade-in duration-150 relative z-10">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="flex-1 font-semibold leading-relaxed">{voiceError}</p>
-            <button
-              type="button"
-              onClick={startListening}
-              className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold shrink-0 cursor-pointer"
-            >
-              {isVi ? 'Thử lại' : 'Retry'}
-            </button>
-          </div>
-        )}
+              {isNewRecord && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isVi ? 'Kỷ lục cá nhân mới!' : 'New Personal Best!'}</span>
+                </div>
+              )}
 
-        {/* Live Metrics Bar */}
-        <div className="grid grid-cols-4 gap-2 sm:gap-3 relative z-10">
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
-            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
-              <Timer className="w-3 h-3 text-sky-400" />
-              <span>{isVi ? 'Thời gian' : 'Time'}</span>
-            </span>
-            <span className="text-base sm:text-2xl font-black text-sky-400 font-mono">
-              {formatTime(elapsedMs)}
-            </span>
-          </div>
+              <div className="space-y-1.5">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                  {isVi ? 'Hoàn Thành Bảng Schulte!' : 'Schulte Table Completed!'}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  {isVi
+                    ? `Bảng ${gridSize}×${gridSize} • Thời gian: ${formatTime(elapsedMs)} • Số lần bấm nhầm: ${mistakes}`
+                    : `${gridSize}×${gridSize} Grid • Time: ${formatTime(elapsedMs)} • Mistakes: ${mistakes}`}
+                </p>
+              </div>
 
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center relative">
-            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
-              {isVi ? 'Số cần tìm' : 'Target'}
-            </span>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="text-base sm:text-2xl font-black text-amber-400 font-mono">
-                {status === 'completed' ? '✓' : nextTarget}
-              </span>
-              {status !== 'completed' && (
+              <div className="flex items-center justify-center gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => speakTargetAloud(nextTarget)}
-                  className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-400 hover:text-amber-300 transition-all cursor-pointer active:scale-90"
-                  title={isVi ? 'Đọc số cần tìm' : 'Speak target number'}
+                  onClick={() => resetBoard()}
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-sky-500/25 active:scale-95 transition-all cursor-pointer"
                 >
-                  <Volume2 className={`w-3.5 h-3.5 ${isSpeakingTarget ? 'animate-bounce' : ''}`} />
+                  <RotateCcw className="w-4 h-4" />
+                  <span>{isVi ? 'Chơi Lại' : 'Play Again'}</span>
                 </button>
-              )}
-            </div>
-          </div>
 
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
-            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
-              {isVi ? 'Tiến độ / Lỗi' : 'Progress / Err'}
-            </span>
-            <span className="text-base sm:text-2xl font-black font-mono">
-              <span className="text-emerald-400">{completedCount}</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-rose-400">{mistakes}</span>
-            </span>
-          </div>
-
-          <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
-            <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
-              <Trophy className="w-3 h-3 text-yellow-400" />
-              <span>{isVi ? 'Kỷ lục' : 'Best'}</span>
-            </span>
-            <span className="text-base sm:text-2xl font-black text-yellow-400 font-mono">
-              {bestTimeMs !== null ? formatTime(bestTimeMs) : '--'}
-            </span>
-          </div>
-        </div>
-
-        {/* Completion Banner or Schulte Grid */}
-        {status === 'completed' ? (
-          <div className="rounded-3xl bg-slate-950/90 border border-sky-500/40 p-6 sm:p-10 text-center space-y-5 animate-in zoom-in-95 duration-200 relative z-10">
-            <div className="inline-flex p-4 rounded-3xl bg-sky-500/15 border border-sky-500/30 text-sky-400">
-              <Trophy className="w-12 h-12" />
-            </div>
-
-            {isNewRecord && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{isVi ? 'Kỷ lục cá nhân mới!' : 'New Personal Best!'}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopListening();
+                    stopCurrentSpeech();
+                    onBack();
+                  }}
+                  className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm border border-slate-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <span>{isVi ? 'Về Brain Training' : 'Brain Training'}</span>
+                </button>
               </div>
-            )}
-
-            <div className="space-y-1.5">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-                {isVi ? 'Hoàn Thành Bảng Schulte!' : 'Schulte Table Completed!'}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300">
-                {isVi
-                  ? `Bảng ${gridSize}×${gridSize} • Thời gian: ${formatTime(elapsedMs)} • Số lần bấm nhầm: ${mistakes}`
-                  : `${gridSize}×${gridSize} Grid • Time: ${formatTime(elapsedMs)} • Mistakes: ${mistakes}`}
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => resetBoard()}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-sky-500/25 active:scale-95 transition-all cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>{isVi ? 'Chơi Lại' : 'Play Again'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  stopListening();
-                  stopCurrentSpeech();
-                  onBack();
-                }}
-                className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm border border-slate-700 active:scale-95 transition-all cursor-pointer"
-              >
-                <span>{isVi ? 'Về Brain Training' : 'Brain Training'}</span>
-              </button>
             </div>
           </div>
         ) : (
-          <div className="max-w-lg mx-auto w-full space-y-4 relative z-10">
-            <div className="relative p-2.5 sm:p-4 rounded-3xl bg-slate-950/90 border border-sky-500/30 shadow-inner">
-              <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2.5 aspect-square relative`}>
-                {numbers.map((num, idx) => {
-                  const found = isAlreadyFound(num);
-                  const isWrong = wrongTile === num;
-                  const isCenter = showCenterDot && idx === centerTileIndex;
-                  const rowIdx = Math.floor(idx / gridSize);
-                  const colIdx = idx % gridSize;
-                  const coordLabel = `${ROW_LETTERS[rowIdx]}${colIdx + 1}`;
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-6 items-center relative z-10">
+            {/* Block A: Metrics + Live Voice Banners */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end space-y-2.5">
+              {isListening && (
+                <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-rose-300 animate-in fade-in duration-150">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
+                  <span className="truncate">
+                    {voiceTranscript
+                      ? `${isVi ? 'Đang nghe:' : 'Heard:'} "${voiceTranscript}"`
+                      : isVi
+                      ? `🎙️ Đang nghe (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Đọc số tìm được hoặc tọa độ ("A1", "B3")`
+                      : `🎙️ Listening (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Speak found number or coordinate ("A1", "B3")`}
+                  </span>
+                </div>
+              )}
 
-                  return (
+              {lastMarkedByVoice !== null && (
+                <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center gap-2 text-xs font-bold text-emerald-300 animate-in zoom-in-95 duration-150">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>
+                    {highlightFound
+                      ? isVi
+                        ? `Đã ghi nhận (Đánh dấu đã tìm): Số ${lastMarkedByVoice}`
+                        : `Recorded (Mark Found): Number ${lastMarkedByVoice}`
+                      : isVi
+                      ? `Đã ghi nhận (Không đánh dấu): Số ${lastMarkedByVoice}`
+                      : `Recorded (No Mark Found): Number ${lastMarkedByVoice}`}
+                  </span>
+                </div>
+              )}
+
+              {voiceError && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-start gap-2 text-xs text-amber-300 animate-in fade-in duration-150">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <p className="flex-1 font-semibold leading-relaxed">{voiceError}</p>
+                  <button
+                    type="button"
+                    onClick={startListening}
+                    className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold shrink-0 cursor-pointer"
+                  >
+                    {isVi ? 'Thử lại' : 'Retry'}
+                  </button>
+                </div>
+              )}
+
+              {/* Live Metrics Bar: 4-across on mobile, 2x2 panel on desktop */}
+              <div className="grid grid-cols-4 lg:grid-cols-2 gap-2 sm:gap-2.5">
+                <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
+                    <Timer className="w-3 h-3 text-sky-400" />
+                    <span>{isVi ? 'Thời gian' : 'Time'}</span>
+                  </span>
+                  <span className="text-base sm:text-2xl font-black text-sky-400 font-mono">
+                    {formatTime(elapsedMs)}
+                  </span>
+                </div>
+
+                <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center relative">
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
+                    {isVi ? 'Số cần tìm' : 'Target'}
+                  </span>
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="text-base sm:text-2xl font-black text-amber-400 font-mono">
+                      {nextTarget}
+                    </span>
                     <button
-                      key={`${num}-${idx}`}
                       type="button"
-                      onClick={() => handleTileClick(num, false)}
-                      className={`relative rounded-xl sm:rounded-2xl font-mono font-black flex items-center justify-center transition-all duration-150 select-none cursor-pointer active:scale-95 border ${tileTextSize} ${
-                        isWrong
-                          ? 'bg-rose-500/25 border-rose-500 text-rose-300 shadow-md shadow-rose-500/20 animate-pulse'
-                          : found && highlightFound
-                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400/50 shadow-inner'
-                          : 'bg-slate-900/95 hover:bg-sky-500/15 border-slate-800 hover:border-sky-400/60 text-amber-100 hover:text-white shadow-md hover:shadow-sky-500/15'
-                      }`}
+                      onClick={() => speakTargetAloud(nextTarget)}
+                      className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-400 hover:text-amber-300 transition-all cursor-pointer active:scale-90"
+                      title={isVi ? 'Đọc số cần tìm' : 'Speak target number'}
                     >
-                      {isListening && (
-                        <span className="absolute top-1 left-1.5 text-[9px] sm:text-[10px] font-bold text-amber-400/75 font-mono pointer-events-none">
-                          {coordLabel}
-                        </span>
-                      )}
-                      <span className="relative z-10">{num}</span>
-                      {isCenter && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute z-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-cyan-400/20 border-2 border-cyan-400/60 pointer-events-none"
-                        />
-                      )}
+                      <Volume2 className={`w-3.5 h-3.5 ${isSpeakingTarget ? 'animate-bounce' : ''}`} />
                     </button>
-                  );
-                })}
+                  </div>
+                </div>
 
-                {/* Center Dot for even-sized grids (4x4, 6x6) */}
-                {showCenterDot && gridSize % 2 === 0 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-cyan-400/80 ring-4 ring-cyan-400/20 pointer-events-none z-20"
-                  />
-                )}
+                <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
+                    {isVi ? 'Tiến độ / Lỗi' : 'Progress / Err'}
+                  </span>
+                  <span className="text-base sm:text-2xl font-black font-mono">
+                    <span className="text-emerald-400">{completedCount}</span>
+                    <span className="text-slate-600">/</span>
+                    <span className="text-rose-400">{mistakes}</span>
+                  </span>
+                </div>
+
+                <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
+                    <Trophy className="w-3 h-3 text-yellow-400" />
+                    <span>{isVi ? 'Kỷ lục' : 'Best'}</span>
+                  </span>
+                  <span className="text-base sm:text-2xl font-black text-yellow-400 font-mono">
+                    {bestTimeMs !== null ? formatTime(bestTimeMs) : '--'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Dedicated Bottom Action Bar: Voice Answer & Reset */}
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={toggleListening}
-                className={`flex-1 h-12 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 ${
-                  isListening
-                    ? 'bg-rose-500 hover:bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-500/35 animate-pulse'
-                    : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-md'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <MicOff className="w-4 h-4 text-white" />
-                    <span>
-                      {isVi
-                        ? 'Đang nghe giọng nói... (Bấm để dừng)'
-                        : 'Listening Voice... (Click to stop)'}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-4 h-4 text-amber-400" />
-                    <span>
-                      {isVi
-                        ? `Giọng nói — Trả lời số tìm được (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
-                        : `Voice — Speak Found Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
-                    </span>
-                  </>
-                )}
-              </button>
+            {/* Block B: Schulte Grid Arena */}
+            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-center w-full max-w-[440px] xl:max-w-[470px] mx-auto">
+              <div className="relative p-2.5 sm:p-3.5 rounded-3xl bg-slate-950/90 border border-sky-500/30 shadow-inner">
+                <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
+                  {numbers.map((num, idx) => {
+                    const found = isAlreadyFound(num);
+                    const isWrong = wrongTile === num;
+                    const isCenter = showCenterDot && idx === centerTileIndex;
+                    const rowIdx = Math.floor(idx / gridSize);
+                    const colIdx = idx % gridSize;
+                    const coordLabel = `${ROW_LETTERS[rowIdx]}${colIdx + 1}`;
 
-              <button
-                type="button"
-                onClick={() => resetBoard()}
-                title={isVi ? 'Đặt lại' : 'Reset'}
-                className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
+                    return (
+                      <button
+                        key={`${num}-${idx}`}
+                        type="button"
+                        onClick={() => handleTileClick(num, false)}
+                        className={`relative rounded-xl sm:rounded-2xl font-mono font-black flex items-center justify-center transition-all duration-150 select-none cursor-pointer active:scale-95 border ${tileTextSize} ${
+                          isWrong
+                            ? 'bg-rose-500/25 border-rose-500 text-rose-300 shadow-md shadow-rose-500/20 animate-pulse'
+                            : found && highlightFound
+                            ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400/50 shadow-inner'
+                            : 'bg-slate-900/95 hover:bg-sky-500/15 border-slate-800 hover:border-sky-400/60 text-amber-100 hover:text-white shadow-md hover:shadow-sky-500/15'
+                        }`}
+                      >
+                        {isListening && (
+                          <span className="absolute top-1 left-1.5 text-[9px] sm:text-[10px] font-bold text-amber-400/75 font-mono pointer-events-none">
+                            {coordLabel}
+                          </span>
+                        )}
+                        <span className="relative z-10">{num}</span>
+                        {isCenter && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute z-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-cyan-400/20 border-2 border-cyan-400/60 pointer-events-none"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Center Dot for even-sized grids (4x4, 6x6) */}
+                  {showCenterDot && gridSize % 2 === 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-cyan-400/80 ring-4 ring-cyan-400/20 pointer-events-none z-20"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Block C: Dedicated Action Bar (Voice Answer & Reset) */}
+            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  className={`flex-1 h-12 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 px-3 ${
+                    isListening
+                      ? 'bg-rose-500 hover:bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-500/35 animate-pulse'
+                      : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-md'
+                  }`}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="w-4 h-4 text-white shrink-0" />
+                      <span className="truncate">
+                        {isVi
+                          ? 'Đang nghe giọng nói... (Bấm để dừng)'
+                          : 'Listening Voice... (Click to stop)'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="truncate">
+                        {isVi
+                          ? `Giọng nói — Trả lời số (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
+                          : `Voice — Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => resetBoard()}
+                  title={isVi ? 'Đặt lại' : 'Reset'}
+                  className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         )}

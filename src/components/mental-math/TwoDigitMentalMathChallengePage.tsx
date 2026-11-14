@@ -667,9 +667,9 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
     CHALLENGE_TOPICS.find((t) => t.id === selectedTopic) || CHALLENGE_TOPICS[2];
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-5 sm:space-y-7 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar: Back & Title */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-900">
+      <div className="flex items-center justify-between pb-2.5 border-b border-slate-900">
         <button
           onClick={() => {
             stopCurrentSpeech();
@@ -705,12 +705,12 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
       </div>
 
       {/* Main Challenge Arena Container */}
-      <div className="rounded-3xl border border-amber-500/35 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-4 sm:p-7 shadow-2xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-amber-500/35 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5">
         {/* Ambient Top Glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header Row: Title, Mode Toggles & Sound */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-md shadow-amber-500/25">
               <Zap className="w-5 h-5 fill-slate-950" />
@@ -809,51 +809,47 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
         {/* Real-time Stats Scoreboard Row: Chuỗi đúng & Chuỗi sai */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
           {/* 1. Chuỗi đúng */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
               <Flame className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
             </div>
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
-                {isVi ? 'Chuỗi đúng' : 'Streak'}
+            <div className="min-w-0 flex items-baseline gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider truncate">
+                {isVi ? 'Chuỗi đúng:' : 'Streak:'}
               </span>
-              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
-                <span className="text-base sm:text-xl font-black text-emerald-400 font-mono">
-                  {streak} {streak >= 3 && '🔥'}
-                </span>
-                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-                  ({isVi ? `Đúng: ${correctCount}` : `Correct: ${correctCount}`})
-                </span>
-              </div>
+              <span className="text-base sm:text-lg font-black text-emerald-400 font-mono">
+                {streak} {streak >= 3 && '🔥'}
+              </span>
+              <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                ({isVi ? `Đúng: ${correctCount}` : `Correct: ${correctCount}`})
+              </span>
             </div>
           </div>
 
           {/* 2. Chuỗi sai */}
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center gap-2.5 sm:gap-3 shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
               <AlertCircle className="w-4 h-4 text-rose-400" />
             </div>
-            <div className="min-w-0">
-              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider block truncate">
-                {isVi ? 'Chuỗi sai' : 'Wrong Streak'}
+            <div className="min-w-0 flex items-baseline gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 tracking-wider truncate">
+                {isVi ? 'Chuỗi sai:' : 'Wrong Streak:'}
               </span>
-              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
-                <span className="text-base sm:text-xl font-black text-rose-400 font-mono">
-                  {wrongStreak}
-                </span>
-                <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-                  ({isVi ? `Sai: ${incorrectCount}` : `Wrong: ${incorrectCount}`})
-                </span>
-              </div>
+              <span className="text-base sm:text-lg font-black text-rose-400 font-mono">
+                {wrongStreak}
+              </span>
+              <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
+                ({isVi ? `Sai: ${incorrectCount}` : `Wrong: ${incorrectCount}`})
+              </span>
             </div>
           </div>
         </div>
 
 
         {/* Central Problem & Dynamic Countdown Timer Card OR Completed View */}
-        <div className="max-w-xl mx-auto space-y-4">
+        <div className="w-full space-y-3">
           {gameStatus === 'completed' ? (
-            <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+            <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
               <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400 shadow-lg shadow-amber-500/20">
                 <Trophy className="w-8 h-8 text-amber-400" />
               </div>
@@ -960,8 +956,8 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               </div>
             </div>
           ) : (
-            <>
-              <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-inner relative overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
+              <div className="lg:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
             {/* Top Timer Bar */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
               <div
@@ -1114,7 +1110,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
           </div>
 
           {/* Answer Input Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
@@ -1136,7 +1132,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
                     : 'Type answer or tap numeric keys...'
                 }
                 disabled={gameStatus !== 'running'}
-                className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                     : isUrgent && gameStatus === 'running'
@@ -1157,7 +1153,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
             </div>
 
             {/* Bàn phím số từ 0 đến 9 nhập kết quả nhanh trong Thử thách - 2 hàng 6 cột nhỏ gọn */}
-            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md mx-auto w-full">
+            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
               <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                 {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
                 {[1, 2, 3, 4, 5, 6].map((digit) => (
@@ -1318,7 +1314,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               </button>
             </div>
           </form>
-        </>
+        </div>
       )}
     </div>
   </div>

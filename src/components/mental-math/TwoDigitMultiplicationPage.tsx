@@ -546,9 +546,9 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   const currentTopicMeta = TRAINING_MODES.find((m) => m.id === selectedTopic) || TRAINING_MODES[0];
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar: Back button, Challenge Button & Breadcrumbs */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
@@ -592,12 +592,12 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
       </div>
 
       {/* Training Section */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-4 sm:p-7 shadow-xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
         {/* Subtle backdrop glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header Row: Title, Action Buttons & Result Audio Announcement Toggle */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
@@ -701,9 +701,9 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
         </div>
 
-        {/* Math Question Arena */}
-        <div className="max-w-xl mx-auto space-y-5 pt-1">
-          <div className="rounded-3xl bg-slate-950/80 border border-slate-800 p-6 sm:p-10 text-center shadow-inner relative group">
+        {/* Math Question Arena — Side-by-Side on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch pt-0.5">
+          <div className="lg:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
             {/* Header: Topic Badge */}
             <div className="flex items-center justify-center mb-2">
               <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
@@ -811,7 +811,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
 
           {/* Clean Input Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
@@ -829,7 +829,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
                     : 'Type answer or tap numeric keys below...'
                 }
                 disabled={feedback === 'correct'}
-                className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                     : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
@@ -848,7 +848,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
             </div>
 
             {/* Bàn phím số từ 0 đến 9 để Nhập kết quả trả lời nhanh - 2 hàng 6 cột nhỏ gọn */}
-            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md mx-auto w-full">
+            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
               <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                 {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
                 {[1, 2, 3, 4, 5, 6].map((digit) => (

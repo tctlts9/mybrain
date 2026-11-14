@@ -178,7 +178,7 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
   const steps = isVi ? cur.stepsVi : cur.stepsEn;
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-5 animate-in fade-in duration-300 pb-12">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300 pb-6">
       {/* Top Navigation Bar */}
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
         <button

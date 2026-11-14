@@ -562,9 +562,9 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
       : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
       {/* Top Navigation Bar: Back button, Challenge Button & Breadcrumbs */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
@@ -608,12 +608,12 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
       </div>
 
       {/* Training Section */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-4 sm:p-7 shadow-xl relative overflow-hidden space-y-5">
+      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
         {/* Subtle backdrop glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header Row: Title, Action Buttons & Result Audio Announcement Toggle */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
@@ -698,7 +698,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
             <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-slate-950/80 rounded-2xl border border-slate-800">
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
             {TRAINING_MODES_1_DIGIT.map((mode) => {
               const isSelected = selectedTopic === mode.id;
               return (
@@ -707,13 +707,13 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
                   type="button"
                   onClick={() => handleSelectTopic(mode.id)}
                   title={isVi ? mode.fullNameVi : mode.fullNameEn}
-                  className={`py-2 px-1.5 sm:py-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 ${
+                  className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                     isSelected
                       ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
                       : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                   }`}
                 >
-                  <span className="text-sm sm:text-base shrink-0">{mode.icon}</span>
+                  <span className="text-sm shrink-0">{mode.icon}</span>
                   <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
                 </button>
               );
@@ -721,9 +721,9 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
           </div>
         </div>
 
-        {/* Math Question Arena */}
-        <div className="max-w-xl mx-auto space-y-5 pt-1">
-          <div className="rounded-3xl bg-slate-950/80 border border-slate-800 p-6 sm:p-10 text-center shadow-inner relative group">
+        {/* Math Question Arena — Side-by-Side on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch pt-0.5">
+          <div className="lg:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
             {/* Header: Topic Badge */}
             <div className="flex items-center justify-center mb-2">
               <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
@@ -831,7 +831,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
           </div>
 
           {/* Clean Input Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
@@ -849,7 +849,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
                     : 'Type answer or tap numeric keys below...'
                 }
                 disabled={feedback === 'correct'}
-                className={`w-full h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                     : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
@@ -868,7 +868,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
             </div>
 
             {/* Bàn phím số từ 0 đến 9 để Nhập kết quả trả lời nhanh - 2 hàng 6 cột nhỏ gọn */}
-            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md mx-auto w-full">
+            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
               <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                 {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
                 {[1, 2, 3, 4, 5, 6].map((digit) => (

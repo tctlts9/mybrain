@@ -956,8 +956,8 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
-              <div className="lg:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
+            <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch">
+              <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
             {/* Top Timer Bar */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
               <div
@@ -1110,7 +1110,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
           </div>
 
           {/* Answer Input Form */}
-          <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
+          <form onSubmit={handleSubmit} className="landscape-math-col md:col-span-6 flex flex-col justify-center space-y-3">
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
@@ -1153,7 +1153,7 @@ export const TwoDigitMentalMathChallengePage: React.FC<MentalMathChallengePagePr
             </div>
 
             {/* Bàn phím số từ 0 đến 9 nhập kết quả nhanh trong Thử thách - 2 hàng 6 cột nhỏ gọn */}
-            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
+            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md md:max-w-none mx-auto w-full">
               <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                 {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
                 {[1, 2, 3, 4, 5, 6].map((digit) => (

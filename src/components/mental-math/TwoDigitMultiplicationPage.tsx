@@ -702,8 +702,8 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
         </div>
 
         {/* Math Question Arena — Side-by-Side on Desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch pt-0.5">
-          <div className="lg:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
+        <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch pt-0.5">
+          <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
             {/* Header: Topic Badge */}
             <div className="flex items-center justify-center mb-2">
               <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
@@ -811,7 +811,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
 
           {/* Clean Input Form */}
-          <form onSubmit={handleSubmit} className="lg:col-span-6 flex flex-col justify-center space-y-3">
+          <form onSubmit={handleSubmit} className="landscape-math-col md:col-span-6 flex flex-col justify-center space-y-3">
             <div className="relative flex items-center">
               <input
                 ref={inputRef}
@@ -848,7 +848,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
             </div>
 
             {/* Bàn phím số từ 0 đến 9 để Nhập kết quả trả lời nhanh - 2 hàng 6 cột nhỏ gọn */}
-            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md lg:max-w-none mx-auto w-full">
+            <div className="p-1.5 sm:p-2 rounded-2xl bg-slate-950/80 border border-slate-800/90 shadow-inner max-w-md md:max-w-none mx-auto w-full">
               <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
                 {/* Hàng 1: 1, 2, 3, 4, 5, 6 */}
                 {[1, 2, 3, 4, 5, 6].map((digit) => (

@@ -1177,9 +1177,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-5 items-start relative z-10">
-            {/* Block A: Separated Compact Control & Status Cards + Desktop Round Progress */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-start space-y-2.5">
+          <div className="landscape-workspace grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-5 items-start relative z-10">
+            {/* Block A: Separated Compact Control & Status Cards + Desktop/Tablet Round Progress */}
+            <div className="landscape-block-a md:col-span-5 md:col-start-1 md:row-start-1 md:self-start space-y-2.5">
               {/* Separated Row 1: Cấp độ + Hoàn thành */}
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 {/* Cấp độ */}
@@ -1239,8 +1239,8 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 </div>
               </div>
 
-              {/* Round Progress Card (Desktop) */}
-              <div className="hidden lg:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
+              {/* Round Progress Card (Tablet & Desktop) */}
+              <div className="hidden md:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300">
                     {isVi ? `Cấp độ ${activeDiffInfo.labelVi}` : `${activeDiffInfo.labelEn} Mode`}
@@ -1303,10 +1303,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
 
             {/* Block B: Schulte Grid Arena + Vertical Pro Color Bar */}
             <div
-              className={`lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-start w-full mx-auto ${
+              className={`landscape-block-b md:col-span-7 md:col-start-6 md:row-start-1 md:row-span-2 md:self-start w-full mx-auto ${
                 difficulty === 'pro' && status === 'running'
-                  ? 'max-w-[495px] xl:max-w-[530px]'
-                  : 'max-w-[390px] xl:max-w-[420px]'
+                  ? 'schulte-arena-pro max-w-[495px] xl:max-w-[530px]'
+                  : 'schulte-arena max-w-[390px] xl:max-w-[420px]'
               }`}
             >
               <div className="flex items-stretch justify-center gap-2 sm:gap-3">
@@ -1437,9 +1437,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             </div>
 
             {/* Block C: Voice Action & Round Result */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start space-y-2.5">
+            <div className="landscape-block-c md:col-span-5 md:col-start-1 md:row-start-2 md:self-start space-y-2.5">
               {difficulty === 'pro' && status === 'running' && (
-                <div className="lg:hidden px-3 py-2 rounded-xl bg-slate-950/85 border border-violet-500/30 text-[11px] font-semibold text-slate-300 text-center">
+                <div className="md:hidden px-3 py-2 rounded-xl bg-slate-950/85 border border-violet-500/30 text-[11px] font-semibold text-slate-300 text-center">
                   {isVi
                     ? 'Có màu nền → Chọn MÀU bên cạnh bảng • Không nền → Bấm hoặc nói SỐ'
                     : 'Colored bg → Tap COLOR beside grid • No bg → Tap or speak NUMBER'}

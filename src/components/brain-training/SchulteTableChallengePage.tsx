@@ -882,9 +882,9 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-5 items-start relative z-10">
-            {/* Block A: Separated Compact Status Cards + Desktop Round Progress */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-start space-y-2.5">
+          <div className="landscape-workspace grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-5 items-start relative z-10">
+            {/* Block A: Separated Compact Status Cards + Desktop/Tablet Round Progress */}
+            <div className="landscape-block-a md:col-span-5 md:col-start-1 md:row-start-1 md:self-start space-y-2.5">
               {/* Separated Cards: Hoàn thành & Số cần tìm */}
               <div className="flex flex-wrap items-center justify-between gap-2">
                 {/* Hoàn thành */}
@@ -920,7 +920,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                 </div>
               </div>
 
-              <div className="hidden lg:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
+              <div className="hidden md:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300">
                     {isVi ? 'Tiến trình thử thách' : 'Challenge Progress'}
@@ -972,7 +972,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
             </div>
 
             {/* Block B: Schulte Grid Arena */}
-            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-start w-full max-w-[390px] xl:max-w-[420px] mx-auto">
+            <div className="landscape-block-b schulte-arena md:col-span-7 md:col-start-6 md:row-start-1 md:row-span-2 md:self-start w-full max-w-[390px] xl:max-w-[420px] mx-auto">
               <div className="relative p-2 sm:p-3 rounded-3xl bg-slate-950/90 border border-amber-500/30 shadow-inner">
                 <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
                 {numbers.map((num, idx) => {
@@ -1051,7 +1051,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
             </div>
 
             {/* Block C: Voice Action & Round Result */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start space-y-2.5">
+            <div className="landscape-block-c md:col-span-5 md:col-start-1 md:row-start-2 md:self-start space-y-2.5">
               {status === 'running' && (
                 <button
                   type="button"

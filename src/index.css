@@ -5,6 +5,10 @@
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 
+  html {
+    touch-action: manipulation;
+  }
+
   body {
     background-color: #030712;
     color: #f8fafc;
@@ -31,6 +35,73 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+/* ========================================================
+   Mobile & Tablet Landscape Rotation Optimization
+   ======================================================== */
+@media (orientation: landscape) and (max-height: 540px) {
+  .app-header-bar {
+    height: 2.75rem !important;
+  }
+
+  .mobile-tab-bar-inner {
+    height: 3rem !important;
+  }
+
+  .mobile-tab-bar-btn {
+    height: 2.35rem !important;
+    flex-direction: row !important;
+    gap: 0.375rem;
+  }
+
+  .mobile-tab-bar-label {
+    margin-top: 0 !important;
+  }
+
+  .schulte-arena {
+    max-width: min(370px, calc(100dvh - 110px)) !important;
+  }
+
+  .schulte-arena-pro {
+    max-width: min(495px, calc(100dvh - 45px)) !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) and (min-width: 600px) {
+  .landscape-workspace {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+
+  .landscape-block-a {
+    grid-column: span 5 / span 5 !important;
+    grid-column-start: 1 !important;
+    grid-row-start: 1 !important;
+    align-self: start !important;
+  }
+
+  .landscape-block-b {
+    grid-column: span 7 / span 7 !important;
+    grid-column-start: 6 !important;
+    grid-row-start: 1 !important;
+    grid-row: span 2 / span 2 !important;
+    align-self: start !important;
+  }
+
+  .landscape-block-c {
+    grid-column: span 5 / span 5 !important;
+    grid-column-start: 1 !important;
+    grid-row-start: 2 !important;
+    align-self: start !important;
+  }
+
+  .landscape-math-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+
+  .landscape-math-col {
+    grid-column: span 6 / span 6 !important;
+  }
 }
 
 /* ========================================================

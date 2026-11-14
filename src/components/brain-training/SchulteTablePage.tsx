@@ -775,9 +775,9 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-6 items-center relative z-10">
+          <div className="landscape-workspace grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-5 lg:gap-6 items-center relative z-10">
             {/* Block A: Metrics + Live Voice Banners */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end space-y-2.5">
+            <div className="landscape-block-a md:col-span-5 md:col-start-1 md:row-start-1 md:self-end space-y-2.5">
               {isListening && (
                 <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-rose-300 animate-in fade-in duration-150">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
@@ -820,8 +820,8 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                 </div>
               )}
 
-              {/* Live Metrics Bar: 4-across on mobile, 2x2 panel on desktop */}
-              <div className="grid grid-cols-4 lg:grid-cols-2 gap-2 sm:gap-2.5">
+              {/* Live Metrics Bar: 4-across on portrait mobile, 2x2 panel on tablet/landscape/desktop */}
+              <div className="grid grid-cols-4 md:grid-cols-2 gap-2 sm:gap-2.5">
                 <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                   <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
                     <Timer className="w-3 h-3 text-sky-400" />
@@ -875,7 +875,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </div>
 
             {/* Block B: Schulte Grid Arena */}
-            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-start w-full max-w-[400px] xl:max-w-[430px] mx-auto">
+            <div className="landscape-block-b schulte-arena md:col-span-7 md:col-start-6 md:row-start-1 md:row-span-2 md:self-start w-full max-w-[400px] xl:max-w-[430px] mx-auto">
               <div className="relative p-2 sm:p-3 rounded-3xl bg-slate-950/90 border border-sky-500/30 shadow-inner">
                 <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
                   {numbers.map((num, idx) => {
@@ -927,7 +927,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </div>
 
             {/* Block C: Dedicated Action Bar (Voice Answer & Reset) */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start">
+            <div className="landscape-block-c md:col-span-5 md:col-start-1 md:row-start-2 md:self-start">
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"

@@ -21,10 +21,10 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)]"
+      className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 pt-[env(safe-area-inset-top,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]"
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 h-14 sm:h-16">
+        <div className="app-header-bar flex items-center justify-between gap-2 sm:gap-4 h-14 sm:h-16">
           {/* Brand Logo & Title */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-amber-500/20 via-slate-900 to-amber-950/80 border border-amber-500/50 flex items-center justify-center shadow-lg shadow-amber-500/25 p-1 shrink-0">

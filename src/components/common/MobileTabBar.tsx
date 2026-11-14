@@ -17,13 +17,13 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
   return (
     <nav
       aria-label="Thanh điều hướng tab dưới cùng màn hình"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 md:hidden pb-[env(safe-area-inset-bottom,0px)] shadow-2xl shadow-black"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 md:hidden pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] shadow-2xl shadow-black"
     >
-      <div className="grid grid-cols-3 items-center h-16 max-w-md mx-auto px-2 gap-1.5">
+      <div className="mobile-tab-bar-inner grid grid-cols-3 items-center h-16 max-w-md mx-auto px-2 gap-1.5">
         {/* Tab 1: Mental Math */}
         <button
           onClick={() => onTabChange('mental-math')}
-          className={`flex flex-col items-center justify-center h-12 rounded-xl transition-all cursor-pointer px-1 ${
+          className={`mobile-tab-bar-btn flex flex-col items-center justify-center h-12 rounded-xl transition-all cursor-pointer px-1 ${
             activeTab === 'mental-math'
               ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/40 shadow-sm shadow-amber-500/15'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
@@ -39,7 +39,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
             )}
           </div>
-          <span className="text-[11px] sm:text-xs mt-1 font-semibold truncate max-w-full">
+          <span className="mobile-tab-bar-label text-[11px] sm:text-xs mt-1 font-semibold truncate max-w-full">
             {t.mobileMentalMath}
           </span>
         </button>
@@ -47,7 +47,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         {/* Tab 2: Hành trình ký ức Loci */}
         <button
           onClick={() => onTabChange('loci-journey')}
-          className={`flex flex-col items-center justify-center h-12 rounded-xl transition-all cursor-pointer px-1 ${
+          className={`mobile-tab-bar-btn flex flex-col items-center justify-center h-12 rounded-xl transition-all cursor-pointer px-1 ${
             activeTab === 'loci-journey'
               ? 'bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/40 shadow-sm shadow-emerald-500/15'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
@@ -63,7 +63,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
             )}
           </div>
-          <span className="text-[11px] sm:text-xs mt-1 font-semibold truncate max-w-full">
+          <span className="mobile-tab-bar-label text-[11px] sm:text-xs mt-1 font-semibold truncate max-w-full">
             {t.mobileLociJourney}
           </span>
         </button>
@@ -71,7 +71,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
         {/* Tab 3: Brain Training */}
         <button
           onClick={() => onTabChange('brain-training')}
-          className={`flex flex-col items-center justify-center h-12 rounded-xl transition-all cursor-pointer px-1 ${
+          className={`mobile-tab-bar-btn flex flex-col items-center justify-center h-12 rounded-xl transition-all cursor-pointer px-1 ${
             activeTab === 'brain-training'
               ? 'bg-sky-500/15 text-sky-300 font-bold border border-sky-500/40 shadow-sm shadow-sky-500/15'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
@@ -87,7 +87,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-sky-400 rounded-full animate-ping" />
             )}
           </div>
-          <span className="text-[11px] sm:text-xs mt-1 font-semibold truncate max-w-full">
+          <span className="mobile-tab-bar-label text-[11px] sm:text-xs mt-1 font-semibold truncate max-w-full">
             {t.mobileBrainTraining}
           </span>
         </button>

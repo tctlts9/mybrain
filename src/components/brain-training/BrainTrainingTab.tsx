@@ -6,7 +6,7 @@ import {
   SchulteGridSize,
 } from './SchulteTableChallengePage';
 import { SchulteTableDifficultyChallengePage } from './SchulteTableDifficultyChallengePage';
-import schulteTableBg from '../../assets/images/SchulteTable.jpg';
+import schulteTableBg from '../../assets/images/Brain Training/SchulteTable.jpg';
 
 type BrainTrainingPage =
   | 'card'

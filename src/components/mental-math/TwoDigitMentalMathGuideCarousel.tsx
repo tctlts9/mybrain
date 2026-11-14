@@ -14,10 +14,10 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-import step1Img from '../../assets/images/TwoDigitGuide1.jpg';
-import step2Img from '../../assets/images/TwoDigitGuide2.jpg';
-import step3Img from '../../assets/images/TwoDigitGuide3.jpg';
-import step4Img from '../../assets/images/TwoDigitGuide4.jpg';
+import step1Img from '../../assets/images/Mental Math/TwoDigitGuide1.jpg';
+import step2Img from '../../assets/images/Mental Math/TwoDigitGuide2.jpg';
+import step3Img from '../../assets/images/Mental Math/TwoDigitGuide3.jpg';
+import step4Img from '../../assets/images/Mental Math/TwoDigitGuide4.jpg';
 import Guide from '../../assets/images/Guide.pdf';
 import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 

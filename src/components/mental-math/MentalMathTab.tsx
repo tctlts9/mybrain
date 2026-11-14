@@ -9,9 +9,9 @@ import { MultiplyBy11VisualGuidePage } from './MultiplyBy11VisualGuidePage';
 import { MultiplyWith1DigitPage, Multiply1DigitTopic } from './MultiplyWith1DigitPage';
 import { MultiplyWith1DigitChallengePage } from './MultiplyWith1DigitChallengePage';
 import { MultiplyWith1DigitVisualGuidePage } from './MultiplyWith1DigitVisualGuidePage';
-import cardBg from '../../assets/images/TwoDigitBg.jpg';
-import card11Bg from '../../assets/images/MultiplyBy11Bg.jpg';
-import card1DigitBg from '../../assets/images/MultiplyWith1DigitBg.jpg';
+import cardBg from '../../assets/images/Mental Math/TwoDigitBg.jpg';
+import card11Bg from '../../assets/images/Mental Math/MultiplyBy11Bg.jpg';
+import card1DigitBg from '../../assets/images/Mental Math/MultiplyWith1DigitBg.jpg';
 
 type MentalMathPage =
   | 'card'

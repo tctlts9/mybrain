@@ -109,10 +109,10 @@ export const translations: Record<Language, Translations> = {
 
     // Tabs
     tabMentalMath: 'Tính Nhẩm',
-    tabLociJourney: 'Ký Ức Loci',
+    tabLociJourney: 'Memory Palace',
     tabBrainTraining: 'Luyện Não Bộ',
     mobileMentalMath: 'Tính Nhẩm',
-    mobileLociJourney: 'Ký Ức Loci',
+    mobileLociJourney: 'Memory Palace',
     mobileBrainTraining: 'Luyện Não Bộ',
 
     // Content
@@ -204,10 +204,10 @@ export const translations: Record<Language, Translations> = {
 
     // Tabs
     tabMentalMath: 'Mental Math',
-    tabLociJourney: 'Loci Memory',
+    tabLociJourney: 'Memory Palace',
     tabBrainTraining: 'Brain Training',
     mobileMentalMath: 'Mental Math',
-    mobileLociJourney: 'Loci Memory',
+    mobileLociJourney: 'Memory Palace',
     mobileBrainTraining: 'Brain Training',
 
     // Content

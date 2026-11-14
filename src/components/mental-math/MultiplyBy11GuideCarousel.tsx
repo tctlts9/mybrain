@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
-import step1Img from '../../assets/images/MultiplyingBy11Guide1.jpg';
-import step2Img from '../../assets/images/MultiplyingBy11Guide2.jpg';
+import step1Img from '../../assets/images/Mental Math/MultiplyingBy11Guide1.jpg';
+import step2Img from '../../assets/images/Mental Math/MultiplyingBy11Guide2.jpg';
 import Guide from '../../assets/images/Guide.pdf';
 import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 

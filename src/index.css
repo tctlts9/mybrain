@@ -105,6 +105,52 @@
 }
 
 /* ========================================================
+   Pro+ Circular Schulte Table: 3 Self-Rotating Rings
+   ======================================================== */
+@keyframes ring-spin-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ring-spin-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.ring-spin-cw-slow {
+  animation: ring-spin-cw 26s linear infinite;
+}
+.ring-counter-cw-slow {
+  animation: ring-spin-ccw 26s linear infinite;
+}
+
+.ring-spin-ccw-med {
+  animation: ring-spin-ccw 19s linear infinite;
+}
+.ring-counter-ccw-med {
+  animation: ring-spin-cw 19s linear infinite;
+}
+
+.ring-spin-cw-fast {
+  animation: ring-spin-cw 15s linear infinite;
+}
+.ring-counter-cw-fast {
+  animation: ring-spin-ccw 15s linear infinite;
+}
+
+.ring-paused {
+  animation-play-state: paused !important;
+}
+
+/* ========================================================
    Responsive Touch & Hardware-Accelerated Carousel Styles
    Standardized for Mobile, Tablet, and Desktop Web
    ======================================================== */

@@ -47,13 +47,14 @@ const EN_NUMS: Record<string, number> = {
 export function parseSchulteVoiceActions(
   rawTranscript: string,
   gridSize: number,
-  nextTarget?: number
+  nextTarget?: number,
+  maxNumberOverride?: number
 ): SchulteVoiceAction[] {
   if (!rawTranscript) return [];
   const cleaned = rawTranscript.trim().toLowerCase();
   if (!cleaned) return [];
 
-  const maxNum = gridSize * gridSize;
+  const maxNum = maxNumberOverride ?? gridSize * gridSize;
 
   // 1. Control commands
   if (

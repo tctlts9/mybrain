@@ -18,6 +18,9 @@ import {
   MicOff,
   AlertTriangle,
   Gauge,
+  Grid3x3,
+  Eye,
+  Send,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { playSpeakerChime } from '../../utils/speechUtils';
@@ -25,9 +28,11 @@ import { parseSchulteVoiceActions, SchulteColorAnswer } from '../../utils/schult
 import type { SchulteGridSize } from './SchulteTableChallengePage';
 
 type OrderMode = 'asc' | 'desc';
-type TimeLimit = 10 | 20 | 30 | 40 | 50 | 60;
-type DifficultyLevel = 'hard' | 'pro';
+type TimeLimit = 5 | 10 | 15 | 20 | 25 | 30;
+type AnswerTimeLimit = 10 | 20 | 30 | 40 | 50 | 60;
+type DifficultyLevel = 'hard' | 'pro' | 'pro-plus';
 type ChallengeStatus = 'idle' | 'running' | 'round-ended' | 'completed';
+type ProPlusPhase = 'idle' | 'observing' | 'answering' | 'result';
 
 interface SchulteTableDifficultyChallengePageProps {
   onBack: () => void;
@@ -45,9 +50,27 @@ interface RoundHistoryItem {
   totalCount: number;
 }
 
+interface ProPlusRingEval {
+  actual: number[];
+  entered: number[];
+  correct: number[];
+  wrong: number[];
+  missed: number[];
+}
+
+interface ProPlusResult {
+  rings: [ProPlusRingEval, ProPlusRingEval, ProPlusRingEval];
+  totalCorrect: number;
+  totalNumbers: number;
+  totalWrong: number;
+  answerElapsedSec: number;
+  timedOut: boolean;
+}
+
 const TOTAL_ROUNDS = 3;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
-const TIME_LIMITS: TimeLimit[] = [10, 20, 30, 40, 50, 60];
+const TIME_LIMITS: TimeLimit[] = [5, 10, 15, 20, 25, 30];
+const ANSWER_TIME_LIMITS: AnswerTimeLimit[] = [10, 20, 30, 40, 50, 60];
 const DIFFICULTY_LEVELS: {
   id: DifficultyLevel;
   labelVi: string;
@@ -59,18 +82,31 @@ const DIFFICULTY_LEVELS: {
     id: 'hard',
     labelVi: 'Khó',
     labelEn: 'Hard',
-    descVi: '4 màu ngẫu nhiên • Bảng cố định',
-    descEn: '4 random colors • Static grid',
+    descVi: '4 màu ngẫu nhiên • Tọa độ nhiễu • Bảng cố định',
+    descEn: '4 random colors • Coordinate interference • Static grid',
   },
   {
     id: 'pro',
     labelVi: 'Siêu khó',
     labelEn: 'Pro',
-    descVi: 'Có màu nền → Trả lời MÀU • Không có nền → Trả lời SỐ',
-    descEn: 'Colored bg → Answer COLOR • No bg → Answer NUMBER',
+    descVi: 'Có màu nền → Trả lời MÀU • Không nền → SỐ • Tọa độ nhiễu',
+    descEn: 'Colored bg → Answer COLOR • No bg → NUMBER • Coordinate interference',
+  },
+  {
+    id: 'pro-plus',
+    labelVi: 'Pro+',
+    labelEn: 'Pro+',
+    descVi: '3 vòng tròn tự quay (2 xuôi • 1 ngược)',
+    descEn: '3 rotating rings (2 CW • 1 CCW)',
   },
 ];
 const ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const COORD_CORNER_CLASSES = [
+  'top-0.5 left-1 sm:top-1 sm:left-1.5',
+  'top-0.5 right-1 sm:top-1 sm:right-1.5',
+  'bottom-0.5 left-1 sm:bottom-1 sm:left-1.5',
+  'bottom-0.5 right-1 sm:bottom-1 sm:right-1.5',
+] as const;
 const HARD_TEXT_COLORS = [
   'text-sky-400',
   'text-amber-400',
@@ -118,14 +154,131 @@ const pickRandomProBgColor = (exclude?: ProBgColor): ProBgColor => {
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
-const generateShuffledNumbers = (size: SchulteGridSize): number[] => {
+const PRO_PLUS_HEX_COLORS = [
+  '#f43f5e',
+  '#f97316',
+  '#a855f7',
+  '#38bdf8',
+  '#22c55e',
+  '#3b82f6',
+] as const;
+
+const PRO_PLUS_RING_COUNTS: Record<SchulteGridSize, [number, number, number]> = {
+  3: [2, 3, 4],
+  4: [3, 5, 8],
+  5: [5, 9, 11],
+  6: [6, 12, 18],
+};
+
+const PRO_PLUS_RINGS = [
+  {
+    id: 'inner',
+    innerR: 0,
+    outerR: 74,
+    textR: 43,
+    coordR: 62,
+    spinClass: 'ring-spin-cw-fast',
+    counterClass: 'ring-counter-cw-fast',
+    angleOffset: -18,
+  },
+  {
+    id: 'middle',
+    innerR: 74,
+    outerR: 134,
+    textR: 101,
+    coordR: 121,
+    spinClass: 'ring-spin-ccw-med',
+    counterClass: 'ring-counter-ccw-med',
+    angleOffset: 10,
+  },
+  {
+    id: 'outer',
+    innerR: 134,
+    outerR: 194,
+    textR: 161,
+    coordR: 181,
+    spinClass: 'ring-spin-cw-slow',
+    counterClass: 'ring-counter-cw-slow',
+    angleOffset: -8,
+  },
+] as const;
+
+const polarToCartesian = (cx: number, cy: number, r: number, angleDeg: number) => {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return {
+    x: cx + r * Math.cos(rad),
+    y: cy + r * Math.sin(rad),
+  };
+};
+
+const describeAnnularSector = (
+  cx: number,
+  cy: number,
+  innerR: number,
+  outerR: number,
+  startAngle: number,
+  endAngle: number
+): string => {
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  const outerStart = polarToCartesian(cx, cy, outerR, startAngle);
+  const outerEnd = polarToCartesian(cx, cy, outerR, endAngle);
+
+  if (innerR <= 0) {
+    return [
+      `M ${cx} ${cy}`,
+      `L ${outerStart.x.toFixed(2)} ${outerStart.y.toFixed(2)}`,
+      `A ${outerR} ${outerR} 0 ${largeArc} 1 ${outerEnd.x.toFixed(2)} ${outerEnd.y.toFixed(2)}`,
+      'Z',
+    ].join(' ');
+  }
+
+  const innerEnd = polarToCartesian(cx, cy, innerR, endAngle);
+  const innerStart = polarToCartesian(cx, cy, innerR, startAngle);
+  return [
+    `M ${outerStart.x.toFixed(2)} ${outerStart.y.toFixed(2)}`,
+    `A ${outerR} ${outerR} 0 ${largeArc} 1 ${outerEnd.x.toFixed(2)} ${outerEnd.y.toFixed(2)}`,
+    `L ${innerEnd.x.toFixed(2)} ${innerEnd.y.toFixed(2)}`,
+    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${innerStart.x.toFixed(2)} ${innerStart.y.toFixed(2)}`,
+    'Z',
+  ].join(' ');
+};
+
+const getProPlusRingTargets = (
+  nums: number[],
+  size: SchulteGridSize
+): [number[], number[], number[]] => {
+  const [c1, c2, c3] = PRO_PLUS_RING_COUNTS[size];
+  return [
+    nums.slice(0, c1),
+    nums.slice(c1, c1 + c2),
+    nums.slice(c1 + c2, c1 + c2 + c3),
+  ];
+};
+
+const parseRingNumbersInput = (raw: string): number[] => {
+  const matches = raw.match(/\d+/g);
+  if (!matches) return [];
+  const seen = new Set<number>();
+  const parsed: number[] = [];
+  for (const token of matches) {
+    const val = parseInt(token, 10);
+    if (!Number.isNaN(val) && val > 0 && !seen.has(val)) {
+      seen.add(val);
+      parsed.push(val);
+    }
+  }
+  return parsed;
+};
+
+const generateShuffledNumbers = (size: SchulteGridSize, poolMax?: number): number[] => {
   const total = size * size;
-  const arr = Array.from({ length: total }, (_, i) => i + 1);
+  const maxVal = poolMax && poolMax >= total ? poolMax : total;
+  const arr = Array.from({ length: maxVal }, (_, i) => i + 1);
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return arr;
+  return arr.slice(0, total);
 };
 
 const generateRandomColorIndices = (total: number): number[] => {
@@ -158,7 +311,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const [gridSize, setGridSize] = useState<SchulteGridSize>(initialGridSize);
   const [orderMode, setOrderMode] = useState<OrderMode>('desc');
   const [timeLimit, setTimeLimit] = useState<TimeLimit>(30);
+  const [answerTimeLimit, setAnswerTimeLimit] = useState<AnswerTimeLimit>(30);
   const [showCenterDot, setShowCenterDot] = useState<boolean>(true);
+  const [showCoordinates, setShowCoordinates] = useState<boolean>(true);
   const [highlightFound, setHighlightFound] = useState<boolean>(false);
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
 
@@ -167,6 +322,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [numbers, setNumbers] = useState<number[]>(() => generateShuffledNumbers(initialGridSize));
   const [tileColorIndices, setTileColorIndices] = useState<number[]>(() =>
+    generateRandomColorIndices(initialGridSize * initialGridSize)
+  );
+  const [tileCoordCorners, setTileCoordCorners] = useState<number[]>(() =>
     generateRandomColorIndices(initialGridSize * initialGridSize)
   );
   const [tileBgMask, setTileBgMask] = useState<boolean[]>(() =>
@@ -194,6 +352,12 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const [passedCount, setPassedCount] = useState<number>(0);
   const [roundHistory, setRoundHistory] = useState<RoundHistoryItem[]>([]);
 
+  // Pro+ Observation & 3-Ring Recall State
+  const [proPlusPhase, setProPlusPhase] = useState<ProPlusPhase>('idle');
+  const [proPlusInputs, setProPlusInputs] = useState<[string, string, string]>(['', '', '']);
+  const [proPlusResult, setProPlusResult] = useState<ProPlusResult | null>(null);
+  const [activeProPlusRingIdx, setActiveProPlusRingIdx] = useState<0 | 1 | 2>(0);
+
   const countdownRef = useRef<number | null>(null);
   const roundStartRef = useRef<number>(0);
   const wrongTimeoutRef = useRef<number | null>(null);
@@ -204,6 +368,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const isListeningRef = useRef<boolean>(false);
   const consumedLengthByIndexRef = useRef<Map<number, number>>(new Map());
   const hitsSinceShuffleRef = useRef<number>(0);
+  const ringInputRefs = useRef<[HTMLInputElement | null, HTMLInputElement | null, HTMLInputElement | null]>([
+    null,
+    null,
+    null,
+  ]);
 
   const nextTargetRef = useRef(nextTarget);
   nextTargetRef.current = nextTarget;
@@ -211,6 +380,18 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   mistakesRef.current = mistakes;
   const currentRoundRef = useRef(currentRound);
   currentRoundRef.current = currentRound;
+  const proPlusPhaseRef = useRef(proPlusPhase);
+  proPlusPhaseRef.current = proPlusPhase;
+  const proPlusInputsRef = useRef(proPlusInputs);
+  proPlusInputsRef.current = proPlusInputs;
+  const activeProPlusRingIdxRef = useRef(activeProPlusRingIdx);
+  activeProPlusRingIdxRef.current = activeProPlusRingIdx;
+  const timeLimitRef = useRef(timeLimit);
+  timeLimitRef.current = timeLimit;
+  const answerTimeLimitRef = useRef(answerTimeLimit);
+  answerTimeLimitRef.current = answerTimeLimit;
+  const isSoundOnRef = useRef(isSoundOn);
+  isSoundOnRef.current = isSoundOn;
 
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
@@ -259,9 +440,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   }, []);
 
   const triggerBoardReshuffle = useCallback((sizeToUse: SchulteGridSize) => {
+    const total = sizeToUse * sizeToUse;
     setNumbers(generateShuffledNumbers(sizeToUse));
-    setTileColorIndices(generateRandomColorIndices(sizeToUse * sizeToUse));
-    setTileBgMask(generateRandomBgMask(sizeToUse * sizeToUse));
+    setTileColorIndices(generateRandomColorIndices(total));
+    setTileCoordCorners(generateRandomColorIndices(total));
+    setTileBgMask(generateRandomBgMask(total));
     setShuffleNotice(true);
     if (shuffleNoticeTimeoutRef.current !== null) {
       window.clearTimeout(shuffleNoticeTimeoutRef.current);
@@ -330,10 +513,13 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   );
 
   const prepareBoard = useCallback(
-    (sizeToUse: SchulteGridSize, modeToUse: OrderMode) => {
+    (sizeToUse: SchulteGridSize, modeToUse: OrderMode, diffToUse?: DifficultyLevel) => {
       const total = sizeToUse * sizeToUse;
-      setNumbers(generateShuffledNumbers(sizeToUse));
+      const activeDiff = diffToUse ?? difficultyRef.current;
+      const poolMax = activeDiff === 'pro-plus' ? total + 1 : total;
+      setNumbers(generateShuffledNumbers(sizeToUse, poolMax));
       setTileColorIndices(generateRandomColorIndices(total));
+      setTileCoordCorners(generateRandomColorIndices(total));
       setTileBgMask(generateRandomBgMask(total));
       setActiveProBgColor((prev) => pickRandomProBgColor(prev));
       setNextTarget(modeToUse === 'asc' ? 1 : total);
@@ -348,8 +534,130 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     []
   );
 
+  const submitProPlusAnswers = useCallback((timedOut: boolean = false) => {
+    if (countdownRef.current !== null) {
+      window.clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+
+    const activeSize = gridSizeRef.current;
+    const activeNums = numbersRef.current;
+    const limitSec = answerTimeLimitRef.current;
+    const elapsedMs = Date.now() - roundStartRef.current;
+    const answerElapsedSec = timedOut
+      ? limitSec
+      : Number(Math.min(limitSec, Math.max(0.1, elapsedMs / 1000)).toFixed(1));
+
+    const targets = getProPlusRingTargets(activeNums, activeSize);
+    const rawInputs = proPlusInputsRef.current;
+
+    const ringEvals = ([0, 1, 2] as const).map((idx) => {
+      const actual = targets[idx];
+      const actualSet = new Set(actual);
+      const entered = parseRingNumbersInput(rawInputs[idx]);
+      const enteredSet = new Set(entered);
+      const correct = entered.filter((n) => actualSet.has(n));
+      const wrong = entered.filter((n) => !actualSet.has(n));
+      const missed = actual.filter((n) => !enteredSet.has(n));
+      return { actual, entered, correct, wrong, missed };
+    }) as [ProPlusRingEval, ProPlusRingEval, ProPlusRingEval];
+
+    const totalCorrect = ringEvals.reduce((sum, r) => sum + r.correct.length, 0);
+    const totalWrong = ringEvals.reduce((sum, r) => sum + r.wrong.length, 0);
+    const totalNumbersCount = activeSize * activeSize;
+
+    if (isSoundOnRef.current) {
+      playSpeakerChime(totalCorrect > 0 && totalWrong === 0 ? 'correct' : 'incorrect');
+    }
+
+    setTimeLeft(timedOut ? 0 : Math.max(0, Math.ceil((limitSec * 1000 - elapsedMs) / 1000)));
+    setRoundElapsedMs(Math.min(elapsedMs, limitSec * 1000));
+    setProPlusResult({
+      rings: ringEvals,
+      totalCorrect,
+      totalNumbers: totalNumbersCount,
+      totalWrong,
+      answerElapsedSec,
+      timedOut,
+    });
+    setProPlusPhase('result');
+    setStatus('idle');
+  }, []);
+
+  const beginProPlusAnswering = useCallback(
+    (explicitLimit?: AnswerTimeLimit) => {
+      if (countdownRef.current !== null) {
+        window.clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+
+      const activeLimit = explicitLimit ?? answerTimeLimitRef.current;
+      if (isSoundOnRef.current) playSpeakerChime('correct');
+
+      setProPlusPhase('answering');
+      setStatus('running');
+      setActiveProPlusRingIdx(0);
+      setTimeLeft(activeLimit);
+      setRoundElapsedMs(0);
+
+      const start = Date.now();
+      roundStartRef.current = start;
+
+      countdownRef.current = window.setInterval(() => {
+        const elapsed = Date.now() - start;
+        const remainingMs = activeLimit * 1000 - elapsed;
+        const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+        setTimeLeft(remainingSec);
+        setRoundElapsedMs(Math.min(elapsed, activeLimit * 1000));
+
+        if (remainingMs <= 0) {
+          submitProPlusAnswers(true);
+        }
+      }, 100);
+    },
+    [submitProPlusAnswers]
+  );
+
+  const startProPlusSession = useCallback(
+    (explicitSize?: SchulteGridSize, explicitLimit?: TimeLimit) => {
+      clearTimers();
+      const activeSize = explicitSize ?? gridSizeRef.current;
+      const activeLimit = explicitLimit ?? timeLimitRef.current;
+
+      prepareBoard(activeSize, 'asc', 'pro-plus');
+      setProPlusInputs(['', '', '']);
+      setProPlusResult(null);
+      setActiveProPlusRingIdx(0);
+      setProPlusPhase('observing');
+      setStatus('running');
+      setTimeLeft(activeLimit);
+      setRoundElapsedMs(0);
+
+      const start = Date.now();
+      roundStartRef.current = start;
+
+      countdownRef.current = window.setInterval(() => {
+        const elapsed = Date.now() - start;
+        const remainingMs = activeLimit * 1000 - elapsed;
+        const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+        setTimeLeft(remainingSec);
+        setRoundElapsedMs(Math.min(elapsed, activeLimit * 1000));
+
+        if (remainingMs <= 0) {
+          beginProPlusAnswering(answerTimeLimitRef.current);
+        }
+      }, 100);
+    },
+    [beginProPlusAnswering, clearTimers, prepareBoard]
+  );
+
   const startChallengeSession = useCallback(
     (explicitSize?: SchulteGridSize, explicitLimit?: TimeLimit, explicitMode?: OrderMode) => {
+      if (difficultyRef.current === 'pro-plus') {
+        startProPlusSession(explicitSize, explicitLimit);
+        return;
+      }
+
       clearTimers();
       const activeSize = explicitSize ?? gridSize;
       const activeLimit = explicitLimit ?? timeLimit;
@@ -363,7 +671,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       setStatus('running');
       startCountdown(activeLimit);
     },
-    [clearTimers, gridSize, orderMode, prepareBoard, startCountdown, timeLimit]
+    [clearTimers, gridSize, orderMode, prepareBoard, startCountdown, startProPlusSession, timeLimit]
   );
 
   const goToNextRound = useCallback(() => {
@@ -620,7 +928,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           const currentSize = gridSizeRef.current;
           let activeTarget = nextTargetRef.current;
           const mode = orderModeRef.current;
-          const actions = parseSchulteVoiceActions(deltaText, currentSize, activeTarget);
+          const maxVoiceNum =
+            difficultyRef.current === 'pro-plus'
+              ? currentSize * currentSize + 1
+              : currentSize * currentSize;
+          const actions = parseSchulteVoiceActions(deltaText, currentSize, activeTarget, maxVoiceNum);
           if (actions.length === 0) continue;
 
           let consumedAction = false;
@@ -637,6 +949,42 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               continue;
             }
             if (statusRef.current !== 'running') continue;
+
+            if (difficultyRef.current === 'pro-plus') {
+              if (proPlusPhaseRef.current === 'answering' && action.type === 'number') {
+                const targetRing = activeProPlusRingIdxRef.current;
+                const activeSize = gridSizeRef.current;
+                const [c1, c2] = PRO_PLUS_RING_COUNTS[activeSize];
+                setProPlusInputs((prev) => {
+                  const next = [...prev] as [string, string, string];
+                  const existing = parseRingNumbersInput(next[targetRing]);
+                  if (!existing.includes(action.value)) {
+                    next[targetRing] = [...existing, action.value].join(' ');
+                  }
+                  if (targetRing === 0 || targetRing === 1) {
+                    const r1 = parseRingNumbersInput(next[0]);
+                    const r2 = parseRingNumbersInput(next[1]);
+                    if (r1.length === c1 && r2.length === c2) {
+                      const used = new Set([...r1, ...r2]);
+                      const remaining = Array.from(
+                        { length: activeSize * activeSize + 1 },
+                        (_, idxN) => idxN + 1
+                      ).filter((n) => !used.has(n));
+                      next[2] = remaining.join(' ');
+                      setActiveProPlusRingIdx(2);
+                    } else if (targetRing === 0 && r1.length === c1 && r2.length < c2) {
+                      next[2] = '';
+                      setActiveProPlusRingIdx(1);
+                    } else {
+                      next[2] = '';
+                    }
+                  }
+                  return next;
+                });
+                consumedAction = true;
+              }
+              continue;
+            }
 
             if (action.type === 'color') {
               if (difficultyRef.current === 'pro') {
@@ -733,6 +1081,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   };
 
   const handleSelectDifficulty = (newDiff: DifficultyLevel) => {
+    clearTimers();
     setDifficulty(newDiff);
     let nextMode: OrderMode = orderMode;
     let nextHighlight = highlightFound;
@@ -743,14 +1092,32 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     } else if (newDiff === 'pro') {
       nextMode = 'desc';
       nextHighlight = false;
+    } else if (newDiff === 'pro-plus') {
+      nextMode = 'asc';
+      nextHighlight = false;
     }
 
     setOrderMode(nextMode);
     setHighlightFound(nextHighlight);
 
+    if (newDiff === 'pro-plus') {
+      setProPlusPhase('idle');
+      setProPlusInputs(['', '', '']);
+      setProPlusResult(null);
+      setActiveProPlusRingIdx(0);
+      setStatus('idle');
+      setTimeLeft(timeLimit);
+      setRoundElapsedMs(0);
+      prepareBoard(gridSize, 'asc', 'pro-plus');
+      return;
+    }
+
+    setProPlusPhase('idle');
+    setProPlusInputs(['', '', '']);
+    setProPlusResult(null);
+
     const total = gridSize * gridSize;
     if (newDiff === 'hard' || newDiff === 'pro') {
-      // Giữ nguyên vị trí các số hiện tại trên bảng Schulte khi chọn Hard hoặc Pro
       if (newDiff === 'pro') {
         setActiveProBgColor((prev) => pickRandomProBgColor(prev));
       }
@@ -780,6 +1147,16 @@ export const SchulteTableDifficultyChallengePage: React.FC<
 
   const handleSelectGridSize = (newSize: SchulteGridSize) => {
     setGridSize(newSize);
+    if (difficulty === 'pro-plus') {
+      clearTimers();
+      setProPlusPhase('idle');
+      setProPlusInputs(['', '', '']);
+      setProPlusResult(null);
+      setStatus('idle');
+      setTimeLeft(timeLimit);
+      prepareBoard(newSize, 'asc', 'pro-plus');
+      return;
+    }
     if (status === 'running' || status === 'round-ended') {
       startChallengeSession(newSize, timeLimit, orderMode);
     } else {
@@ -789,9 +1166,74 @@ export const SchulteTableDifficultyChallengePage: React.FC<
 
   const handleSelectTimeLimit = (newLimit: TimeLimit) => {
     setTimeLimit(newLimit);
+    if (difficulty === 'pro-plus') {
+      if (proPlusPhase === 'observing') {
+        startProPlusSession(gridSize, newLimit);
+      } else if (proPlusPhase === 'idle') {
+        setTimeLeft(newLimit);
+      }
+      return;
+    }
     setTimeLeft(newLimit);
     if (status === 'running' || status === 'round-ended') {
       startChallengeSession(gridSize, newLimit, orderMode);
+    }
+  };
+
+  const handleSelectAnswerTimeLimit = (newLimit: AnswerTimeLimit) => {
+    setAnswerTimeLimit(newLimit);
+    if (difficulty === 'pro-plus' && proPlusPhase === 'answering') {
+      beginProPlusAnswering(newLimit);
+    }
+  };
+
+  const toggleProPlusQuickNumber = (ringIdx: 0 | 1 | 2, num: number) => {
+    if (proPlusPhase !== 'answering') return;
+    const [c1, c2] = PRO_PLUS_RING_COUNTS[gridSize];
+    const poolMax = gridSize * gridSize + 1;
+    let nextActiveRing: 0 | 1 | 2 | null = null;
+
+    setProPlusInputs((prev) => {
+      const next = [...prev] as [string, string, string];
+      const currentList = parseRingNumbersInput(next[ringIdx]);
+
+      if (currentList.includes(num)) {
+        next[ringIdx] = currentList.filter((n) => n !== num).join(' ');
+      } else {
+        ([0, 1, 2] as const).forEach((otherIdx) => {
+          if (otherIdx !== ringIdx) {
+            const otherList = parseRingNumbersInput(next[otherIdx]);
+            if (otherList.includes(num)) {
+              next[otherIdx] = otherList.filter((n) => n !== num).join(' ');
+            }
+          }
+        });
+        next[ringIdx] = [...currentList, num].join(' ');
+      }
+
+      if (ringIdx === 0 || ringIdx === 1) {
+        const r1 = parseRingNumbersInput(next[0]);
+        const r2 = parseRingNumbersInput(next[1]);
+        if (r1.length === c1 && r2.length === c2) {
+          const used = new Set([...r1, ...r2]);
+          const remaining = Array.from({ length: poolMax }, (_, i) => i + 1).filter(
+            (n) => !used.has(n)
+          );
+          next[2] = remaining.join(' ');
+          nextActiveRing = 2;
+        } else {
+          next[2] = '';
+          if (ringIdx === 0 && r1.length === c1 && r2.length < c2) {
+            nextActiveRing = 1;
+          }
+        }
+      }
+
+      return next;
+    });
+
+    if (nextActiveRing !== null) {
+      setActiveProPlusRingIdx(nextActiveRing);
     }
   };
 
@@ -807,12 +1249,16 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const handleReset = () => {
     clearTimers();
     setStatus('idle');
+    setProPlusPhase('idle');
+    setProPlusInputs(['', '', '']);
+    setProPlusResult(null);
+    setActiveProPlusRingIdx(0);
     setCurrentRound(1);
     setPassedCount(0);
     setRoundHistory([]);
     setTimeLeft(timeLimit);
     setRoundElapsedMs(0);
-    prepareBoard(gridSize, orderMode);
+    prepareBoard(gridSize, orderMode, difficulty);
   };
 
   const isAlreadyFound = (num: number): boolean => {
@@ -832,10 +1278,12 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       ? nextTarget - 1
       : totalNumbers - nextTarget;
 
+  const activeTimerLimit =
+    difficulty === 'pro-plus' && proPlusPhase === 'answering' ? answerTimeLimit : timeLimit;
   const timerColor =
     timeLeft <= 5
       ? 'text-rose-400 border-rose-500/40 bg-rose-500/10 animate-pulse'
-      : timeLeft <= Math.ceil(timeLimit * 0.4)
+      : timeLeft <= Math.ceil(activeTimerLimit * 0.4)
       ? 'text-amber-400 border-amber-500/40 bg-amber-500/10'
       : 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10';
 
@@ -922,33 +1370,64 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 {isVi ? 'Thử Thách Cấp Độ Khó — Bảng Schulte' : 'Schulte Table — Difficulty Level Challenge'}
               </h2>
               <p className="text-[11px] text-slate-400">
-                {isVi
+                {difficulty === 'pro-plus'
+                  ? isVi
+                    ? `Quay quan sát ${timeLimit}s • Trả lời Vòng 1, Vòng 2, Vòng 3 trong ${answerTimeLimit}s`
+                    : `Observe 3 rotating rings ${timeLimit}s • Answer Ring 1, 2, 3 within ${answerTimeLimit}s`
+                  : isVi
                   ? `Lượt ${currentRound}/${TOTAL_ROUNDS} • ${activeDiffInfo.descVi}`
                   : `Round ${currentRound}/${TOTAL_ROUNDS} • ${activeDiffInfo.descEn}`}
               </p>
             </div>
           </div>
 
-          {/* Time Limit Selector */}
-          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-            <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
-              <Clock className="w-3 h-3 text-violet-400" />
-              <span>{isVi ? 'Giới hạn:' : 'Limit:'}</span>
-            </span>
-            {TIME_LIMITS.map((limit) => (
-              <button
-                key={limit}
-                type="button"
-                onClick={() => handleSelectTimeLimit(limit)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                  timeLimit === limit
-                    ? 'bg-violet-500 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                {limit}s
-              </button>
-            ))}
+          {/* Time Limit & Answer Time Selectors */}
+          <div className="flex flex-col items-start sm:items-end gap-1.5 max-w-full">
+            {/* Giới hạn (Quay / Thử thách) */}
+            <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 max-w-full">
+              <span className="text-[11px] font-semibold text-slate-400 px-1.5 sm:px-2 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-violet-400" />
+                <span>{isVi ? 'Giới hạn:' : 'Limit:'}</span>
+              </span>
+              {TIME_LIMITS.map((limit) => (
+                <button
+                  key={limit}
+                  type="button"
+                  onClick={() => handleSelectTimeLimit(limit)}
+                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    timeLimit === limit
+                      ? 'bg-violet-500 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {limit}s
+                </button>
+              ))}
+            </div>
+
+            {/* Trả lời (Thời gian trả lời 10s - 60s cho Pro+) */}
+            {difficulty === 'pro-plus' && (
+              <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 bg-slate-950/80 p-1 rounded-xl border border-cyan-500/30 max-w-full">
+                <span className="text-[11px] font-semibold text-cyan-300 px-1.5 sm:px-2 flex items-center gap-1">
+                  <Timer className="w-3 h-3 text-cyan-400" />
+                  <span>{isVi ? 'Trả lời:' : 'Answer:'}</span>
+                </span>
+                {ANSWER_TIME_LIMITS.map((limit) => (
+                  <button
+                    key={limit}
+                    type="button"
+                    onClick={() => handleSelectAnswerTimeLimit(limit)}
+                    className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                      answerTimeLimit === limit
+                        ? 'bg-cyan-400 text-slate-950 shadow-sm shadow-cyan-500/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    {limit}s
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -972,57 +1451,75 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               ))}
             </div>
 
-            {/* Order Mode */}
-            <button
-              type="button"
-              onClick={() => handleSelectMode(orderMode === 'asc' ? 'desc' : 'asc')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800 hover:border-violet-500/40 text-slate-300 font-semibold transition-all cursor-pointer active:scale-95"
-            >
-              <ArrowUpDown className="w-3.5 h-3.5 text-violet-400" />
-              <span>
-                {orderMode === 'asc'
-                  ? `1 → ${totalNumbers}`
-                  : `${totalNumbers} → 1`}
-              </span>
-            </button>
+            {/* Order Mode (hidden in Pro+ recall mode) */}
+            {difficulty !== 'pro-plus' && (
+              <button
+                type="button"
+                onClick={() => handleSelectMode(orderMode === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800 hover:border-violet-500/40 text-slate-300 font-semibold transition-all cursor-pointer active:scale-95"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5 text-violet-400" />
+                <span>
+                  {orderMode === 'asc'
+                    ? `1 → ${totalNumbers}`
+                    : `${totalNumbers} → 1`}
+                </span>
+              </button>
+            )}
 
             {/* Center Dot */}
             <button
               type="button"
               onClick={() => setShowCenterDot((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
                 showCenterDot
                   ? 'bg-sky-500/15 text-sky-300 border-sky-500/40'
                   : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-white'
               }`}
             >
               <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span>{isVi ? ' Tâm điểm' : 'Center Dot'}</span>
+              <span>{isVi ? 'Tâm điểm' : 'Center Dot'}</span>
             </button>
 
-            {/* Mark Found / No Mark Found Toggle */}
+            {/* Coordinates Toggle */}
             <button
               type="button"
-              onClick={() => setHighlightFound((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
-                highlightFound
-                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-                  : 'bg-slate-950/80 text-slate-300 border-slate-700 hover:text-white'
+              onClick={() => setShowCoordinates((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
+                showCoordinates
+                  ? 'bg-violet-500/15 text-violet-300 border-violet-500/40'
+                  : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-white'
               }`}
             >
-              <CheckCircle2
-                className={`w-3.5 h-3.5 ${highlightFound ? 'text-emerald-400' : 'text-slate-500'}`}
-              />
-              <span>
-                {isVi
-                  ? highlightFound
-                    ? 'Đánh dấu đã tìm'
-                    : 'Không đánh dấu'
-                  : highlightFound
-                  ? 'Mark Found'
-                  : 'No Mark Found'}
-              </span>
+              <Grid3x3 className="w-3.5 h-3.5 text-violet-400" />
+              <span>{isVi ? 'Tọa độ' : 'Coordinates'}</span>
             </button>
+
+            {/* Mark Found / No Mark Found Toggle (hidden in Pro+ recall mode) */}
+            {difficulty !== 'pro-plus' && (
+              <button
+                type="button"
+                onClick={() => setHighlightFound((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
+                  highlightFound
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                    : 'bg-slate-950/80 text-slate-300 border-slate-700 hover:text-white'
+                }`}
+              >
+                <CheckCircle2
+                  className={`w-3.5 h-3.5 ${highlightFound ? 'text-emerald-400' : 'text-slate-500'}`}
+                />
+                <span>
+                  {isVi
+                    ? highlightFound
+                      ? 'Đánh dấu đã tìm'
+                      : 'Không đánh dấu'
+                    : highlightFound
+                    ? 'Mark Found'
+                    : 'No Mark Found'}
+                </span>
+              </button>
+            )}
 
             {/* Voice Answer Toggle */}
             <button
@@ -1180,10 +1677,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           <div className="landscape-workspace grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-5 items-start relative z-10">
             {/* Block A: Separated Compact Control & Status Cards + Desktop/Tablet Round Progress */}
             <div className="landscape-block-a md:col-span-5 md:col-start-1 md:row-start-1 md:self-start space-y-2.5">
-              {/* Separated Row 1: Cấp độ + Hoàn thành */}
+              {/* Separated Row 1: Cấp độ + Hoàn thành (hidden in Pro+) */}
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 {/* Cấp độ */}
-                <div className="flex items-center gap-1 bg-slate-950/85 p-1 rounded-xl border border-slate-800 shrink-0">
+                <div className="flex flex-wrap items-center gap-1 bg-slate-950/85 p-1 rounded-xl border border-slate-800 max-w-full">
                   <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
                     <Zap className="w-3 h-3 text-violet-400" />
                     <span>{isVi ? 'Cấp độ:' : 'Difficulty:'}</span>
@@ -1193,9 +1690,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                       key={lvl.id}
                       type="button"
                       onClick={() => handleSelectDifficulty(lvl.id)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                      className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                         difficulty === lvl.id
-                          ? lvl.id === 'pro'
+                          ? lvl.id === 'pro-plus'
+                            ? 'bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 shadow-sm shadow-cyan-500/30'
+                            : lvl.id === 'pro'
                             ? 'bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white shadow-sm'
                             : 'bg-amber-500 text-slate-950 shadow-sm'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -1206,93 +1705,451 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   ))}
                 </div>
 
-                {/* Hoàn thành */}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800/90 shrink-0">
-                  <span className="text-xs text-slate-400 font-semibold">
-                    {isVi ? 'Hoàn thành:' : 'Passed:'}
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
-                    {passedCount}/{TOTAL_ROUNDS}
-                  </span>
-                </div>
+                {/* Hoàn thành (only for Hard / Pro) */}
+                {difficulty !== 'pro-plus' && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800/90 shrink-0">
+                    <span className="text-xs text-slate-400 font-semibold">
+                      {isVi ? 'Hoàn thành:' : 'Passed:'}
+                    </span>
+                    <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
+                      {passedCount}/{TOTAL_ROUNDS}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Separated Card 2: Số cần tìm + Timer */}
-              <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-2xl bg-slate-950/85 border border-violet-500/30">
-                <div className="flex items-center gap-2 text-xs sm:text-sm">
-                  <span className="text-slate-400 font-semibold">
-                    {isVi ? 'Số cần tìm:' : 'Target:'}
-                  </span>
-                  <span className="text-base sm:text-lg font-black text-violet-400 font-mono">
-                    {roundOutcome === 'passed' ? '✓' : nextTarget}
-                  </span>
-                  <span className="text-slate-500 text-xs font-mono">
-                    ({foundCount}/{totalNumbers})
-                  </span>
-                </div>
+              {difficulty === 'pro-plus' ? (
+                <>
+                  {/* Pro+ Phase & Countdown Card */}
+                  <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-950/85 border border-cyan-500/35">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm min-w-0">
+                      <Eye className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <span className="font-bold text-cyan-300 truncate">
+                        {proPlusPhase === 'idle'
+                          ? isVi
+                            ? `Quan sát ${timeLimit}s → Trả lời ${answerTimeLimit}s`
+                            : `Observe ${timeLimit}s → Answer ${answerTimeLimit}s`
+                          : proPlusPhase === 'observing'
+                          ? isVi
+                            ? 'Đang quay — Hãy ghi nhớ 3 vòng!'
+                            : 'Spinning — Memorize all 3 rings!'
+                          : proPlusPhase === 'answering'
+                          ? isVi
+                            ? 'Nhập các số vào Vòng 1, 2, 3!'
+                            : 'Enter numbers for Rings 1, 2, 3!'
+                          : isVi
+                          ? `Kết quả: ${proPlusResult?.totalCorrect ?? 0}/${totalNumbers} số đúng`
+                          : `Score: ${proPlusResult?.totalCorrect ?? 0}/${totalNumbers} correct`}
+                      </span>
+                    </div>
 
-                <div
-                  className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
-                >
-                  <Timer className="w-3.5 h-3.5 animate-spin" />
-                  <span>{timeLeft}s</span>
-                </div>
-              </div>
-
-              {/* Round Progress Card (Tablet & Desktop) */}
-              <div className="hidden md:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-300">
-                    {isVi ? `Cấp độ ${activeDiffInfo.labelVi}` : `${activeDiffInfo.labelEn} Mode`}
-                  </span>
-                  <span className="font-mono font-bold text-violet-400">
-                    {isVi ? `Lượt ${currentRound}/${TOTAL_ROUNDS}` : `Round ${currentRound}/${TOTAL_ROUNDS}`}
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {isVi ? activeDiffInfo.descVi : activeDiffInfo.descEn}
-                </p>
-
-                <div className="grid grid-cols-3 gap-2">
-                  {Array.from({ length: TOTAL_ROUNDS }, (_, idx) => {
-                    const roundNum = idx + 1;
-                    const item = roundHistory.find((r) => r.roundIndex === roundNum);
-                    const isActive = status === 'running' && currentRound === roundNum;
-
-                    return (
+                    <div className="flex items-center gap-2 shrink-0">
+                      {proPlusPhase === 'observing' && (
+                        <button
+                          type="button"
+                          onClick={() => beginProPlusAnswering(answerTimeLimit)}
+                          className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
+                        >
+                          {isVi ? 'Trả lời ngay' : 'Answer Now'}
+                        </button>
+                      )}
                       <div
-                        key={roundNum}
-                        className={`p-1.5 rounded-xl border text-center text-xs transition-all ${
-                          item
-                            ? item.passed
-                              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                              : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
-                            : isActive
-                            ? 'bg-violet-500/15 border-violet-500/50 text-violet-300'
-                            : 'bg-slate-900/70 border-slate-800 text-slate-500'
-                        }`}
+                        className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
                       >
-                        <div className="font-bold">#{roundNum}</div>
-                        <div className="font-mono text-[11px] mt-0.5">
-                          {item
-                            ? item.passed
-                              ? `${item.elapsedSec.toFixed(1)}s`
-                              : `${item.foundCount}/${item.totalCount}`
-                            : isActive
-                            ? `${timeLeft}s`
-                            : `${timeLimit}s`}
-                        </div>
+                        <Timer className={`w-3.5 h-3.5 ${proPlusPhase === 'observing' || proPlusPhase === 'answering' ? 'animate-spin' : ''}`} />
+                        <span>{timeLeft}s</span>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/70">
-                  <span>{isVi ? `Bảng ${gridSize}×${gridSize}` : `${gridSize}×${gridSize} Grid`}</span>
-                  <span>{isVi ? `Lỗi lượt này: ${mistakes}` : `Mistakes: ${mistakes}`}</span>
-                </div>
-              </div>
+                  {/* Pro+ Textboxes + Quick Number Grid for Vòng 1, Vòng 2, Vòng 3 */}
+                  <div className="p-3 rounded-2xl bg-slate-950/85 border border-slate-800/90 space-y-2.5">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span className="font-semibold text-slate-300">
+                        {isVi
+                          ? 'Bấm vào Vòng 1, 2, 3 để chọn nhanh hoặc nhập số'
+                          : 'Click Ring 1, 2, 3 to quick-pick or type numbers'}
+                      </span>
+                    </div>
+
+                    {([0, 1, 2] as const).map((ringIdx) => {
+                      const ringCount = PRO_PLUS_RING_COUNTS[gridSize][ringIdx];
+                      const parsedNums0 = parseRingNumbersInput(proPlusInputs[0]);
+                      const parsedNums1 = parseRingNumbersInput(proPlusInputs[1]);
+                      const parsedNums2 = parseRingNumbersInput(proPlusInputs[2]);
+                      const allParsedByRing = [parsedNums0, parsedNums1, parsedNums2] as const;
+                      const currentRingNums = allParsedByRing[ringIdx];
+                      const parsedCount = currentRingNums.length;
+                      const ringEval = proPlusResult?.rings[ringIdx];
+                      const ringNamesVi = ['Vòng 1 (Trong cùng)', 'Vòng 2 (Ở giữa)', 'Vòng 3 (Ngoài cùng)'];
+                      const ringNamesEn = ['Ring 1 (Inner)', 'Ring 2 (Middle)', 'Ring 3 (Outer)'];
+                      const isInputActive = proPlusPhase === 'answering';
+                      const isRingSelected = isInputActive && activeProPlusRingIdx === ringIdx;
+                      const pickerColsClass =
+                        gridSize === 6
+                          ? 'grid-cols-6'
+                          : gridSize === 4
+                          ? 'grid-cols-4'
+                          : 'grid-cols-5';
+
+                      return (
+                        <div key={ringIdx} className="space-y-1.5">
+                          <div
+                            onClick={() => {
+                              if (isInputActive) setActiveProPlusRingIdx(ringIdx);
+                            }}
+                            className={`flex items-center justify-between text-xs ${
+                              isInputActive ? 'cursor-pointer' : ''
+                            }`}
+                          >
+                            <label
+                              htmlFor={`pro-plus-ring-${ringIdx}`}
+                              onClick={() => {
+                                if (isInputActive) setActiveProPlusRingIdx(ringIdx);
+                              }}
+                              className={`font-bold ${
+                                isInputActive ? 'cursor-pointer' : ''
+                              } ${
+                                ringIdx === 0
+                                  ? 'text-cyan-300'
+                                  : ringIdx === 1
+                                  ? 'text-violet-300'
+                                  : 'text-sky-300'
+                              }`}
+                            >
+                              {isVi ? ringNamesVi[ringIdx] : ringNamesEn[ringIdx]}
+                            </label>
+                            <span className="font-mono text-[11px] text-slate-400">
+                              {ringEval
+                                ? `${ringEval.correct.length}/${ringCount} ${isVi ? 'đúng' : 'correct'}`
+                                : `${parsedCount}/${ringCount} ${isVi ? 'số' : 'nums'}`}
+                            </span>
+                          </div>
+
+                          <input
+                            id={`pro-plus-ring-${ringIdx}`}
+                            ref={(el) => {
+                              ringInputRefs.current[ringIdx] = el;
+                            }}
+                            type="text"
+                            inputMode="none"
+                            disabled={!isInputActive}
+                            value={proPlusInputs[ringIdx]}
+                            onClick={() => {
+                              if (isInputActive) setActiveProPlusRingIdx(ringIdx);
+                            }}
+                            onFocus={() => setActiveProPlusRingIdx(ringIdx)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const [c1, c2] = PRO_PLUS_RING_COUNTS[gridSize];
+                              const poolMax = totalNumbers + 1;
+                              setProPlusInputs((prev) => {
+                                const next = [...prev] as [string, string, string];
+                                next[ringIdx] = val;
+                                if (ringIdx === 0 || ringIdx === 1) {
+                                  const r1 = parseRingNumbersInput(next[0]);
+                                  const r2 = parseRingNumbersInput(next[1]);
+                                  if (r1.length === c1 && r2.length === c2) {
+                                    const used = new Set([...r1, ...r2]);
+                                    next[2] = Array.from({ length: poolMax }, (_, i) => i + 1)
+                                      .filter((n) => !used.has(n))
+                                      .join(' ');
+                                  } else {
+                                    next[2] = '';
+                                  }
+                                }
+                                return next;
+                              });
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && isInputActive) {
+                                e.preventDefault();
+                                if (ringIdx < 2) {
+                                  const nextIdx = (ringIdx + 1) as 0 | 1 | 2;
+                                  setActiveProPlusRingIdx(nextIdx);
+                                  ringInputRefs.current[nextIdx]?.focus();
+                                } else {
+                                  submitProPlusAnswers(false);
+                                }
+                              }
+                            }}
+                            placeholder={
+                              proPlusPhase === 'observing'
+                                ? isVi
+                                  ? `Đang quay quan sát (${ringCount} số)...`
+                                  : `Observing (${ringCount} numbers)...`
+                                : proPlusPhase === 'idle'
+                                ? isVi
+                                  ? ringIdx === 2
+                                    ? `Tự động hiện số còn lại sau Vòng 1 & 2 (${ringCount} số)...`
+                                    : `Chọn hoặc nhập ${ringCount} số sau khi quay...`
+                                  : ringIdx === 2
+                                  ? `Auto-fills after Rings 1 & 2 (${ringCount} nums)...`
+                                  : `Pick or enter ${ringCount} numbers after spin...`
+                                : ringIdx === 2
+                                ? isVi
+                                  ? `Chọn xong Vòng 1 & 2 sẽ tự hiện các số còn lại (${ringCount} số)`
+                                  : `Auto-fills remaining numbers after Rings 1 & 2 (${ringCount} nums)`
+                                : isVi
+                                ? `Chọn nhanh bên dưới hoặc nhập (${ringCount} số)`
+                                : `Quick-pick below or type (${ringCount} nums)`
+                            }
+                            className={`w-full px-3 py-2 rounded-xl border text-xs sm:text-sm font-mono font-bold transition-all outline-none ${
+                              isInputActive
+                                ? activeProPlusRingIdx === ringIdx
+                                  ? 'bg-slate-900 border-cyan-400 text-white ring-2 ring-cyan-500/20'
+                                  : 'bg-slate-900 border-slate-700 text-white hover:border-slate-500 cursor-pointer'
+                                : 'bg-slate-900/50 border-slate-800 text-slate-400 cursor-not-allowed'
+                            }`}
+                          />
+
+                          {/* Quick-pick number buttons when this ring is clicked/selected */}
+                          {isRingSelected && (() => {
+                            const [c1, c2] = PRO_PLUS_RING_COUNTS[gridSize];
+                            const ring1And2Complete = parsedNums0.length === c1 && parsedNums1.length === c2;
+                            const isRing3AutoEliminateMode = ringIdx === 2 && ring1And2Complete;
+                            const usedIn1And2 = new Set([...parsedNums0, ...parsedNums1]);
+                            const quickCandidateNums = isRing3AutoEliminateMode
+                              ? Array.from({ length: totalNumbers + 1 }, (_, i) => i + 1).filter(
+                                  (n) => !usedIn1And2.has(n)
+                                )
+                              : Array.from({ length: totalNumbers + 1 }, (_, i) => i + 1);
+                            const extraToRemove = Math.max(0, parsedCount - ringCount);
+
+                            return (
+                              <div className="p-2 rounded-xl bg-slate-900/95 border border-cyan-500/35 space-y-1.5 animate-in fade-in duration-150">
+                                <div className="flex items-center justify-between gap-2 text-[11px]">
+                                  <span
+                                    className={`font-semibold ${
+                                      isRing3AutoEliminateMode
+                                        ? extraToRemove === 0 && parsedCount === ringCount
+                                          ? 'text-emerald-300'
+                                          : 'text-amber-300'
+                                        : 'text-cyan-300'
+                                    }`}
+                                  >
+                                    {isRing3AutoEliminateMode
+                                      ? extraToRemove > 0
+                                        ? isVi
+                                          ? `Chọn loại bỏ ${extraToRemove} số thừa (${parsedCount} → ${ringCount}):`
+                                          : `Tap to eliminate ${extraToRemove} extra (${parsedCount} → ${ringCount}):`
+                                        : parsedCount === ringCount
+                                        ? isVi
+                                          ? `✓ Đủ ${ringCount}/${ringCount} số (Bấm số để đổi):`
+                                          : `✓ Ready ${ringCount}/${ringCount} (Tap to swap):`
+                                        : isVi
+                                        ? `Chọn đủ ${ringCount} số (${parsedCount}/${ringCount}):`
+                                        : `Keep ${ringCount} numbers (${parsedCount}/${ringCount}):`
+                                      : isVi
+                                      ? `Chọn nhanh (1 → ${totalNumbers + 1}):`
+                                      : `Quick pick (1 → ${totalNumbers + 1}):`}
+                                  </span>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    {isRing3AutoEliminateMode ? (
+                                      <button
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                          setProPlusInputs((prev) => {
+                                            const next = [...prev] as [string, string, string];
+                                            next[2] = quickCandidateNums.join(' ');
+                                            return next;
+                                          });
+                                        }}
+                                        className="text-sky-300 hover:text-sky-200 font-semibold cursor-pointer"
+                                      >
+                                        {isVi ? 'Chọn lại' : 'Reset'}
+                                      </button>
+                                    ) : (
+                                      parsedCount > 0 && (
+                                        <button
+                                          type="button"
+                                          onMouseDown={(e) => e.preventDefault()}
+                                          onClick={() => {
+                                            setProPlusInputs((prev) => {
+                                              const next = [...prev] as [string, string, string];
+                                              next[ringIdx] = '';
+                                              if (ringIdx === 0 || ringIdx === 1) {
+                                                next[2] = '';
+                                              }
+                                              return next;
+                                            });
+                                          }}
+                                          className="text-rose-300 hover:text-rose-200 font-semibold cursor-pointer"
+                                        >
+                                          {isVi ? 'Xóa' : 'Clear'}
+                                        </button>
+                                      )
+                                    )}
+                                    {ringIdx < 2 && (
+                                      <button
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => setActiveProPlusRingIdx((ringIdx + 1) as 0 | 1 | 2)}
+                                        className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold cursor-pointer"
+                                      >
+                                        {isVi ? `Vòng ${ringIdx + 2} →` : `Ring ${ringIdx + 2} →`}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className={`grid ${pickerColsClass} gap-1`}>
+                                  {quickCandidateNums.map((n) => {
+                                    const isInThisRing = currentRingNums.includes(n);
+                                    const assignedOtherIdx = ([0, 1, 2] as const).find(
+                                      (idx) => idx !== ringIdx && allParsedByRing[idx].includes(n)
+                                    );
+
+                                    return (
+                                      <button
+                                        key={n}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => toggleProPlusQuickNumber(ringIdx, n)}
+                                        className={`relative h-8 rounded-lg border font-mono font-extrabold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center ${
+                                          isInThisRing
+                                            ? ringIdx === 0
+                                              ? 'bg-cyan-400 border-cyan-300 text-slate-950 shadow-sm shadow-cyan-500/30'
+                                              : ringIdx === 1
+                                              ? 'bg-violet-500 border-violet-300 text-white shadow-sm shadow-violet-500/30'
+                                              : 'bg-sky-400 border-sky-300 text-slate-950 shadow-sm shadow-sky-500/30'
+                                            : isRing3AutoEliminateMode
+                                            ? 'bg-rose-500/15 border-rose-500/40 text-rose-300 line-through hover:bg-rose-500/25'
+                                            : assignedOtherIdx !== undefined
+                                            ? 'bg-slate-950/70 border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+                                            : 'bg-slate-950 hover:bg-slate-800 border-slate-700/80 hover:border-cyan-400/60 text-slate-100'
+                                        }`}
+                                      >
+                                        <span>{n}</span>
+                                        {!isRing3AutoEliminateMode &&
+                                          assignedOtherIdx !== undefined &&
+                                          !isInThisRing && (
+                                            <span className="absolute top-0.5 right-0.5 text-[8px] leading-none font-bold text-slate-400">
+                                              V{assignedOtherIdx + 1}
+                                            </span>
+                                          )}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {proPlusPhase === 'result' && ringEval && (
+                            <div className="flex flex-wrap items-center gap-1 pt-0.5 text-[11px] font-mono">
+                              {ringEval.correct.map((n) => (
+                                <span
+                                  key={`c-${n}`}
+                                  className="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold"
+                                >
+                                  ✓ {n}
+                                </span>
+                              ))}
+                              {ringEval.wrong.map((n) => (
+                                <span
+                                  key={`w-${n}`}
+                                  className="px-1.5 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 line-through font-bold"
+                                >
+                                  {n}
+                                </span>
+                              ))}
+                              {ringEval.missed.map((n) => (
+                                <span
+                                  key={`m-${n}`}
+                                  className="px-1.5 py-0.5 rounded bg-slate-900 border border-amber-500/35 text-amber-300/90 font-semibold"
+                                >
+                                  {n}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Separated Card 2: Số cần tìm + Timer */}
+                  <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-2xl bg-slate-950/85 border border-violet-500/30">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm">
+                      <span className="text-slate-400 font-semibold">
+                        {isVi ? 'Số cần tìm:' : 'Target:'}
+                      </span>
+                      <span className="text-base sm:text-lg font-black text-violet-400 font-mono">
+                        {roundOutcome === 'passed' ? '✓' : nextTarget}
+                      </span>
+                      <span className="text-slate-500 text-xs font-mono">
+                        ({foundCount}/{totalNumbers})
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-black font-mono transition-all ${timerColor}`}
+                    >
+                      <Timer className="w-3.5 h-3.5 animate-spin" />
+                      <span>{timeLeft}s</span>
+                    </div>
+                  </div>
+
+                  {/* Round Progress Card (Tablet & Desktop) */}
+                  <div className="hidden md:block p-3 rounded-2xl bg-slate-950/75 border border-slate-800/80 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-300">
+                        {isVi ? `Cấp độ ${activeDiffInfo.labelVi}` : `${activeDiffInfo.labelEn} Mode`}
+                      </span>
+                      <span className="font-mono font-bold text-violet-400">
+                        {isVi ? `Lượt ${currentRound}/${TOTAL_ROUNDS}` : `Round ${currentRound}/${TOTAL_ROUNDS}`}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {isVi ? activeDiffInfo.descVi : activeDiffInfo.descEn}
+                    </p>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      {Array.from({ length: TOTAL_ROUNDS }, (_, idx) => {
+                        const roundNum = idx + 1;
+                        const item = roundHistory.find((r) => r.roundIndex === roundNum);
+                        const isActive = status === 'running' && currentRound === roundNum;
+
+                        return (
+                          <div
+                            key={roundNum}
+                            className={`p-1.5 rounded-xl border text-center text-xs transition-all ${
+                              item
+                                ? item.passed
+                                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                                  : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                                : isActive
+                                ? 'bg-violet-500/15 border-violet-500/50 text-violet-300'
+                                : 'bg-slate-900/70 border-slate-800 text-slate-500'
+                            }`}
+                          >
+                            <div className="font-bold">#{roundNum}</div>
+                            <div className="font-mono text-[11px] mt-0.5">
+                              {item
+                                ? item.passed
+                                  ? `${item.elapsedSec.toFixed(1)}s`
+                                  : `${item.foundCount}/${item.totalCount}`
+                                : isActive
+                                ? `${timeLeft}s`
+                                : `${timeLimit}s`}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/70">
+                      <span>{isVi ? `Bảng ${gridSize}×${gridSize}` : `${gridSize}×${gridSize} Grid`}</span>
+                      <span>{isVi ? `Lỗi lượt này: ${mistakes}` : `Mistakes: ${mistakes}`}</span>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {difficulty === 'pro' && proRuleHint && (
                 <div className="p-2 rounded-xl bg-rose-500/15 border border-rose-500/40 text-center text-xs font-bold text-rose-300 animate-in fade-in duration-150">
@@ -1310,95 +2167,316 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               }`}
             >
               <div className="flex items-stretch justify-center gap-2 sm:gap-3">
-                <div className="relative flex-1 min-w-0 p-2 sm:p-3 rounded-3xl bg-slate-950/90 border border-violet-500/30 shadow-inner">
-                  <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
-                {numbers.map((num, idx) => {
-                  const found = isAlreadyFound(num);
-                  const isWrong = wrongTile === num;
-                  const isCenter = showCenterDot && idx === centerTileIndex;
-                  const rowIdx = Math.floor(idx / gridSize);
-                  const colIdx = idx % gridSize;
-                  const coordLabel = `${ROW_LETTERS[rowIdx]}${colIdx + 1}`;
-                  const colorIdx = tileColorIndices[idx] ?? idx % HARD_TEXT_COLORS.length;
-                  const hardNumberColor =
-                    difficulty === 'hard' && !isWrong && !(found && highlightFound)
-                      ? HARD_TEXT_COLORS[colorIdx]
-                      : '';
-                  const isProBg = difficulty === 'pro' && Boolean(tileBgMask[idx]);
-                  const activeBgStyle = PRO_BG_STYLES[activeProBgColor];
-                  const proPlainNumberColor =
-                    difficulty === 'pro' && !isProBg && !isWrong && !(found && highlightFound)
-                      ? PRO_TEXT_COLORS[colorIdx % PRO_TEXT_COLORS.length]
-                      : '';
+                <div
+                  className={`relative flex-1 min-w-0 p-2 sm:p-3 rounded-3xl bg-slate-950/90 shadow-inner border ${
+                    difficulty === 'pro-plus' ? 'border-cyan-500/40' : 'border-violet-500/30'
+                  }`}
+                >
+                  {difficulty === 'pro-plus' ? (
+                    <div className="relative aspect-square w-full flex items-center justify-center">
+                      <svg
+                        viewBox="0 0 400 400"
+                        className="w-full h-full select-none drop-shadow-[0_0_20px_rgba(56,189,248,0.18)]"
+                      >
+                        {(() => {
+                          const ringCounts = PRO_PLUS_RING_COUNTS[gridSize];
+                          let offset = 0;
+                          const slices = ringCounts.map((count, ringIdx) => {
+                            const startIdx = offset;
+                            offset += count;
+                            return { ringIdx, count, startIdx };
+                          });
 
-                  return (
-                    <button
-                      key={`${num}-${idx}`}
-                      type="button"
-                      disabled={status !== 'running'}
-                      onClick={() => handleTileClick(num, false)}
-                      className={`relative rounded-xl sm:rounded-2xl font-mono font-black flex items-center justify-center transition-all duration-150 select-none border ${tileTextSize} ${
-                        status !== 'running'
-                          ? 'cursor-default'
-                          : 'cursor-pointer active:scale-95'
-                      } ${
-                        isWrong
-                          ? 'bg-rose-500/25 border-rose-500 text-rose-300 shadow-md shadow-rose-500/20 animate-pulse'
-                          : found && highlightFound
-                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400/50 shadow-inner'
-                          : isProBg
-                          ? activeBgStyle.tileClass
-                          : difficulty === 'pro'
-                          ? `bg-slate-900/95 hover:bg-violet-500/15 border-slate-800 hover:border-violet-400/60 ${proPlainNumberColor} shadow-md hover:shadow-violet-500/15`
-                          : difficulty === 'hard'
-                          ? `bg-slate-900/95 hover:bg-violet-500/15 border-slate-800 hover:border-violet-400/60 ${hardNumberColor} shadow-md hover:shadow-violet-500/15`
-                          : 'bg-slate-900/95 hover:bg-violet-500/15 border-slate-800 hover:border-violet-400/60 text-amber-100 hover:text-white shadow-md hover:shadow-violet-500/15'
-                      }`}
-                    >
-                      {isListening && (
-                        <span
-                          className={`absolute top-1 left-1.5 text-[9px] sm:text-[10px] font-bold font-mono pointer-events-none ${
-                            isProBg ? activeBgStyle.coordClass : 'text-violet-400/75'
-                          }`}
-                        >
-                          {coordLabel}
-                        </span>
-                      )}
-                      <span className="relative z-10">{num}</span>
-                      {isCenter && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute z-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-cyan-400/20 border-2 border-cyan-400/60 pointer-events-none"
-                        />
-                      )}
-                    </button>
-                  );
-                })}
+                          // Render outer -> middle -> inner so inner ring borders sit cleanly on top
+                          return [...slices].reverse().map(({ ringIdx, count, startIdx }) => {
+                            const ring = PRO_PLUS_RINGS[ringIdx];
+                            const stepAngle = 360 / count;
+                            const numFontSize =
+                              gridSize === 3
+                                ? 24
+                                : gridSize === 4
+                                ? 21
+                                : gridSize === 5
+                                ? ringIdx === 0
+                                  ? 19
+                                  : 20
+                                : ringIdx === 0
+                                ? 16
+                                : 17;
 
-                {showCenterDot && gridSize % 2 === 0 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-cyan-400/80 ring-4 ring-cyan-400/20 pointer-events-none z-20"
-                  />
-                )}
-              </div>
+                            return (
+                              <g
+                                key={ring.id}
+                                style={{ transformOrigin: '200px 200px' }}
+                                className={`${ring.spinClass} ${
+                                  proPlusPhase !== 'observing' ? 'ring-paused' : ''
+                                }`}
+                              >
+                                {Array.from({ length: count }, (_, sIdx) => {
+                                  const globalIdx = startIdx + sIdx;
+                                  const num = numbers[globalIdx];
+                                  if (typeof num !== 'number') return null;
+
+                                  const startAngle = ring.angleOffset + sIdx * stepAngle;
+                                  const endAngle = startAngle + stepAngle;
+                                  const midAngle = startAngle + stepAngle / 2;
+                                  const textPos = polarToCartesian(200, 200, ring.textR, midAngle);
+                                  const coordPos = polarToCartesian(200, 200, ring.coordR, midAngle);
+
+                                  const ringEval = proPlusResult?.rings[ringIdx];
+                                  const isCorrectInResult =
+                                    proPlusPhase === 'result' &&
+                                    Boolean(ringEval?.correct.includes(num));
+                                  const isHiddenAnswering = proPlusPhase === 'answering';
+
+                                  const colorIdx =
+                                    tileColorIndices[globalIdx] ?? globalIdx % PRO_PLUS_HEX_COLORS.length;
+                                  const textColor = isHiddenAnswering
+                                    ? 'rgba(56, 189, 248, 0.35)'
+                                    : isCorrectInResult
+                                    ? '#34d399'
+                                    : PRO_PLUS_HEX_COLORS[
+                                        (globalIdx + colorIdx) % PRO_PLUS_HEX_COLORS.length
+                                      ];
+                                  const fillColor = isCorrectInResult
+                                    ? 'rgba(16, 185, 129, 0.22)'
+                                    : isHiddenAnswering
+                                    ? '#040914'
+                                    : '#060e1f';
+                                  const strokeColor = isCorrectInResult ? '#34d399' : '#38bdf8';
+                                  const coordLabel = `${ROW_LETTERS[ringIdx]}${sIdx + 1}`;
+
+                                  return (
+                                    <g key={`${ring.id}-${sIdx}-${num}`}>
+                                      <path
+                                        d={describeAnnularSector(
+                                          200,
+                                          200,
+                                          ring.innerR,
+                                          ring.outerR,
+                                          startAngle,
+                                          endAngle
+                                        )}
+                                        fill={fillColor}
+                                        stroke={strokeColor}
+                                        strokeWidth={isCorrectInResult ? '2.2' : '1.6'}
+                                        strokeLinejoin="round"
+                                      />
+
+                                      <g
+                                        style={{
+                                          transformOrigin: `${textPos.x.toFixed(2)}px ${textPos.y.toFixed(2)}px`,
+                                        }}
+                                        className={`${ring.counterClass} ${
+                                          proPlusPhase !== 'observing' ? 'ring-paused' : ''
+                                        }`}
+                                      >
+                                        <text
+                                          x={textPos.x}
+                                          y={textPos.y}
+                                          textAnchor="middle"
+                                          dominantBaseline="central"
+                                          fill={textColor}
+                                          fontSize={numFontSize}
+                                          fontWeight="900"
+                                          className="font-mono pointer-events-none"
+                                        >
+                                          {isHiddenAnswering ? '?' : num}
+                                        </text>
+                                      </g>
+
+                                      {(showCoordinates || isListening) && (
+                                        <g
+                                          style={{
+                                            transformOrigin: `${coordPos.x.toFixed(2)}px ${coordPos.y.toFixed(2)}px`,
+                                          }}
+                                          className={`${ring.counterClass} ${
+                                            proPlusPhase !== 'observing' ? 'ring-paused' : ''
+                                          }`}
+                                        >
+                                          <text
+                                            x={coordPos.x}
+                                            y={coordPos.y}
+                                            textAnchor="middle"
+                                            dominantBaseline="central"
+                                            fill="rgba(125, 211, 252, 0.78)"
+                                            fontSize="8.5"
+                                            fontWeight="700"
+                                            className="font-mono pointer-events-none"
+                                          >
+                                            {coordLabel}
+                                          </text>
+                                        </g>
+                                      )}
+                                    </g>
+                                  );
+                                })}
+                              </g>
+                            );
+                          });
+                        })()}
+
+                        {showCenterDot && (
+                          <g className="pointer-events-none">
+                            <circle
+                              cx="200"
+                              cy="200"
+                              r="11"
+                              fill="rgba(34, 211, 238, 0.22)"
+                              stroke="rgba(34, 211, 238, 0.85)"
+                              strokeWidth="2"
+                            />
+                            <circle cx="200" cy="200" r="3" fill="#22d3ee" />
+                          </g>
+                        )}
+                      </svg>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Column Coordinate Headers (1..gridSize) */}
+                      {(showCoordinates || isListening) && (
+                        <div className="pl-[20px] sm:pl-[26px] mb-1">
+                          <div className={`grid ${gridColsClass} gap-1.5 sm:gap-2`}>
+                            {Array.from({ length: gridSize }, (_, colIdx) => (
+                              <div
+                                key={colIdx}
+                                className="text-center text-[10px] sm:text-xs font-mono font-bold text-violet-400/90 select-none leading-none"
+                              >
+                                {colIdx + 1}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-stretch">
+                        {/* Row Coordinate Headers (A..F) */}
+                        {(showCoordinates || isListening) && (
+                          <div
+                            className="w-4 mr-1 sm:w-5 sm:mr-1.5 grid gap-1.5 sm:gap-2 shrink-0"
+                            style={{ gridTemplateRows: `repeat(${gridSize}, minmax(0, 1fr))` }}
+                          >
+                            {Array.from({ length: gridSize }, (_, rowIdx) => (
+                              <div
+                                key={rowIdx}
+                                className="flex items-center justify-center text-[10px] sm:text-xs font-mono font-bold text-violet-400/90 select-none"
+                              >
+                                {ROW_LETTERS[rowIdx]}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className={`flex-1 min-w-0 grid ${gridColsClass} gap-1.5 sm:gap-2 aspect-square relative`}>
+                          {numbers.map((num, idx) => {
+                            const found = isAlreadyFound(num);
+                            const isWrong = wrongTile === num;
+                            const isCenter = showCenterDot && idx === centerTileIndex;
+                            const rowIdx = Math.floor(idx / gridSize);
+                            const colIdx = idx % gridSize;
+                            const coordLabel = `${ROW_LETTERS[rowIdx]}${colIdx + 1}`;
+                            const colorIdx = tileColorIndices[idx] ?? idx % HARD_TEXT_COLORS.length;
+                            const hardNumberColor =
+                              difficulty === 'hard' && !isWrong && !(found && highlightFound)
+                                ? HARD_TEXT_COLORS[colorIdx]
+                                : '';
+                            const isProBg = difficulty === 'pro' && Boolean(tileBgMask[idx]);
+                            const activeBgStyle = PRO_BG_STYLES[activeProBgColor];
+                            const proPlainNumberColor =
+                              difficulty === 'pro' && !isProBg && !isWrong && !(found && highlightFound)
+                                ? PRO_TEXT_COLORS[colorIdx % PRO_TEXT_COLORS.length]
+                                : '';
+                            const coordCornerClass =
+                              difficulty === 'pro' && showCoordinates
+                                ? COORD_CORNER_CLASSES[(tileCoordCorners[idx] ?? idx) % COORD_CORNER_CLASSES.length]
+                                : COORD_CORNER_CLASSES[0];
+                            const coordColorClass = isProBg
+                              ? activeBgStyle.coordClass
+                              : difficulty === 'hard'
+                              ? HARD_TEXT_COLORS[(colorIdx + 1) % HARD_TEXT_COLORS.length]
+                              : PRO_TEXT_COLORS[(colorIdx + 2) % PRO_TEXT_COLORS.length];
+
+                            return (
+                              <button
+                                key={`${num}-${idx}`}
+                                type="button"
+                                disabled={status !== 'running'}
+                                onClick={() => handleTileClick(num, false)}
+                                className={`relative rounded-xl sm:rounded-2xl font-mono font-black flex items-center justify-center transition-all duration-150 select-none border ${tileTextSize} ${
+                                  status !== 'running'
+                                    ? 'cursor-default'
+                                    : 'cursor-pointer active:scale-95'
+                                } ${
+                                  isWrong
+                                    ? 'bg-rose-500/25 border-rose-500 text-rose-300 shadow-md shadow-rose-500/20 animate-pulse'
+                                    : found && highlightFound
+                                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400/50 shadow-inner'
+                                    : isProBg
+                                    ? activeBgStyle.tileClass
+                                    : difficulty === 'pro'
+                                    ? `bg-slate-900/95 hover:bg-violet-500/15 border-slate-800 hover:border-violet-400/60 ${proPlainNumberColor} shadow-md hover:shadow-violet-500/15`
+                                    : difficulty === 'hard'
+                                    ? `bg-slate-900/95 hover:bg-violet-500/15 border-slate-800 hover:border-violet-400/60 ${hardNumberColor} shadow-md hover:shadow-violet-500/15`
+                                    : 'bg-slate-900/95 hover:bg-violet-500/15 border-slate-800 hover:border-violet-400/60 text-amber-100 hover:text-white shadow-md hover:shadow-violet-500/15'
+                                }`}
+                              >
+                                {(showCoordinates || isListening) && (
+                                  <span
+                                    className={`absolute ${coordCornerClass} text-[9px] sm:text-[10px] font-bold font-mono pointer-events-none leading-none opacity-85 ${coordColorClass}`}
+                                  >
+                                    {coordLabel}
+                                  </span>
+                                )}
+                                <span className="relative z-10">{num}</span>
+                                {isCenter && (
+                                  <span
+                                    aria-hidden="true"
+                                    className="absolute z-0 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-cyan-400/20 border-2 border-cyan-400/60 pointer-events-none"
+                                  />
+                                )}
+                              </button>
+                            );
+                          })}
+
+                          {showCenterDot && gridSize % 2 === 0 && (
+                            <span
+                              aria-hidden="true"
+                              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-cyan-400/80 ring-4 ring-cyan-400/20 pointer-events-none z-20"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
 
               {/* Overlay when idle */}
-              {status === 'idle' && (
+              {(difficulty === 'pro-plus' ? proPlusPhase === 'idle' : status === 'idle') && (
                 <div className="absolute inset-0 rounded-3xl bg-slate-950/75 backdrop-blur-xs flex flex-col items-center justify-center gap-3 p-4 text-center z-30">
                   <p className="text-sm sm:text-base font-bold text-white">
-                    {isVi
+                    {difficulty === 'pro-plus'
+                      ? isVi
+                        ? `Pro+ • ${gridSize}×${gridSize} • Quay ${timeLimit}s → Trả lời ${answerTimeLimit}s`
+                        : `Pro+ • ${gridSize}×${gridSize} • Spin ${timeLimit}s → Answer ${answerTimeLimit}s`
+                      : isVi
                       ? `Cấp độ ${activeDiffInfo.labelVi} • ${gridSize}×${gridSize} • ${timeLimit}s`
                       : `${activeDiffInfo.labelEn} Level • ${gridSize}×${gridSize} Grid • ${timeLimit}s Limit`}
                   </p>
                   <button
                     type="button"
                     onClick={() => startChallengeSession()}
-                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-extrabold text-sm flex items-center gap-2 shadow-lg shadow-violet-500/30 active:scale-95 transition-all cursor-pointer"
+                    className={`px-6 py-3 rounded-2xl font-extrabold text-sm flex items-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer ${
+                      difficulty === 'pro-plus'
+                        ? 'bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 shadow-cyan-500/30'
+                        : 'bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white shadow-violet-500/30'
+                    }`}
                   >
-                    <Play className="w-4 h-4 fill-white" />
+                    <Play className={`w-4 h-4 ${difficulty === 'pro-plus' ? 'fill-slate-950' : 'fill-white'}`} />
                     <span>
-                      {isVi
+                      {difficulty === 'pro-plus'
+                        ? isVi
+                          ? `Bắt đầu quan sát (${timeLimit}s)`
+                          : `Start Observation (${timeLimit}s)`
+                        : isVi
                         ? `Bắt đầu thử thách (${TOTAL_ROUNDS} lượt)`
                         : `Start Challenge (${TOTAL_ROUNDS} Rounds)`}
                     </span>
@@ -1436,89 +2514,139 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               </div>
             </div>
 
-            {/* Block C: Voice Action & Round Result */}
+            {/* Block C: Submit / Voice / Round Result */}
             <div className="landscape-block-c md:col-span-5 md:col-start-1 md:row-start-2 md:self-start space-y-2.5">
-              {difficulty === 'pro' && status === 'running' && (
-                <div className="md:hidden px-3 py-2 rounded-xl bg-slate-950/85 border border-violet-500/30 text-[11px] font-semibold text-slate-300 text-center">
-                  {isVi
-                    ? 'Có màu nền → Chọn MÀU bên cạnh bảng • Không nền → Bấm hoặc nói SỐ'
-                    : 'Colored bg → Tap COLOR beside grid • No bg → Tap or speak NUMBER'}
-                </div>
-              )}
-
-              {/* Bottom Voice Button */}
-              {status === 'running' && (
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`w-full h-12 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 px-3 ${
-                    isListening
-                      ? 'bg-rose-500 hover:bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-500/35 animate-pulse'
-                      : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-md'
-                  }`}
-                >
-                  {isListening ? (
-                    <>
-                      <MicOff className="w-4 h-4 text-white shrink-0" />
-                      <span className="truncate">
-                        {isVi
-                          ? 'Đang nghe giọng nói... (Bấm để dừng)'
-                          : 'Listening Voice... (Click to stop)'}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-4 h-4 text-amber-400 shrink-0" />
-                      <span className="truncate">
-                        {isVi
-                          ? `Giọng nói — Trả lời số (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
-                          : `Voice — Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
-                      </span>
-                    </>
+              {difficulty === 'pro-plus' ? (
+                <>
+                  {proPlusPhase === 'answering' && (
+                    <button
+                      type="button"
+                      onClick={() => submitProPlusAnswers(false)}
+                      className="w-full h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-95 text-xs sm:text-sm"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>{isVi ? 'Nộp bài & Kiểm tra' : 'Submit & Check'}</span>
+                    </button>
                   )}
-                </button>
-              )}
 
-              {/* Round Result Banner + Manual Next Round */}
-              {status === 'round-ended' && (
-                <div className="space-y-2.5 animate-in zoom-in-95 duration-150">
-                  {roundOutcome === 'passed' ? (
-                    <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md">
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
-                      <span>
-                        {isVi
-                          ? `Hoàn thành xuất sắc trong ${(roundElapsedMs / 1000).toFixed(2)}s! (Lỗi: ${mistakes})`
-                          : `Completed in ${(roundElapsedMs / 1000).toFixed(2)}s! (Mistakes: ${mistakes})`}
-                      </span>
+                  {proPlusPhase === 'result' && proPlusResult && (
+                    <div className="space-y-2.5 animate-in zoom-in-95 duration-150">
+                      <div
+                        className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold border shadow-md ${
+                          proPlusResult.totalCorrect === proPlusResult.totalNumbers &&
+                          proPlusResult.totalWrong === 0
+                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                            : 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        <span>
+                          {isVi
+                            ? `Đúng ${proPlusResult.totalCorrect}/${proPlusResult.totalNumbers} số${
+                                proPlusResult.totalWrong > 0 ? ` • Sai ${proPlusResult.totalWrong}` : ''
+                              } (${proPlusResult.answerElapsedSec}s)`
+                            : `Matched ${proPlusResult.totalCorrect}/${proPlusResult.totalNumbers}${
+                                proPlusResult.totalWrong > 0 ? ` • Wrong ${proPlusResult.totalWrong}` : ''
+                              } (${proPlusResult.answerElapsedSec}s)`}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => startProPlusSession(gridSize, timeLimit)}
+                        className="w-full h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-95 text-xs sm:text-sm"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        <span>{isVi ? 'Chơi lại' : 'Try Again'}</span>
+                      </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-md">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>
-                        {isVi
-                          ? `Hết giờ! Đã tìm được ${foundCount}/${totalNumbers} số`
-                          : `Time's up! Found ${foundCount}/${totalNumbers} numbers`}
-                      </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  {difficulty === 'pro' && status === 'running' && (
+                    <div className="md:hidden px-3 py-2 rounded-xl bg-slate-950/85 border border-violet-500/30 text-[11px] font-semibold text-slate-300 text-center">
+                      {isVi
+                        ? 'Có màu nền → Chọn MÀU bên cạnh bảng • Không nền → Bấm hoặc nói SỐ'
+                        : 'Colored bg → Tap COLOR beside grid • No bg → Tap or speak NUMBER'}
                     </div>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={goToNextRound}
-                    className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
-                  >
-                    <span>
-                      {currentRound >= TOTAL_ROUNDS
-                        ? isVi
-                          ? 'Xem Tổng Kết'
-                          : 'View Results'
-                        : isVi
-                        ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS})`
-                        : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS})`}
-                    </span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+                  {/* Bottom Voice Button */}
+                  {status === 'running' && (
+                    <button
+                      type="button"
+                      onClick={toggleListening}
+                      className={`w-full h-12 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 px-3 ${
+                        isListening
+                          ? 'bg-rose-500 hover:bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-500/35 animate-pulse'
+                          : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-md'
+                      }`}
+                    >
+                      {isListening ? (
+                        <>
+                          <MicOff className="w-4 h-4 text-white shrink-0" />
+                          <span className="truncate">
+                            {isVi
+                              ? 'Đang nghe giọng nói... (Bấm để dừng)'
+                              : 'Listening Voice... (Click to stop)'}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span className="truncate">
+                            {isVi
+                              ? `Giọng nói — Trả lời số (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
+                              : `Voice — Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Round Result Banner + Manual Next Round */}
+                  {status === 'round-ended' && (
+                    <div className="space-y-2.5 animate-in zoom-in-95 duration-150">
+                      {roundOutcome === 'passed' ? (
+                        <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md">
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <span>
+                            {isVi
+                              ? `Hoàn thành xuất sắc trong ${(roundElapsedMs / 1000).toFixed(2)}s! (Lỗi: ${mistakes})`
+                              : `Completed in ${(roundElapsedMs / 1000).toFixed(2)}s! (Mistakes: ${mistakes})`}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-md">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>
+                            {isVi
+                              ? `Hết giờ! Đã tìm được ${foundCount}/${totalNumbers} số`
+                              : `Time's up! Found ${foundCount}/${totalNumbers} numbers`}
+                          </span>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={goToNextRound}
+                        className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                      >
+                        <span>
+                          {currentRound >= TOTAL_ROUNDS
+                            ? isVi
+                              ? 'Xem Tổng Kết'
+                              : 'View Results'
+                            : isVi
+                            ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS})`
+                            : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS})`}
+                        </span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

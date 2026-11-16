@@ -25,7 +25,7 @@ import { parseSchulteVoiceActions } from '../../utils/schulteVoice';
 
 export type SchulteGridSize = 3 | 4 | 5 | 6;
 type OrderMode = 'asc' | 'desc';
-type TimeLimit = 10 | 20 | 30 | 40 | 50 | 60;
+type TimeLimit = 5 | 10 | 15 | 20 | 25 | 30;
 type ChallengeStatus = 'idle' | 'running' | 'round-ended' | 'completed';
 
 interface SchulteTableChallengePageProps {
@@ -46,7 +46,7 @@ interface RoundHistoryItem {
 
 const TOTAL_ROUNDS = 3;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
-const TIME_LIMITS: TimeLimit[] = [10, 20, 30, 40, 50, 60];
+const TIME_LIMITS: TimeLimit[] = [5, 10, 15, 20, 25, 30];
 const ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const generateShuffledNumbers = (size: SchulteGridSize): number[] => {
@@ -644,8 +644,8 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
           </div>
 
           {/* Time Limit Selector */}
-          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-            <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 max-w-full">
+            <span className="text-[11px] font-semibold text-slate-400 px-1.5 sm:px-2 flex items-center gap-1">
               <Clock className="w-3 h-3 text-amber-400" />
               <span>{isVi ? 'Giới hạn:' : 'Limit:'}</span>
             </span>
@@ -654,7 +654,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                 key={limit}
                 type="button"
                 onClick={() => handleSelectTimeLimit(limit)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                   timeLimit === limit
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800'

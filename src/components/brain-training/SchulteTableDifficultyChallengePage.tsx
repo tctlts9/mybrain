@@ -270,10 +270,18 @@ const parseRingNumbersInput = (raw: string): number[] => {
   return parsed;
 };
 
-const generateShuffledNumbers = (size: SchulteGridSize, poolMax?: number): number[] => {
+const generateShuffledNumbers = (
+  size: SchulteGridSize,
+  poolMin: number = 1,
+  poolMax?: number
+): number[] => {
   const total = size * size;
-  const maxVal = poolMax && poolMax >= total ? poolMax : total;
-  const arr = Array.from({ length: maxVal }, (_, i) => i + 1);
+  const minVal = Math.max(1, Math.floor(poolMin));
+  const maxVal =
+    poolMax !== undefined && poolMax >= minVal + total - 1
+      ? Math.floor(poolMax)
+      : minVal + total - 1;
+  const arr = Array.from({ length: maxVal - minVal + 1 }, (_, i) => minVal + i);
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -357,6 +365,14 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const [proPlusInputs, setProPlusInputs] = useState<[string, string, string]>(['', '', '']);
   const [proPlusResult, setProPlusResult] = useState<ProPlusResult | null>(null);
   const [activeProPlusRingIdx, setActiveProPlusRingIdx] = useState<0 | 1 | 2>(0);
+  const [proPlusRangeFrom, setProPlusRangeFrom] = useState<number>(1);
+  const [proPlusRangeTo, setProPlusRangeTo] = useState<number>(
+    () => initialGridSize * initialGridSize + 1
+  );
+  const [proPlusRangeFromText, setProPlusRangeFromText] = useState<string>('1');
+  const [proPlusRangeToText, setProPlusRangeToText] = useState<string>(() =>
+    String(initialGridSize * initialGridSize + 1)
+  );
 
   const countdownRef = useRef<number | null>(null);
   const roundStartRef = useRef<number>(0);
@@ -386,6 +402,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   proPlusInputsRef.current = proPlusInputs;
   const activeProPlusRingIdxRef = useRef(activeProPlusRingIdx);
   activeProPlusRingIdxRef.current = activeProPlusRingIdx;
+  const proPlusRangeFromRef = useRef(proPlusRangeFrom);
+  proPlusRangeFromRef.current = proPlusRangeFrom;
+  const proPlusRangeToRef = useRef(proPlusRangeTo);
+  proPlusRangeToRef.current = proPlusRangeTo;
   const timeLimitRef = useRef(timeLimit);
   timeLimitRef.current = timeLimit;
   const answerTimeLimitRef = useRef(answerTimeLimit);
@@ -513,11 +533,21 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   );
 
   const prepareBoard = useCallback(
-    (sizeToUse: SchulteGridSize, modeToUse: OrderMode, diffToUse?: DifficultyLevel) => {
+    (
+      sizeToUse: SchulteGridSize,
+      modeToUse: OrderMode,
+      diffToUse?: DifficultyLevel,
+      rangeFromOverride?: number,
+      rangeToOverride?: number
+    ) => {
       const total = sizeToUse * sizeToUse;
       const activeDiff = diffToUse ?? difficultyRef.current;
-      const poolMax = activeDiff === 'pro-plus' ? total + 1 : total;
-      setNumbers(generateShuffledNumbers(sizeToUse, poolMax));
+      const poolFrom = activeDiff === 'pro-plus' ? rangeFromOverride ?? proPlusRangeFromRef.current : 1;
+      const poolTo =
+        activeDiff === 'pro-plus'
+          ? Math.max(rangeToOverride ?? proPlusRangeToRef.current, poolFrom + total - 1)
+          : total;
+      setNumbers(generateShuffledNumbers(sizeToUse, poolFrom, poolTo));
       setTileColorIndices(generateRandomColorIndices(total));
       setTileCoordCorners(generateRandomColorIndices(total));
       setTileBgMask(generateRandomBgMask(total));
@@ -930,7 +960,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           const mode = orderModeRef.current;
           const maxVoiceNum =
             difficultyRef.current === 'pro-plus'
-              ? currentSize * currentSize + 1
+              ? proPlusRangeToRef.current
               : currentSize * currentSize;
           const actions = parseSchulteVoiceActions(deltaText, currentSize, activeTarget, maxVoiceNum);
           if (actions.length === 0) continue;
@@ -955,33 +985,37 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 const targetRing = activeProPlusRingIdxRef.current;
                 const activeSize = gridSizeRef.current;
                 const [c1, c2] = PRO_PLUS_RING_COUNTS[activeSize];
-                setProPlusInputs((prev) => {
-                  const next = [...prev] as [string, string, string];
-                  const existing = parseRingNumbersInput(next[targetRing]);
-                  if (!existing.includes(action.value)) {
-                    next[targetRing] = [...existing, action.value].join(' ');
-                  }
-                  if (targetRing === 0 || targetRing === 1) {
-                    const r1 = parseRingNumbersInput(next[0]);
-                    const r2 = parseRingNumbersInput(next[1]);
-                    if (r1.length === c1 && r2.length === c2) {
-                      const used = new Set([...r1, ...r2]);
-                      const remaining = Array.from(
-                        { length: activeSize * activeSize + 1 },
-                        (_, idxN) => idxN + 1
-                      ).filter((n) => !used.has(n));
-                      next[2] = remaining.join(' ');
-                      setActiveProPlusRingIdx(2);
-                    } else if (targetRing === 0 && r1.length === c1 && r2.length < c2) {
-                      next[2] = '';
-                      setActiveProPlusRingIdx(1);
-                    } else {
-                      next[2] = '';
+                const rangeFromVal = proPlusRangeFromRef.current;
+                const rangeToVal = proPlusRangeToRef.current;
+                if (action.value >= rangeFromVal && action.value <= rangeToVal) {
+                  setProPlusInputs((prev) => {
+                    const next = [...prev] as [string, string, string];
+                    const existing = parseRingNumbersInput(next[targetRing]);
+                    if (!existing.includes(action.value)) {
+                      next[targetRing] = [...existing, action.value].join(' ');
                     }
-                  }
-                  return next;
-                });
-                consumedAction = true;
+                    if (targetRing === 0 || targetRing === 1) {
+                      const r1 = parseRingNumbersInput(next[0]);
+                      const r2 = parseRingNumbersInput(next[1]);
+                      if (r1.length === c1 && r2.length === c2) {
+                        const used = new Set([...r1, ...r2]);
+                        const remaining = Array.from(
+                          { length: rangeToVal - rangeFromVal + 1 },
+                          (_, idxN) => rangeFromVal + idxN
+                        ).filter((n) => !used.has(n));
+                        next[2] = remaining.join(' ');
+                        setActiveProPlusRingIdx(2);
+                      } else if (targetRing === 0 && r1.length === c1 && r2.length < c2) {
+                        next[2] = '';
+                        setActiveProPlusRingIdx(1);
+                      } else {
+                        next[2] = '';
+                      }
+                    }
+                    return next;
+                  });
+                  consumedAction = true;
+                }
               }
               continue;
             }
@@ -1101,6 +1135,24 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     setHighlightFound(nextHighlight);
 
     if (newDiff === 'pro-plus') {
+      const total = gridSize * gridSize;
+      const defaultTargets = new Set([10, 17, 26, 37]);
+      const isPreviousDefault =
+        proPlusRangeFrom === 1 && defaultTargets.has(proPlusRangeTo);
+      const syncFrom = isPreviousDefault
+        ? 1
+        : Math.min(proPlusRangeFrom, 999 - total);
+      const syncTo = isPreviousDefault
+        ? total + 1
+        : Math.min(999, Math.max(proPlusRangeTo, syncFrom + total - 1));
+
+      setProPlusRangeFrom(syncFrom);
+      setProPlusRangeTo(syncTo);
+      setProPlusRangeFromText(String(syncFrom));
+      setProPlusRangeToText(String(syncTo));
+      proPlusRangeFromRef.current = syncFrom;
+      proPlusRangeToRef.current = syncTo;
+
       setProPlusPhase('idle');
       setProPlusInputs(['', '', '']);
       setProPlusResult(null);
@@ -1108,7 +1160,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       setStatus('idle');
       setTimeLeft(timeLimit);
       setRoundElapsedMs(0);
-      prepareBoard(gridSize, 'asc', 'pro-plus');
+      prepareBoard(gridSize, 'asc', 'pro-plus', syncFrom, syncTo);
       return;
     }
 
@@ -1149,18 +1201,101 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     setGridSize(newSize);
     if (difficulty === 'pro-plus') {
       clearTimers();
+      const oldDefaultTo = gridSize * gridSize + 1;
+      const newTotal = newSize * newSize;
+      const isUsingDefaultRange = proPlusRangeFrom === 1 && proPlusRangeTo === oldDefaultTo;
+      const nextFrom = isUsingDefaultRange ? 1 : Math.min(proPlusRangeFrom, 999 - newTotal);
+      const nextTo = isUsingDefaultRange
+        ? newTotal + 1
+        : Math.min(999, Math.max(proPlusRangeTo, nextFrom + newTotal));
+
+      setProPlusRangeFrom(nextFrom);
+      setProPlusRangeTo(nextTo);
+      setProPlusRangeFromText(String(nextFrom));
+      setProPlusRangeToText(String(nextTo));
+      proPlusRangeFromRef.current = nextFrom;
+      proPlusRangeToRef.current = nextTo;
+
       setProPlusPhase('idle');
       setProPlusInputs(['', '', '']);
       setProPlusResult(null);
       setStatus('idle');
       setTimeLeft(timeLimit);
-      prepareBoard(newSize, 'asc', 'pro-plus');
+      prepareBoard(newSize, 'asc', 'pro-plus', nextFrom, nextTo);
       return;
     }
     if (status === 'running' || status === 'round-ended') {
       startChallengeSession(newSize, timeLimit, orderMode);
     } else {
       prepareBoard(newSize, orderMode);
+    }
+  };
+
+  const applyProPlusRange = (
+    rawFrom: number,
+    rawTo: number,
+    changedField: 'from' | 'to' | 'both' = 'both'
+  ) => {
+    const total = gridSize * gridSize;
+    let safeFrom = Number.isFinite(rawFrom) ? Math.floor(rawFrom) : 1;
+    safeFrom = Math.max(1, Math.min(999 - total, safeFrom));
+
+    let safeTo = Number.isFinite(rawTo) ? Math.floor(rawTo) : safeFrom + total;
+    if (changedField === 'from' && safeTo < safeFrom + total - 1) {
+      safeTo = Math.min(999, safeFrom + total);
+    } else if (safeTo < safeFrom + total - 1) {
+      safeTo = Math.min(999, safeFrom + total);
+    }
+    safeTo = Math.min(999, safeTo);
+
+    setProPlusRangeFrom(safeFrom);
+    setProPlusRangeTo(safeTo);
+    setProPlusRangeFromText(String(safeFrom));
+    setProPlusRangeToText(String(safeTo));
+    proPlusRangeFromRef.current = safeFrom;
+    proPlusRangeToRef.current = safeTo;
+
+    clearTimers();
+    setProPlusPhase('idle');
+    setProPlusInputs(['', '', '']);
+    setProPlusResult(null);
+    setActiveProPlusRingIdx(0);
+    setStatus('idle');
+    setTimeLeft(timeLimit);
+    setRoundElapsedMs(0);
+    prepareBoard(gridSize, 'asc', 'pro-plus', safeFrom, safeTo);
+  };
+
+  const handleProPlusRangeTextChange = (field: 'from' | 'to', rawVal: string) => {
+    const cleanDigits = rawVal.replace(/[^\d]/g, '').slice(0, 3);
+    const nextFromText = field === 'from' ? cleanDigits : proPlusRangeFromText;
+    const nextToText = field === 'to' ? cleanDigits : proPlusRangeToText;
+
+    if (field === 'from') setProPlusRangeFromText(cleanDigits);
+    else setProPlusRangeToText(cleanDigits);
+
+    const parsedFrom = parseInt(nextFromText, 10);
+    const parsedTo = parseInt(nextToText, 10);
+    const total = gridSize * gridSize;
+
+    if (
+      !Number.isNaN(parsedFrom) &&
+      !Number.isNaN(parsedTo) &&
+      parsedFrom >= 1 &&
+      parsedTo <= 999 &&
+      parsedTo - parsedFrom + 1 >= total
+    ) {
+      setProPlusRangeFrom(parsedFrom);
+      setProPlusRangeTo(parsedTo);
+      proPlusRangeFromRef.current = parsedFrom;
+      proPlusRangeToRef.current = parsedTo;
+      if (proPlusPhase === 'idle' || proPlusPhase === 'result') {
+        setProPlusPhase('idle');
+        setProPlusInputs(['', '', '']);
+        setProPlusResult(null);
+        setTimeLeft(timeLimit);
+        prepareBoard(gridSize, 'asc', 'pro-plus', parsedFrom, parsedTo);
+      }
     }
   };
 
@@ -1190,7 +1325,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const toggleProPlusQuickNumber = (ringIdx: 0 | 1 | 2, num: number) => {
     if (proPlusPhase !== 'answering') return;
     const [c1, c2] = PRO_PLUS_RING_COUNTS[gridSize];
-    const poolMax = gridSize * gridSize + 1;
     let nextActiveRing: 0 | 1 | 2 | null = null;
 
     setProPlusInputs((prev) => {
@@ -1216,9 +1350,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
         const r2 = parseRingNumbersInput(next[1]);
         if (r1.length === c1 && r2.length === c2) {
           const used = new Set([...r1, ...r2]);
-          const remaining = Array.from({ length: poolMax }, (_, i) => i + 1).filter(
-            (n) => !used.has(n)
-          );
+          const remaining = Array.from(
+            { length: proPlusRangeTo - proPlusRangeFrom + 1 },
+            (_, i) => proPlusRangeFrom + i
+          ).filter((n) => !used.has(n));
           next[2] = remaining.join(' ');
           nextActiveRing = 2;
         } else {
@@ -1451,6 +1586,80 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               ))}
             </div>
 
+            {/* Từ số / Đến số (Pro+ Custom Number Range) */}
+            {difficulty === 'pro-plus' && (
+              <div className="flex items-center gap-1.5 bg-slate-950/80 px-2 py-1 rounded-xl border border-cyan-500/30">
+                <label
+                  htmlFor="pro-plus-range-from"
+                  className="text-[11px] font-semibold text-cyan-300 whitespace-nowrap select-none"
+                >
+                  {isVi ? 'Từ số' : 'From'}
+                </label>
+                <input
+                  id="pro-plus-range-from"
+                  type="text"
+                  inputMode="numeric"
+                  value={proPlusRangeFromText}
+                  onChange={(e) => handleProPlusRangeTextChange('from', e.target.value)}
+                  onBlur={() => {
+                    const parsedF = parseInt(proPlusRangeFromText, 10);
+                    const parsedT = parseInt(proPlusRangeToText, 10);
+                    applyProPlusRange(
+                      Number.isNaN(parsedF) ? 1 : parsedF,
+                      Number.isNaN(parsedT) ? proPlusRangeTo : parsedT,
+                      'from'
+                    );
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const parsedF = parseInt(proPlusRangeFromText, 10);
+                      const parsedT = parseInt(proPlusRangeToText, 10);
+                      applyProPlusRange(
+                        Number.isNaN(parsedF) ? 1 : parsedF,
+                        Number.isNaN(parsedT) ? proPlusRangeTo : parsedT,
+                        'from'
+                      );
+                    }
+                  }}
+                  className="w-11 sm:w-12 px-1.5 py-0.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-cyan-400 text-center text-xs font-mono font-bold text-white outline-none transition-colors"
+                />
+                <label
+                  htmlFor="pro-plus-range-to"
+                  className="text-[11px] font-semibold text-cyan-300 whitespace-nowrap select-none"
+                >
+                  {isVi ? 'Đến số' : 'To'}
+                </label>
+                <input
+                  id="pro-plus-range-to"
+                  type="text"
+                  inputMode="numeric"
+                  value={proPlusRangeToText}
+                  onChange={(e) => handleProPlusRangeTextChange('to', e.target.value)}
+                  onBlur={() => {
+                    const parsedF = parseInt(proPlusRangeFromText, 10);
+                    const parsedT = parseInt(proPlusRangeToText, 10);
+                    applyProPlusRange(
+                      Number.isNaN(parsedF) ? proPlusRangeFrom : parsedF,
+                      Number.isNaN(parsedT) ? proPlusRangeFrom + totalNumbers : parsedT,
+                      'to'
+                    );
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const parsedF = parseInt(proPlusRangeFromText, 10);
+                      const parsedT = parseInt(proPlusRangeToText, 10);
+                      applyProPlusRange(
+                        Number.isNaN(parsedF) ? proPlusRangeFrom : parsedF,
+                        Number.isNaN(parsedT) ? proPlusRangeFrom + totalNumbers : parsedT,
+                        'to'
+                      );
+                    }
+                  }}
+                  className="w-11 sm:w-12 px-1.5 py-0.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-cyan-400 text-center text-xs font-mono font-bold text-white outline-none transition-colors"
+                />
+              </div>
+            )}
+
             {/* Order Mode (hidden in Pro+ recall mode) */}
             {difficulty !== 'pro-plus' && (
               <button
@@ -1536,7 +1745,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               ) : (
                 <Mic className="w-3.5 h-3.5 text-amber-400" />
               )}
-              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời bằng Giọng nói' : 'Voice'}</span>
+              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời' : 'Voice'}</span>
             </button>
           <button
             type="button"
@@ -1842,7 +2051,6 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                             onChange={(e) => {
                               const val = e.target.value;
                               const [c1, c2] = PRO_PLUS_RING_COUNTS[gridSize];
-                              const poolMax = totalNumbers + 1;
                               setProPlusInputs((prev) => {
                                 const next = [...prev] as [string, string, string];
                                 next[ringIdx] = val;
@@ -1851,7 +2059,10 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                                   const r2 = parseRingNumbersInput(next[1]);
                                   if (r1.length === c1 && r2.length === c2) {
                                     const used = new Set([...r1, ...r2]);
-                                    next[2] = Array.from({ length: poolMax }, (_, i) => i + 1)
+                                    next[2] = Array.from(
+                                      { length: proPlusRangeTo - proPlusRangeFrom + 1 },
+                                      (_, i) => proPlusRangeFrom + i
+                                    )
                                       .filter((n) => !used.has(n))
                                       .join(' ');
                                   } else {
@@ -1909,11 +2120,13 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                             const ring1And2Complete = parsedNums0.length === c1 && parsedNums1.length === c2;
                             const isRing3AutoEliminateMode = ringIdx === 2 && ring1And2Complete;
                             const usedIn1And2 = new Set([...parsedNums0, ...parsedNums1]);
+                            const fullRangePool = Array.from(
+                              { length: Math.max(totalNumbers, proPlusRangeTo - proPlusRangeFrom + 1) },
+                              (_, i) => proPlusRangeFrom + i
+                            );
                             const quickCandidateNums = isRing3AutoEliminateMode
-                              ? Array.from({ length: totalNumbers + 1 }, (_, i) => i + 1).filter(
-                                  (n) => !usedIn1And2.has(n)
-                                )
-                              : Array.from({ length: totalNumbers + 1 }, (_, i) => i + 1);
+                              ? fullRangePool.filter((n) => !usedIn1And2.has(n))
+                              : fullRangePool;
                             const extraToRemove = Math.max(0, parsedCount - ringCount);
 
                             return (
@@ -1941,8 +2154,8 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                                         ? `Chọn đủ ${ringCount} số (${parsedCount}/${ringCount}):`
                                         : `Keep ${ringCount} numbers (${parsedCount}/${ringCount}):`
                                       : isVi
-                                      ? `Chọn nhanh (1 → ${totalNumbers + 1}):`
-                                      : `Quick pick (1 → ${totalNumbers + 1}):`}
+                                      ? `Chọn nhanh (${proPlusRangeFrom} → ${proPlusRangeTo}):`
+                                      : `Quick pick (${proPlusRangeFrom} → ${proPlusRangeTo}):`}
                                   </span>
                                   <div className="flex items-center gap-2 shrink-0">
                                     {isRing3AutoEliminateMode ? (
@@ -1994,7 +2207,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                                   </div>
                                 </div>
 
-                                <div className={`grid ${pickerColsClass} gap-1`}>
+                                <div className={`grid ${pickerColsClass} gap-1 max-h-48 overflow-y-auto pr-0.5`}>
                                   {quickCandidateNums.map((n) => {
                                     const isInThisRing = currentRingNums.includes(n);
                                     const assignedOtherIdx = ([0, 1, 2] as const).find(
@@ -2277,7 +2490,11 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                                           textAnchor="middle"
                                           dominantBaseline="central"
                                           fill={textColor}
-                                          fontSize={numFontSize}
+                                          fontSize={
+                                            !isHiddenAnswering && num >= 100
+                                              ? Math.round(numFontSize * 0.8)
+                                              : numFontSize
+                                          }
                                           fontWeight="900"
                                           className="font-mono pointer-events-none"
                                         >
@@ -2455,8 +2672,8 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   <p className="text-sm sm:text-base font-bold text-white">
                     {difficulty === 'pro-plus'
                       ? isVi
-                        ? `Pro+ • ${gridSize}×${gridSize} • Quay ${timeLimit}s → Trả lời ${answerTimeLimit}s`
-                        : `Pro+ • ${gridSize}×${gridSize} • Spin ${timeLimit}s → Answer ${answerTimeLimit}s`
+                        ? `Pro+ • ${gridSize}×${gridSize} (${proPlusRangeFrom}–${proPlusRangeTo}) • Quay ${timeLimit}s → Trả lời ${answerTimeLimit}s`
+                        : `Pro+ • ${gridSize}×${gridSize} (${proPlusRangeFrom}–${proPlusRangeTo}) • Spin ${timeLimit}s → Answer ${answerTimeLimit}s`
                       : isVi
                       ? `Cấp độ ${activeDiffInfo.labelVi} • ${gridSize}×${gridSize} • ${timeLimit}s`
                       : `${activeDiffInfo.labelEn} Level • ${gridSize}×${gridSize} Grid • ${timeLimit}s Limit`}
@@ -2597,8 +2814,8 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                           <Mic className="w-4 h-4 text-amber-400 shrink-0" />
                           <span className="truncate">
                             {isVi
-                              ? `Giọng nói — Trả lời số (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
-                              : `Voice — Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
+                              ? `Trả lời  (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
+                              : `Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
                           </span>
                         </>
                       )}

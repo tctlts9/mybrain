@@ -753,7 +753,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
               ) : (
                 <Mic className="w-3.5 h-3.5 text-amber-400" />
               )}
-              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời bằng Giọng nói' : 'Voice'}</span>
+              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời' : 'Voice'}</span>
             </button>
           <button
             type="button"
@@ -1076,8 +1076,8 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                       <Mic className="w-4 h-4 text-amber-400 shrink-0" />
                       <span className="truncate">
                         {isVi
-                          ? `Giọng nói — Trả lời số (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
-                          : `Voice — Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
+                          ? `Trả lời  (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'})`
+                          : `Speak Number (${highlightFound ? 'Mark Found' : 'No Mark Found'})`}
                       </span>
                     </>
                   )}

@@ -87,15 +87,15 @@ const DIFFICULTY_LEVELS: {
   },
   {
     id: 'pro',
-    labelVi: 'Siêu khó',
+    labelVi: 'Siêu Khó',
     labelEn: 'Pro',
     descVi: 'Có màu nền → Trả lời MÀU • Không nền → SỐ • Tọa độ nhiễu',
     descEn: 'Colored bg → Answer COLOR • No bg → NUMBER • Coordinate interference',
   },
   {
     id: 'pro-plus',
-    labelVi: 'Pro+',
-    labelEn: 'Pro+',
+    labelVi: 'Siêu Khó (+)',
+    labelEn: 'Pro (+)',
     descVi: '3 vòng tròn tự quay (2 xuôi • 1 ngược)',
     descEn: '3 rotating rings (2 CW • 1 CCW)',
   },

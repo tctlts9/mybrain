@@ -774,7 +774,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
               title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
             >
               <Gauge className="w-3.5 h-3.5 text-white" />
-              <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
+              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
             </button>
           )}
 
@@ -838,7 +838,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                 title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
               >
                 <Gauge className="w-3.5 h-3.5 text-white" />
-                <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
+                <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
               </button>
             )}
 

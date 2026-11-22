@@ -588,7 +588,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
               }
             >
               <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-              <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficulty level challenge'}</span>
+              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
             </button>
           )}
 

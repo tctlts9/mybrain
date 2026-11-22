@@ -364,7 +364,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
               title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
             >
               <Gauge className="w-3.5 h-3.5 text-white" />
-              <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
+              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
             </button>
           )}
 
@@ -434,7 +434,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                 title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
               >
                 <Gauge className="w-3.5 h-3.5 text-white" />
-                <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
+                <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
               </button>
             )}
 

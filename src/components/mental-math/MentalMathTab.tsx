@@ -45,6 +45,10 @@ import { PercentageChallengePage } from './PercentageChallengePage';
 import { PercentageDifficultyChallengePage } from './PercentageDifficultyChallengePage';
 import { PercentageVisualGuidePage } from './PercentageVisualGuidePage';
 import { PercentageMode } from '../../utils/percentageOperations';
+import { DailyReflexPage } from './DailyReflexPage';
+import { DailyReflexChallengePage } from './DailyReflexChallengePage';
+import { DailyReflexDifficultyChallengePage } from './DailyReflexDifficultyChallengePage';
+import { DailyReflexMode } from '../../utils/dailyReflexOperations';
 
 import cardBg from '../../assets/images/TwoDigitBg.jpg';
 import card11Bg from '../../assets/images/MultiplyBy11Bg.jpg';
@@ -106,7 +110,10 @@ type MentalMathPage =
   | 'percentage-page'
   | 'percentage-challenge'
   | 'percentage-difficulty-challenge'
-  | 'percentage-visual-guide';
+  | 'percentage-visual-guide'
+  | 'daily-reflex-page'
+  | 'daily-reflex-challenge'
+  | 'daily-reflex-difficulty-challenge';
 
 export const MentalMathTab: React.FC = () => {
   const { language, t } = useLanguage();
@@ -125,6 +132,7 @@ export const MentalMathTab: React.FC = () => {
   const [squareRootChallengeTopic, setSquareRootChallengeTopic] = useState<SquareRootTopic>('general');
   const [percentageMode, setPercentageMode] = useState<PercentageMode>('basic');
   const [percentageChallengeTopic, setPercentageChallengeTopic] = useState<string>('general');
+  const [dailyReflexMode, setDailyReflexMode] = useState<DailyReflexMode>('dailyMix');
   const [isTimerModalOpen, setIsTimerModalOpen] = useState<boolean>(false);
   const [isAutoNextModalOpen, setIsAutoNextModalOpen] = useState<boolean>(false);
   const showEditTimerButton = isEditTimerButtonVisible('MentalMathTab');
@@ -591,10 +599,46 @@ export const MentalMathTab: React.FC = () => {
     );
   }
 
+  // ==================== FLOW 10: RÈN LUYỆN PHẢN XẠ TÍNH NHẨM HÀNG NGÀY ====================
+  if (currentPage === 'daily-reflex-challenge') {
+    return (
+      <DailyReflexChallengePage
+        initialMode={dailyReflexMode}
+        onBack={() => setCurrentPage('daily-reflex-page')}
+      />
+    );
+  }
+
+  if (currentPage === 'daily-reflex-difficulty-challenge') {
+    return (
+      <DailyReflexDifficultyChallengePage
+        initialMode={dailyReflexMode}
+        onBack={() => setCurrentPage('daily-reflex-page')}
+      />
+    );
+  }
+
+  if (currentPage === 'daily-reflex-page') {
+    return (
+      <DailyReflexPage
+        initialMode={dailyReflexMode}
+        onBack={() => setCurrentPage('card')}
+        onOpenChallenge={(mode) => {
+          if (mode) setDailyReflexMode(mode);
+          setCurrentPage('daily-reflex-challenge');
+        }}
+        onOpenHardChallenge={(mode) => {
+          if (mode) setDailyReflexMode(mode);
+          setCurrentPage('daily-reflex-difficulty-challenge');
+        }}
+      />
+    );
+  }
+
   // ==================== SUB-PAGE: CARD CHA "PHÉP NHÂN" (3 CARD CON) ====================
   if (currentPage === 'multiply-hub') {
     return (
-      <div className="w-full max-w-6xl mx-auto py-2 sm:py-6 animate-in fade-in duration-300 px-2 sm:px-4 space-y-5">
+      <div className="w-full max-w-7xl mx-auto py-2 sm:py-6 animate-in fade-in duration-300 px-2 sm:px-4 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
@@ -641,7 +685,7 @@ export const MentalMathTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 md:gap-7 w-full max-w-md md:max-w-none mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 w-full max-w-md sm:max-w-none mx-auto">
           {/* Child Card 1: Phép nhân 2 chữ số */}
           <div
             onClick={() => {
@@ -667,8 +711,8 @@ export const MentalMathTab: React.FC = () => {
             />
             <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
             <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply2Title}
               </h2>
             </div>
@@ -695,8 +739,8 @@ export const MentalMathTab: React.FC = () => {
             />
             <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
             <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply11Title}
               </h2>
             </div>
@@ -723,8 +767,8 @@ export const MentalMathTab: React.FC = () => {
             />
             <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
             <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply1DigitTitle}
               </h2>
             </div>
@@ -751,8 +795,8 @@ export const MentalMathTab: React.FC = () => {
             />
             <div className="absolute inset-0 bg-radial from-slate-950/55 via-slate-950/15 to-transparent pointer-events-none" />
             <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply99Title}
               </h2>
             </div>
@@ -955,6 +999,7 @@ export const MentalMathTab: React.FC = () => {
     title: string;
     subtitle?: string;
     image: string;
+    wrapTitle?: boolean;
     onSelect: () => void;
   }> = [
     {
@@ -1001,12 +1046,20 @@ export const MentalMathTab: React.FC = () => {
       image: cardPercentBg,
       onSelect: () => setCurrentPage('percentage-hub'),
     },
+    {
+      id: 'daily-reflex',
+      title: t.cardDailyReflexTitle,
+      subtitle: t.cardDailyReflexSub,
+      image: cardBg,
+      wrapTitle: true,
+      onSelect: () => setCurrentPage('daily-reflex-page'),
+    },
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-2 sm:py-6 animate-in fade-in duration-300 px-2 sm:px-4 space-y-4">
+    <div className="w-full max-w-7xl mx-auto py-2 sm:py-6 animate-in fade-in duration-300 px-2 sm:px-4 space-y-4">
       {(showAutoNextButton || showEditTimerButton) && (
-        <div className="flex flex-wrap items-center justify-end gap-2 w-full max-w-md md:max-w-none mx-auto">
+        <div className="flex flex-wrap items-center justify-end gap-2 w-full max-w-md sm:max-w-none mx-auto">
           {showAutoNextButton && (
             <button
               type="button"
@@ -1041,7 +1094,7 @@ export const MentalMathTab: React.FC = () => {
           )}
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 md:gap-7 w-full max-w-md md:max-w-none mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 w-full max-w-md sm:max-w-none mx-auto">
         {mainCards.map((card) => (
           <div
             key={card.id}
@@ -1065,12 +1118,18 @@ export const MentalMathTab: React.FC = () => {
             <div className="absolute inset-0 bg-radial from-slate-950/70 via-slate-950/30 to-transparent pointer-events-none" />
             <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
 
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none gap-1.5">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none gap-1.5">
+              <h2
+                className={`font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 ${
+                  card.wrapTitle
+                    ? 'text-sm sm:text-base lg:text-sm xl:text-base leading-snug text-balance max-w-[94%]'
+                    : 'text-lg sm:text-xl lg:text-lg xl:text-xl whitespace-nowrap'
+                }`}
+              >
                 {card.title}
               </h2>
               {card.subtitle && (
-                <p className="text-[11px] sm:text-xs font-medium text-yellow-200/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.95)] max-w-[90%] truncate">
+                <p className="text-[11px] sm:text-xs font-medium text-yellow-200/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.95)] max-w-[92%] truncate">
                   {card.subtitle}
                 </p>
               )}

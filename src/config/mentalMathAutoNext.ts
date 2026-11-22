@@ -97,6 +97,13 @@ export const MENTAL_MATH_AUTO_NEXT_PAGE_META = [
     labelVi: 'Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Thử thách',
     labelEn: 'Percentage (Find Rate & Whole) — Challenge',
   },
+  {
+    key: 'DailyReflexChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    labelVi: 'Phản xạ hàng ngày — Thử thách',
+    labelEn: 'Daily Mental Math Reflex — Challenge',
+  },
 
   // --- Difficult Level Challenge pages (12) ---
   {
@@ -183,6 +190,13 @@ export const MENTAL_MATH_AUTO_NEXT_PAGE_META = [
     labelVi: 'Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Thử thách khó',
     labelEn: 'Percentage (Find Rate & Whole) — Difficult Challenge',
   },
+  {
+    key: 'DailyReflexDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    labelVi: 'Phản xạ hàng ngày — Thử thách khó',
+    labelEn: 'Daily Mental Math Reflex — Difficult Challenge',
+  },
 
   // --- Practice pages (12) ---
   {
@@ -268,6 +282,13 @@ export const MENTAL_MATH_AUTO_NEXT_PAGE_META = [
     defaultDelaySec: 0,
     labelVi: 'Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Luyện tập',
     labelEn: 'Percentage (Find Rate & Whole) — Practice',
+  },
+  {
+    key: 'DailyReflexPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    labelVi: 'Phản xạ hàng ngày — Luyện tập',
+    labelEn: 'Daily Mental Math Reflex — Practice',
   },
 ] as const;
 

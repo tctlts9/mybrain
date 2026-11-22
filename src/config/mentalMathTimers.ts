@@ -101,6 +101,10 @@ export const MENTAL_MATH_PAGE_TIMERS = {
     limitOptions: [2, 4, 6, 8, 10, 12],
     defaultLimit: 10,
   } as ChallengeTimerConfig,
+  DailyReflexChallengePage: {
+    limitOptions: [2, 4, 6, 8, 10, 12],
+    defaultLimit: 10,
+  } as ChallengeTimerConfig,
 
   // --- Trang Difficult Level Challenge (Thử thách cấp độ khó - có Limit & Answer) ---
   TwoDigitMentalMathDifficultyChallengePage: {
@@ -170,6 +174,12 @@ export const MENTAL_MATH_PAGE_TIMERS = {
     defaultAnswer: 30,
   } as DifficultyTimerConfig,
   PercentageDifficultyChallengePage_reverse: {
+    limitOptions: [2, 4, 6, 8, 10, 12],
+    defaultLimit: 6,
+    answerOptions: [10, 20, 30, 40, 50, 60],
+    defaultAnswer: 30,
+  } as DifficultyTimerConfig,
+  DailyReflexDifficultyChallengePage: {
     limitOptions: [2, 4, 6, 8, 10, 12],
     defaultLimit: 6,
     answerOptions: [10, 20, 30, 40, 50, 60],
@@ -273,6 +283,13 @@ export const MENTAL_MATH_TIMER_PAGE_META: MentalMathTimerPageMeta[] = [
     labelVi: 'Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Challenge',
     labelEn: 'Percentage (Find Rate & Whole) — Challenge',
   },
+  {
+    key: 'DailyReflexChallengePage',
+    group: 'challenge',
+    hasAnswer: false,
+    labelVi: 'Phản xạ hàng ngày — Challenge',
+    labelEn: 'Daily Mental Math Reflex — Challenge',
+  },
 
   // Difficulty Level Challenge pages
   {
@@ -358,6 +375,13 @@ export const MENTAL_MATH_TIMER_PAGE_META: MentalMathTimerPageMeta[] = [
     hasAnswer: true,
     labelVi: 'Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Difficult Level Challenge',
     labelEn: 'Percentage (Find Rate & Whole) — Difficult Level Challenge',
+  },
+  {
+    key: 'DailyReflexDifficultyChallengePage',
+    group: 'difficulty',
+    hasAnswer: true,
+    labelVi: 'Phản xạ hàng ngày — Difficult Level Challenge',
+    labelEn: 'Daily Mental Math Reflex — Difficult Level Challenge',
   },
 ];
 

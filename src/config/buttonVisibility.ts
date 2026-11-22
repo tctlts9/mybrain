@@ -75,6 +75,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentagePage_basic: MentalMathPracticePageVisibility;
   PercentagePage_change: MentalMathPracticePageVisibility;
   PercentagePage_reverse: MentalMathPracticePageVisibility;
+  DailyReflexPage: MentalMathPracticePageVisibility;
 
   // Tab Mental Math - Trang Hướng dẫn trực quan (Visual Guide)
   TwoDigitMentalMathVisualGuidePage: VisualGuidePageVisibility;
@@ -104,6 +105,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentageChallengePage_basic: MentalMathChallengePageVisibility;
   PercentageChallengePage_change: MentalMathChallengePageVisibility;
   PercentageChallengePage_reverse: MentalMathChallengePageVisibility;
+  DailyReflexChallengePage: MentalMathChallengePageVisibility;
 
   // Tab Mental Math - Trang Difficult Level Challenge (Nút Tùy chỉnh đổi câu)
   TwoDigitMentalMathDifficultyChallengePage: AutoNextOnlyPageVisibility;
@@ -118,6 +120,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentageDifficultyChallengePage_basic: AutoNextOnlyPageVisibility;
   PercentageDifficultyChallengePage_change: AutoNextOnlyPageVisibility;
   PercentageDifficultyChallengePage_reverse: AutoNextOnlyPageVisibility;
+  DailyReflexDifficultyChallengePage: AutoNextOnlyPageVisibility;
 
   // Tab Brain Training - Bảng Schulte
   SchulteTablePage: PracticePageVisibility;
@@ -136,6 +139,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentagePage_basic: { challenge: true, difficultLevelChallenge: true, autoNext: true },
   PercentagePage_change: { challenge: true, difficultLevelChallenge: true, autoNext: true },
   PercentagePage_reverse: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  DailyReflexPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
 
   // --- Tab Mental Math: Trang Hướng dẫn trực quan (Visual Guide) ---
   TwoDigitMentalMathVisualGuidePage: { challenge: true },
@@ -165,6 +169,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentageChallengePage_basic: { editTimer: true, autoNext: true },
   PercentageChallengePage_change: { editTimer: true, autoNext: true },
   PercentageChallengePage_reverse: { editTimer: true, autoNext: true },
+  DailyReflexChallengePage: { editTimer: true, autoNext: true },
 
   // --- Tab Mental Math: Trang Difficult Level Challenge (Tùy chỉnh đổi câu) ---
   TwoDigitMentalMathDifficultyChallengePage: { autoNext: true },
@@ -179,6 +184,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentageDifficultyChallengePage_basic: { autoNext: true },
   PercentageDifficultyChallengePage_change: { autoNext: true },
   PercentageDifficultyChallengePage_reverse: { autoNext: true },
+  DailyReflexDifficultyChallengePage: { autoNext: true },
 
   // --- Tab Brain Training: Bảng Schulte ---
   SchulteTablePage: { challenge: true, difficultLevelChallenge: true },

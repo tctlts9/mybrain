@@ -34,6 +34,8 @@ export interface Translations {
   cardPercentBasicTitle: string;
   cardPercentChangeTitle: string;
   cardPercentReverseTitle: string;
+  cardDailyReflexTitle: string;
+  cardDailyReflexSub: string;
   backToMentalMath: string;
   cardMultiply2Title: string;
   cardMultiply2Desc: string;
@@ -147,6 +149,8 @@ export const translations: Record<Language, Translations> = {
     cardPercentBasicTitle: 'Tính % của một số',
     cardPercentChangeTitle: 'Tăng / Giảm %',
     cardPercentReverseTitle: 'Tìm tỷ lệ & Số gốc',
+    cardDailyReflexTitle: 'Rèn luyện phản xạ tính nhẩm hàng ngày',
+    cardDailyReflexSub: 'Cộng · Trừ · Nhân · Chia · Căn bậc 2 · Lũy thừa · %',
     backToMentalMath: 'Quay lại Tính Nhẩm',
     cardMultiply2Title: 'Phép nhân 2 chữ số',
     cardMultiply2Desc: 'Rèn luyện phản xạ tính nhẩm tích 2 chữ số với 2 chữ số nhanh chóng, chính xác không cần dùng giấy bút hay máy tính.',
@@ -258,6 +262,8 @@ export const translations: Record<Language, Translations> = {
     cardPercentBasicTitle: 'Basic Percentages',
     cardPercentChangeTitle: 'Increase & Decrease %',
     cardPercentReverseTitle: 'Ratio & Reverse %',
+    cardDailyReflexTitle: 'Daily Mental Math Reflex',
+    cardDailyReflexSub: 'Add · Subtract · Multiply · Divide · Roots · Powers · %',
     backToMentalMath: 'Back to Mental Math',
     cardMultiply2Title: '2-Digit Multiplication',
     cardMultiply2Desc: 'Master mental calculation reflexes for multiplying 2-digit numbers with speed and precision without a calculator.',

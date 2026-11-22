@@ -37,6 +37,16 @@
   background: #334155;
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* ========================================================
    Mobile & Tablet Landscape Rotation Optimization
    ======================================================== */

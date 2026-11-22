@@ -303,12 +303,20 @@ async function loadBufferFromUrl(url: string): Promise<AudioBuffer | null> {
 
 let currentSequenceId = 0;
 let activeSequenceTimeout: any = null;
+let activeHtmlAudioAbort: (() => void) | null = null;
 
 /**
  * Stop any current female voice announcement
  */
 export function stopCurrentSpeech() {
   currentSequenceId++;
+  if (activeHtmlAudioAbort) {
+    const abort = activeHtmlAudioAbort;
+    activeHtmlAudioAbort = null;
+    try {
+      abort();
+    } catch {}
+  }
   if (activeSequenceTimeout) {
     clearTimeout(activeSequenceTimeout);
     activeSequenceTimeout = null;
@@ -324,6 +332,8 @@ export function stopCurrentSpeech() {
 
   if (activeHtmlAudio) {
     try {
+      activeHtmlAudio.onended = null;
+      activeHtmlAudio.onerror = null;
       activeHtmlAudio.pause();
       activeHtmlAudio.currentTime = 0;
     } catch {}
@@ -510,9 +520,8 @@ export async function announceResultFemaleVoice(
 }
 
 /**
- * Pronounces a math question aloud (e.g. 52 × 11 -> "Năm Hai nhân Một Một")
- * with adjustable speed (0.75x, 1.0x, 1.25x, 1.5x)
- * using the EXACT SAME female voice and pitch as the 1x result audio.
+ * Pronounces a multiplication question aloud naturally (e.g. 51 × 82 -> "51 nhân 82" / "51 times 82")
+ * synchronized with Addition, Subtraction, Division, Exponent, Square Root, and Percentage cards.
  */
 export async function pronounceQuestionFemaleVoice(
   a: number,
@@ -526,18 +535,10 @@ export async function pronounceQuestionFemaleVoice(
     return;
   }
 
-  stopCurrentSpeech();
-
   const isVi = lang === 'vi';
-  const aDigits = String(a).split('');
-  const bDigits = String(b).split('');
-
-  const operatorUrl = isVi ? './audio/tts/nhan.mp3' : './audio/tts/en-times.mp3';
-  const aUrls = aDigits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
-  const bUrls = bDigits.map((d) => (isVi ? `./audio/tts/${d}.mp3` : `./audio/tts/en-${d}.mp3`));
-  const allUrls = [...aUrls, operatorUrl, ...bUrls];
-
-  playAudioSequenceElements(allUrls, onEnd, speed, true);
+  const text = isVi ? `${a} nhân ${b}` : `${a} times ${b}`;
+  const rate = Math.min(1.5, (speed || 1.0) * 0.85);
+  await speakText(text, lang, onEnd, rate);
 }
 
 // -------------------------------------------------------------
@@ -634,49 +635,215 @@ export function getBestFemaleVoice(lang: 'vi' | 'en'): SpeechSynthesisVoice | nu
   }
 }
 
+function readThreeDigitsVi(num: number, isFull: boolean): string {
+  const digits = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+  const hundred = Math.floor(num / 100);
+  const ten = Math.floor((num % 100) / 10);
+  const unit = num % 10;
+  const parts: string[] = [];
+
+  if (isFull || hundred > 0) {
+    parts.push(`${digits[hundred]} trăm`);
+  }
+
+  if (ten > 1) {
+    parts.push(`${digits[ten]} mươi`);
+    if (unit === 1) parts.push('mốt');
+    else if (unit === 4) parts.push('tư');
+    else if (unit === 5) parts.push('lăm');
+    else if (unit > 0) parts.push(digits[unit]);
+  } else if (ten === 1) {
+    parts.push('mười');
+    if (unit === 5) parts.push('lăm');
+    else if (unit > 0) parts.push(digits[unit]);
+  } else if (unit > 0) {
+    if (isFull || hundred > 0) {
+      parts.push('linh');
+    }
+    parts.push(digits[unit]);
+  }
+
+  return parts.join(' ');
+}
+
+function integerToVietnameseWords(n: number): string {
+  if (!Number.isFinite(n)) return String(n);
+  if (n === 0) return 'không';
+  if (n < 0) return `âm ${integerToVietnameseWords(Math.abs(n))}`;
+
+  const scales = ['', 'nghìn', 'triệu', 'tỷ'];
+  const groups: number[] = [];
+  let temp = Math.floor(n);
+  while (temp > 0) {
+    groups.push(temp % 1000);
+    temp = Math.floor(temp / 1000);
+  }
+
+  const parts: string[] = [];
+  for (let i = groups.length - 1; i >= 0; i--) {
+    const val = groups[i];
+    if (val === 0) continue;
+    const isFull = i < groups.length - 1;
+    const groupText = readThreeDigitsVi(val, isFull);
+    parts.push(scales[i] ? `${groupText} ${scales[i]}` : groupText);
+  }
+  return parts.join(' ').trim();
+}
+
+function formatVietnameseSpeechFallbackText(input: string): string {
+  let out = input
+    .replace(/×/g, ' nhân ')
+    .replace(/÷/g, ' chia ')
+    .replace(/\+/g, ' cộng ')
+    .replace(/−/g, ' trừ ')
+    .replace(/%/g, ' phần trăm ');
+
+  // Normalize thousand-separated numbers like 10.000 or 10,000 before reading
+  out = out.replace(/(\d{1,3})(?:[.,](\d{3}))+/g, (match) => match.replace(/[.,]/g, ''));
+
+  out = out.replace(/\d+/g, (numStr) => {
+    const val = parseInt(numStr, 10);
+    if (Number.isNaN(val) || numStr.length > 12) return numStr;
+    return integerToVietnameseWords(val);
+  });
+
+  return out.replace(/\s+/g, ' ').trim();
+}
+
+async function speakWithWebSpeechFallback(
+  text: string,
+  lang: 'vi' | 'en',
+  sequenceId: number,
+  safeRate: number,
+  onEnd?: () => void
+) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (sequenceId === currentSequenceId && onEnd) onEnd();
+    return;
+  }
+
+  try {
+    await ensureVoicesLoaded();
+    if (sequenceId !== currentSequenceId) return;
+
+    const femaleVoice = getBestFemaleVoice(lang);
+    const spokenText = lang === 'vi' ? formatVietnameseSpeechFallbackText(text) : text;
+    const utterance = new SpeechSynthesisUtterance(spokenText);
+    utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
+
+    if (femaleVoice) {
+      utterance.voice = femaleVoice;
+      utterance.rate = safeRate;
+      utterance.pitch = 1.15;
+    } else {
+      utterance.rate = safeRate;
+      utterance.pitch = 1.35;
+    }
+    utterance.volume = 1.0;
+
+    utterance.onend = () => {
+      if (sequenceId === currentSequenceId && onEnd) onEnd();
+    };
+
+    utterance.onerror = () => {
+      if (sequenceId === currentSequenceId && onEnd) onEnd();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.warn('Speech synthesis fallback error:', err);
+    if (sequenceId === currentSequenceId && onEnd) onEnd();
+  }
+}
+
 export async function speakText(
   text: string,
   lang: 'vi' | 'en',
   onEnd?: () => void,
   customRate?: number
 ) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+  if (typeof window === 'undefined') {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  const trimmedText = (text || '').trim();
+  if (!trimmedText) {
     if (onEnd) onEnd();
     return;
   }
 
   stopCurrentSpeech();
+  const sequenceId = currentSequenceId;
+  const safeRate = Math.max(0.5, Math.min(2.0, customRate ?? 1.0));
 
-  try {
-    await ensureVoicesLoaded();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
+  // Use natural /api/tts female voice first (guarantees crisp Vietnamese & English voices on all browsers/OSes)
+  if (trimmedText.length <= 180) {
+    const ttsUrl = resolveAudioUrl(
+      `/api/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(trimmedText)}`
+    );
 
-    const femaleVoice = getBestFemaleVoice(lang);
-    if (femaleVoice) {
-      utterance.voice = femaleVoice;
-      utterance.rate = customRate ?? 0.95;
-      utterance.pitch = 1.15;
-    } else {
-      // Pitch shift to female register if only male voice is present on OS
-      utterance.rate = customRate ?? 1.0;
-      utterance.pitch = 1.5;
+    const playedViaServerTts = await new Promise<boolean>((resolve) => {
+      let settled = false;
+      const audio = new Audio(ttsUrl);
+      activeHtmlAudio = audio;
+
+      const applyPitchAndRate = () => {
+        try {
+          audio.preservesPitch = true;
+          (audio as any).mozPreservesPitch = true;
+          (audio as any).webkitPreservesPitch = true;
+          audio.defaultPlaybackRate = safeRate;
+          audio.playbackRate = safeRate;
+        } catch {}
+      };
+
+      applyPitchAndRate();
+      audio.addEventListener('play', applyPitchAndRate);
+      audio.addEventListener('loadedmetadata', applyPitchAndRate);
+
+      const handleFailure = () => {
+        if (settled) return;
+        settled = true;
+        if (activeHtmlAudioAbort === handleFailure) {
+          activeHtmlAudioAbort = null;
+        }
+        if (activeHtmlAudio === audio) {
+          try {
+            audio.pause();
+          } catch {}
+          activeHtmlAudio = null;
+        }
+        resolve(false);
+      };
+
+      activeHtmlAudioAbort = handleFailure;
+
+      audio.onended = () => {
+        if (settled) return;
+        settled = true;
+        if (activeHtmlAudioAbort === handleFailure) {
+          activeHtmlAudioAbort = null;
+        }
+        if (activeHtmlAudio === audio) activeHtmlAudio = null;
+        if (sequenceId === currentSequenceId && onEnd) onEnd();
+        resolve(true);
+      };
+
+      audio.onerror = handleFailure;
+
+      audio.play().catch((err) => {
+        console.warn('TTS audio play failed, using speechSynthesis fallback:', err);
+        handleFailure();
+      });
+    });
+
+    if (playedViaServerTts || sequenceId !== currentSequenceId) {
+      return;
     }
-    utterance.volume = 1.0;
-
-    utterance.onend = () => {
-      if (onEnd) onEnd();
-    };
-
-    utterance.onerror = () => {
-      if (onEnd) onEnd();
-    };
-
-    window.speechSynthesis.speak(utterance);
-  } catch (err) {
-    console.warn('Speech synthesis error:', err);
-    if (onEnd) onEnd();
   }
+
+  await speakWithWebSpeechFallback(trimmedText, lang, sequenceId, safeRate, onEnd);
 }
 
 export async function speakSchulteNumber(

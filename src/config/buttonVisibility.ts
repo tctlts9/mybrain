@@ -1,0 +1,225 @@
+// ============================================================================
+// 1. CÔNG TẮC TỔNG TOÀN WEB APP (true = HIỆN | false = ẨN TẤT CẢ)
+// ============================================================================
+
+// Nút Buy Coffee (Footer)
+export const SHOW_BUY_COFFEE_BUTTON: boolean = false;
+
+// Nút YouTube (Footer)
+export const SHOW_YOUTUBE_BUTTON: boolean = true;
+
+// Nút Email (Footer)
+export const SHOW_EMAIL_BUTTON: boolean = true;
+
+// Công tắc tổng nút Challenge / Thử Thách (đặt false sẽ ẩn ở TẤT CẢ các page)
+export const SHOW_CHALLENGE_BUTTON: boolean = true;
+
+// Công tắc tổng nút Difficult Level Challenge / Thử Thách Cấp Độ Khó (đặt false sẽ ẩn ở TẤT CẢ các page)
+export const SHOW_DIFFICULT_LEVEL_CHALLENGE_BUTTON: boolean = true;
+
+// Công tắc tổng nút Edit Timer / Chỉnh sửa Timer (đặt false sẽ ẩn ở TẤT CẢ các page)
+export const SHOW_EDIT_TIMER_BUTTON: boolean = false;
+
+// Công tắc tổng nút Tùy chỉnh đổi câu / Auto-Next (đặt false sẽ ẩn ở TẤT CẢ các page)
+export const SHOW_AUTO_NEXT_BUTTON: boolean = false;
+
+// ============================================================================
+// 2. TÙY CHỈNH ẨN / HIỆN THEO TỪNG PAGE CỤ THỂ (true = HIỆN | false = ẨN)
+// Lưu ý: Nút chỉ hiển thị khi CẢ công tắc tổng ở mục (1) và công tắc của page đều là true.
+// ============================================================================
+
+interface PracticePageVisibility {
+  challenge: boolean;
+  difficultLevelChallenge: boolean;
+}
+
+interface MentalMathPracticePageVisibility extends PracticePageVisibility {
+  autoNext: boolean;
+}
+
+interface VisualGuidePageVisibility {
+  challenge: boolean;
+}
+
+interface ChallengePageVisibility {
+  difficultLevelChallenge: boolean;
+}
+
+interface EditTimerPageVisibility {
+  editTimer: boolean;
+}
+
+interface MentalMathHubVisibility extends EditTimerPageVisibility {
+  autoNext: boolean;
+}
+
+interface MentalMathChallengePageVisibility extends EditTimerPageVisibility {
+  autoNext: boolean;
+}
+
+interface AutoNextOnlyPageVisibility {
+  autoNext: boolean;
+}
+
+export const PAGE_BUTTON_VISIBILITY: {
+  // Tab Mental Math - Trang Luyện tập
+  TwoDigitMultiplicationPage: MentalMathPracticePageVisibility;
+  MultiplyBy11Page: MentalMathPracticePageVisibility;
+  MultiplyBy99Page: MentalMathPracticePageVisibility;
+  MultiplyWith1DigitPage: MentalMathPracticePageVisibility;
+  DivisionPage: MentalMathPracticePageVisibility;
+  AdditionPage: MentalMathPracticePageVisibility;
+  SubtractionPage: MentalMathPracticePageVisibility;
+  ExponentPage: MentalMathPracticePageVisibility;
+  SquareRootPage: MentalMathPracticePageVisibility;
+  PercentagePage_basic: MentalMathPracticePageVisibility;
+  PercentagePage_change: MentalMathPracticePageVisibility;
+  PercentagePage_reverse: MentalMathPracticePageVisibility;
+
+  // Tab Mental Math - Trang Hướng dẫn trực quan (Visual Guide)
+  TwoDigitMentalMathVisualGuidePage: VisualGuidePageVisibility;
+  MultiplyBy11VisualGuidePage: VisualGuidePageVisibility;
+  MultiplyBy99VisualGuidePage: VisualGuidePageVisibility;
+  MultiplyWith1DigitVisualGuidePage: VisualGuidePageVisibility;
+  DivisionVisualGuidePage: VisualGuidePageVisibility;
+  AdditionVisualGuidePage: VisualGuidePageVisibility;
+  SubtractionVisualGuidePage: VisualGuidePageVisibility;
+  ExponentVisualGuidePage: VisualGuidePageVisibility;
+  SquareRootVisualGuidePage: VisualGuidePageVisibility;
+  PercentageVisualGuidePage_basic: VisualGuidePageVisibility;
+  PercentageVisualGuidePage_change: VisualGuidePageVisibility;
+  PercentageVisualGuidePage_reverse: VisualGuidePageVisibility;
+
+  // Tab Mental Math - Nút Edit Timer & Tùy chỉnh đổi câu (Trang chính & các trang Challenge)
+  MentalMathTab: MentalMathHubVisibility;
+  TwoDigitMentalMathChallengePage: MentalMathChallengePageVisibility;
+  MultiplyBy11ChallengePage: MentalMathChallengePageVisibility;
+  MultiplyBy99ChallengePage: MentalMathChallengePageVisibility;
+  MultiplyWith1DigitChallengePage: MentalMathChallengePageVisibility;
+  DivisionChallengePage: MentalMathChallengePageVisibility;
+  AdditionChallengePage: MentalMathChallengePageVisibility;
+  SubtractionChallengePage: MentalMathChallengePageVisibility;
+  ExponentChallengePage: MentalMathChallengePageVisibility;
+  SquareRootChallengePage: MentalMathChallengePageVisibility;
+  PercentageChallengePage_basic: MentalMathChallengePageVisibility;
+  PercentageChallengePage_change: MentalMathChallengePageVisibility;
+  PercentageChallengePage_reverse: MentalMathChallengePageVisibility;
+
+  // Tab Mental Math - Trang Difficult Level Challenge (Nút Tùy chỉnh đổi câu)
+  TwoDigitMentalMathDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  MultiplyBy11DifficultyChallengePage: AutoNextOnlyPageVisibility;
+  MultiplyBy99DifficultyChallengePage: AutoNextOnlyPageVisibility;
+  MultiplyWith1DigitDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  DivisionDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  AdditionDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  SubtractionDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  ExponentDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  SquareRootDifficultyChallengePage: AutoNextOnlyPageVisibility;
+  PercentageDifficultyChallengePage_basic: AutoNextOnlyPageVisibility;
+  PercentageDifficultyChallengePage_change: AutoNextOnlyPageVisibility;
+  PercentageDifficultyChallengePage_reverse: AutoNextOnlyPageVisibility;
+
+  // Tab Brain Training - Bảng Schulte
+  SchulteTablePage: PracticePageVisibility;
+  SchulteTableChallengePage: ChallengePageVisibility;
+} = {
+  // --- Tab Mental Math: Trang Luyện tập ---
+  TwoDigitMultiplicationPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  MultiplyBy11Page: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  MultiplyBy99Page: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  MultiplyWith1DigitPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  DivisionPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  AdditionPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  SubtractionPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  ExponentPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  SquareRootPage: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  PercentagePage_basic: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  PercentagePage_change: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+  PercentagePage_reverse: { challenge: true, difficultLevelChallenge: true, autoNext: true },
+
+  // --- Tab Mental Math: Trang Hướng dẫn trực quan (Visual Guide) ---
+  TwoDigitMentalMathVisualGuidePage: { challenge: true },
+  MultiplyBy11VisualGuidePage: { challenge: true },
+  MultiplyBy99VisualGuidePage: { challenge: true },
+  MultiplyWith1DigitVisualGuidePage: { challenge: true },
+  DivisionVisualGuidePage: { challenge: true },
+  AdditionVisualGuidePage: { challenge: true },
+  SubtractionVisualGuidePage: { challenge: true },
+  ExponentVisualGuidePage: { challenge: true },
+  SquareRootVisualGuidePage: { challenge: true },
+  PercentageVisualGuidePage_basic: { challenge: true },
+  PercentageVisualGuidePage_change: { challenge: true },
+  PercentageVisualGuidePage_reverse: { challenge: true },
+
+  // --- Tab Mental Math: Nút Edit Timer & Tùy chỉnh đổi câu ---
+  MentalMathTab: { editTimer: true, autoNext: true },
+  TwoDigitMentalMathChallengePage: { editTimer: true, autoNext: true },
+  MultiplyBy11ChallengePage: { editTimer: true, autoNext: true },
+  MultiplyBy99ChallengePage: { editTimer: true, autoNext: true },
+  MultiplyWith1DigitChallengePage: { editTimer: true, autoNext: true },
+  DivisionChallengePage: { editTimer: true, autoNext: true },
+  AdditionChallengePage: { editTimer: true, autoNext: true },
+  SubtractionChallengePage: { editTimer: true, autoNext: true },
+  ExponentChallengePage: { editTimer: true, autoNext: true },
+  SquareRootChallengePage: { editTimer: true, autoNext: true },
+  PercentageChallengePage_basic: { editTimer: true, autoNext: true },
+  PercentageChallengePage_change: { editTimer: true, autoNext: true },
+  PercentageChallengePage_reverse: { editTimer: true, autoNext: true },
+
+  // --- Tab Mental Math: Trang Difficult Level Challenge (Tùy chỉnh đổi câu) ---
+  TwoDigitMentalMathDifficultyChallengePage: { autoNext: true },
+  MultiplyBy11DifficultyChallengePage: { autoNext: true },
+  MultiplyBy99DifficultyChallengePage: { autoNext: true },
+  MultiplyWith1DigitDifficultyChallengePage: { autoNext: true },
+  DivisionDifficultyChallengePage: { autoNext: true },
+  AdditionDifficultyChallengePage: { autoNext: true },
+  SubtractionDifficultyChallengePage: { autoNext: true },
+  ExponentDifficultyChallengePage: { autoNext: true },
+  SquareRootDifficultyChallengePage: { autoNext: true },
+  PercentageDifficultyChallengePage_basic: { autoNext: true },
+  PercentageDifficultyChallengePage_change: { autoNext: true },
+  PercentageDifficultyChallengePage_reverse: { autoNext: true },
+
+  // --- Tab Brain Training: Bảng Schulte ---
+  SchulteTablePage: { challenge: true, difficultLevelChallenge: true },
+  SchulteTableChallengePage: { difficultLevelChallenge: true },
+};
+
+export type ChallengePageKey = {
+  [K in keyof typeof PAGE_BUTTON_VISIBILITY]: 'challenge' extends keyof (typeof PAGE_BUTTON_VISIBILITY)[K]
+    ? K
+    : never;
+}[keyof typeof PAGE_BUTTON_VISIBILITY];
+
+export type DifficultLevelChallengePageKey = {
+  [K in keyof typeof PAGE_BUTTON_VISIBILITY]: 'difficultLevelChallenge' extends keyof (typeof PAGE_BUTTON_VISIBILITY)[K]
+    ? K
+    : never;
+}[keyof typeof PAGE_BUTTON_VISIBILITY];
+
+export type EditTimerPageKey = {
+  [K in keyof typeof PAGE_BUTTON_VISIBILITY]: 'editTimer' extends keyof (typeof PAGE_BUTTON_VISIBILITY)[K]
+    ? K
+    : never;
+}[keyof typeof PAGE_BUTTON_VISIBILITY];
+
+export type AutoNextButtonPageKey = {
+  [K in keyof typeof PAGE_BUTTON_VISIBILITY]: 'autoNext' extends keyof (typeof PAGE_BUTTON_VISIBILITY)[K]
+    ? K
+    : never;
+}[keyof typeof PAGE_BUTTON_VISIBILITY];
+
+export const isChallengeButtonVisible = (page: ChallengePageKey): boolean =>
+  SHOW_CHALLENGE_BUTTON && PAGE_BUTTON_VISIBILITY[page].challenge;
+
+export const isDifficultLevelChallengeButtonVisible = (
+  page: DifficultLevelChallengePageKey
+): boolean =>
+  SHOW_DIFFICULT_LEVEL_CHALLENGE_BUTTON &&
+  PAGE_BUTTON_VISIBILITY[page].difficultLevelChallenge;
+
+export const isEditTimerButtonVisible = (page: EditTimerPageKey): boolean =>
+  SHOW_EDIT_TIMER_BUTTON && PAGE_BUTTON_VISIBILITY[page].editTimer;
+
+export const isAutoNextButtonVisible = (page: AutoNextButtonPageKey): boolean =>
+  SHOW_AUTO_NEXT_BUTTON && PAGE_BUTTON_VISIBILITY[page].autoNext;

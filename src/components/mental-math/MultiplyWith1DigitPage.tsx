@@ -25,9 +25,19 @@ import {
   stopCurrentSpeech,
   parseVoiceNumber,
 } from '../../utils/speechUtils';
+import {
+  isChallengeButtonVisible,
+  isDifficultLevelChallengeButtonVisible,
+} from '../../config/buttonVisibility';
+import {
+  useMentalMathAutoNextConfig,
+  formatAutoNextDelay,
+} from '../../config/mentalMathAutoNext';
+import { AutoNextSettingButton } from './AutoNextSettingButton';
 
 export type Multiply1DigitTopic =
   | 'general'
+  | 'digit2'
   | 'digit3'
   | 'digit4'
   | 'digit5'
@@ -35,11 +45,20 @@ export type Multiply1DigitTopic =
   | 'digit7'
   | 'digit8'
   | 'digit9'
-  | 'digit10';
+  | 'digit10'
+  | 'mul2'
+  | 'mul3'
+  | 'mul4'
+  | 'mul5'
+  | 'mul6'
+  | 'mul7'
+  | 'mul8'
+  | 'mul9';
 
 interface MultiplyWith1DigitPageProps {
   onBack: () => void;
   onOpenChallenge?: (topic?: Multiply1DigitTopic) => void;
+  onOpenHardChallenge?: (topic?: Multiply1DigitTopic) => void;
   onOpenVisualGuide?: () => void;
   initialTopic?: Multiply1DigitTopic;
 }
@@ -53,6 +72,7 @@ interface Question {
 interface TopicOption {
   id: Multiply1DigitTopic;
   digits: number;
+  multiplier?: number;
   labelVi: string;
   labelEn: string;
   fullNameVi: string;
@@ -73,6 +93,17 @@ export const TRAINING_MODES_1_DIGIT: TopicOption[] = [
     icon: '⚡',
     badgeVi: 'Tổng quát: 2 - 10 Chữ Số × 1 Chữ Số',
     badgeEn: 'General: 2 - 10 Digits × 1-Digit',
+  },
+  {
+    id: 'digit2',
+    digits: 2,
+    labelVi: '2 Chữ số',
+    labelEn: '2-Digit',
+    fullNameVi: 'Nhân 2 chữ số với 1 chữ số',
+    fullNameEn: 'Multiply 2-Digit by 1-Digit',
+    icon: '🔢',
+    badgeVi: 'Chuyên đề: Nhân 2 chữ số với 1 chữ số',
+    badgeEn: 'Topic: 2-Digit × 1-Digit',
   },
   {
     id: 'digit3',
@@ -162,6 +193,18 @@ export const TRAINING_MODES_1_DIGIT: TopicOption[] = [
     badgeVi: 'Chuyên đề: Nhân 10 chữ số với 1 chữ số',
     badgeEn: 'Topic: 10-Digit × 1-Digit',
   },
+  ...([2, 3, 4, 5, 6, 7, 8, 9] as const).map((m) => ({
+    id: `mul${m}` as Multiply1DigitTopic,
+    digits: 0,
+    multiplier: m,
+    labelVi: `Nhân với ${m}`,
+    labelEn: `Multiply by ${m}`,
+    fullNameVi: `Nhân với ${m} (2 - 10 chữ số × ${m})`,
+    fullNameEn: `Multiply 2 - 10 Digits by ${m}`,
+    icon: '✖️',
+    badgeVi: `Chuyên đề: Nhân với ${m}`,
+    badgeEn: `Topic: Multiply by ${m}`,
+  })),
 ];
 
 const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
@@ -197,6 +240,7 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
 export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
   onBack,
   onOpenChallenge,
+  onOpenHardChallenge,
   onOpenVisualGuide,
   initialTopic,
 }) => {
@@ -249,6 +293,8 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
   const submitTimerRef = useRef<any>(null);
   const lastParsedRef = useRef<number | null>(null);
   const hasSubmittedRef = useRef<boolean>(false);
+  const autoNextConfig = useMentalMathAutoNextConfig('MultiplyWith1DigitPage');
+  const autoNextTimerRef = useRef<number | null>(null);
 
   // Thông báo kết quả qua loa khi trả lời đúng hoặc sai
   const announceResult = useCallback(
@@ -427,12 +473,15 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
 
       const activeTopic = topicOverride || selectedTopic;
       const isGeneral = activeTopic === 'general';
+      const multiplierMatch = activeTopic.match(/^mul([2-9])$/);
+      const fixedMultiplier = multiplierMatch ? Number(multiplierMatch[1]) : null;
 
       let digits = 2;
-      if (isGeneral) {
+      if (isGeneral || fixedMultiplier !== null) {
         // Ngẫu nhiên từ 2 số đến 10 số
         digits = Math.floor(Math.random() * 9) + 2;
-      } else if (activeTopic === 'digit3') digits = 3;
+      } else if (activeTopic === 'digit2') digits = 2;
+      else if (activeTopic === 'digit3') digits = 3;
       else if (activeTopic === 'digit4') digits = 4;
       else if (activeTopic === 'digit5') digits = 5;
       else if (activeTopic === 'digit6') digits = 6;
@@ -453,8 +502,8 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
         multiDigitNum = Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
-      // 1 chữ số ngẫu nhiên từ 2 đến 9
-      const singleDigit = Math.floor(Math.random() * 8) + 2;
+      // 1 chữ số cố định theo chuyên đề hoặc ngẫu nhiên từ 2 đến 9
+      const singleDigit = fixedMultiplier ?? (Math.floor(Math.random() * 8) + 2);
 
       // Số 1 chữ số có thể đứng trước hoặc đứng sau
       let a = multiDigitNum;
@@ -510,6 +559,27 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
       }
     };
   }, [initialTopic]);
+
+  useEffect(() => {
+    if (feedback === 'correct' && autoNextConfig.delaySec > 0) {
+      if (autoNextTimerRef.current !== null) {
+        window.clearTimeout(autoNextTimerRef.current);
+      }
+      autoNextTimerRef.current = window.setTimeout(() => {
+        autoNextTimerRef.current = null;
+        generateNewQuestion();
+      }, Math.round(autoNextConfig.delaySec * 1000));
+    } else if (autoNextTimerRef.current !== null) {
+      window.clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
+    return () => {
+      if (autoNextTimerRef.current !== null) {
+        window.clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
+    };
+  }, [feedback, autoNextConfig.delaySec, generateNewQuestion]);
 
   // Phím số ảo 0-9 nhập kết quả nhanh (hỗ trợ tối đa 14 chữ số cho phép tính 10 chữ số)
   const handleKeypadDigit = useCallback(
@@ -582,18 +652,31 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
               title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
             >
               <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
+              <span>{isVi ? 'Hướng dẫn' : 'Guide'}</span>
             </button>
           )}
 
-          {onOpenChallenge && (
+          {isChallengeButtonVisible('MultiplyWith1DigitPage') && onOpenChallenge && (
             <button
+              type="button"
               onClick={() => onOpenChallenge(selectedTopic)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-rose-500/15 hover:from-amber-500/25 hover:to-rose-500/25 border border-amber-500/35 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title={isVi ? 'Thử thách Nhân với 1 chữ số (5s / 10s)' : 'Multiply by 1-Digit Challenge (5s / 10s)'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
+              title={isVi ? 'Thử thách Nhân với 1 chữ số (2s - 12s)' : 'Multiply by 1-Digit Challenge (2s - 12s)'}
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <span>{isVi ? 'Thử Thách Nhân 1 Chữ Số' : '1-Digit Challenge'}</span>
+              <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+            </button>
+          )}
+
+          {isDifficultLevelChallengeButtonVisible('MultiplyWith1DigitPage') && onOpenHardChallenge && (
+            <button
+              type="button"
+              onClick={() => onOpenHardChallenge(selectedTopic)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
+              title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
+            >
+              <Gauge className="w-3.5 h-3.5 text-white" />
+              <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
             </button>
           )}
 
@@ -621,7 +704,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* Button: Visual Guide / Hướng Dẫn Trực Quan */}
             {onOpenVisualGuide && (
               <button
@@ -631,22 +714,37 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
                 title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
               >
                 <BookOpen className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Hướng Dẫn' : 'Guide'}</span>
+                <span>{isVi ? 'Hướng dẫn' : 'Guide'}</span>
               </button>
             )}
 
             {/* Button: Mental Math Challenge */}
-            {onOpenChallenge && (
+            {isChallengeButtonVisible('MultiplyWith1DigitPage') && onOpenChallenge && (
               <button
                 type="button"
                 onClick={() => onOpenChallenge(selectedTopic)}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
-                title={isVi ? 'Thử thách nhân 1 chữ số trong 5s hoặc 10s' : 'Multiply 1-digit challenge in 5s or 10s'}
+                title={isVi ? 'Thử thách nhân 1 chữ số từ 2s đến 12s' : 'Multiply 1-digit challenge in 2s to 12s'}
               >
                 <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Thử Thách' : 'Challenge'}</span>
+                <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
               </button>
             )}
+
+            {/* Button: Difficult Level Challenge */}
+            {isDifficultLevelChallengeButtonVisible('MultiplyWith1DigitPage') && onOpenHardChallenge && (
+              <button
+                type="button"
+                onClick={() => onOpenHardChallenge(selectedTopic)}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-violet-500/25 transition-all cursor-pointer active:scale-95 text-xs"
+                title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
+              >
+                <Gauge className="w-3.5 h-3.5 text-white" />
+                <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
+              </button>
+            )}
+
+            <AutoNextSettingButton pageKey="MultiplyWith1DigitPage" />
 
             {/* Toggle Thông báo kết quả bằng giọng nói / âm thanh */}
             <button
@@ -698,26 +796,50 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
             <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
-            {TRAINING_MODES_1_DIGIT.map((mode) => {
-              const isSelected = selectedTopic === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => handleSelectTopic(mode.id)}
-                  title={isVi ? mode.fullNameVi : mode.fullNameEn}
-                  className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
-                      : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
-                  }`}
-                >
-                  <span className="text-sm shrink-0">{mode.icon}</span>
-                  <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
-                </button>
-              );
-            })}
+          <div className="p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-1.5">
+              {TRAINING_MODES_1_DIGIT.filter((m) => !m.multiplier).map((mode) => {
+                const isSelected = selectedTopic === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => handleSelectTopic(mode.id)}
+                    title={isVi ? mode.fullNameVi : mode.fullNameEn}
+                    className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                        : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
+                    }`}
+                  >
+                    <span className="text-sm shrink-0">{mode.icon}</span>
+                    <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5 pt-1.5 border-t border-slate-800/70">
+              {TRAINING_MODES_1_DIGIT.filter((m) => Boolean(m.multiplier)).map((mode) => {
+                const isSelected = selectedTopic === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => handleSelectTopic(mode.id)}
+                    title={isVi ? mode.fullNameVi : mode.fullNameEn}
+                    className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                        : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
+                    }`}
+                  >
+                    <span className="text-xs shrink-0">{mode.icon}</span>
+                    <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -961,9 +1083,17 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
                 <button
                   type="button"
                   onClick={() => generateNewQuestion()}
-                  className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-300/30 shadow-[0_8px_24px_-4px_rgba(16,185,129,0.45)] hover:shadow-[0_10px_28px_-4px_rgba(20,184,166,0.55)] active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Câu tiếp theo' : 'Next Problem'}</span>
+                  <span>
+                    {autoNextConfig.delaySec > 0
+                      ? isVi
+                        ? `Câu tiếp theo - tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)}`
+                        : `Next Problem - auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)}`
+                      : isVi
+                      ? 'Câu tiếp theo'
+                      : 'Next Problem'}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -971,7 +1101,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
                   type="submit"
                   className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Kiểm tra KQ' : 'Answer'}</span>
+                  <span>{isVi ? 'Kết quả' : 'Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
@@ -1004,7 +1134,7 @@ export const MultiplyWith1DigitPage: React.FC<MultiplyWith1DigitPageProps> = ({
                 ) : (
                   <>
                     <Mic className="w-4 h-4 text-amber-400" />
-                    <span>{isVi ? 'Trả lời Voice' : 'Voice'}</span>
+                    <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                   </>
                 )}
               </button>

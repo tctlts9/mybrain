@@ -22,12 +22,28 @@ export interface Translations {
   mentalMathTitle: string;
   mentalMathDesc: string;
   mentalMathChallenge: string;
+  cardMultiplyTitle: string;
+  cardMultiplySub: string;
+  cardDivideTitle: string;
+  cardAddTitle: string;
+  cardSubtractTitle: string;
+  cardSqrtTitle: string;
+  cardPowerTitle: string;
+  cardPercentTitle: string;
+  cardPercentSub: string;
+  cardPercentBasicTitle: string;
+  cardPercentChangeTitle: string;
+  cardPercentReverseTitle: string;
+  backToMentalMath: string;
   cardMultiply2Title: string;
   cardMultiply2Desc: string;
   cardMultiply2Tag: string;
   cardMultiply11Title: string;
   cardMultiply11Desc: string;
   cardMultiply11Tag: string;
+  cardMultiply99Title: string;
+  cardMultiply99Desc: string;
+  cardMultiply99Tag: string;
   cardMultiply1DigitTitle: string;
   cardMultiply1DigitDesc: string;
   cardMultiply1DigitTag: string;
@@ -119,12 +135,28 @@ export const translations: Record<Language, Translations> = {
     mentalMathTitle: 'Tính Nhẩm',
     mentalMathDesc: 'Học viện huấn luyện não bộ, rèn luyện kỹ năng tính nhẩm siêu trí tuệ và phương pháp tư duy số học Super Brain.',
     mentalMathChallenge: 'Thử Thách Tính Nhẩm',
+    cardMultiplyTitle: 'Phép nhân',
+    cardMultiplySub: '2 chữ số · Nhân với số 11 · Nhân với 1 chữ số · Nhân với số 99',
+    cardDivideTitle: 'Phép chia',
+    cardAddTitle: 'Phép cộng',
+    cardSubtractTitle: 'Phép trừ',
+    cardSqrtTitle: 'Căn bậc 2',
+    cardPowerTitle: 'Lũy thừa',
+    cardPercentTitle: 'Tỷ lệ %',
+    cardPercentSub: 'Tính % của số · Tăng / Giảm % · Tỷ lệ & Số gốc',
+    cardPercentBasicTitle: 'Tính % của một số',
+    cardPercentChangeTitle: 'Tăng / Giảm %',
+    cardPercentReverseTitle: 'Tìm tỷ lệ & Số gốc',
+    backToMentalMath: 'Quay lại Tính Nhẩm',
     cardMultiply2Title: 'Phép nhân 2 chữ số',
     cardMultiply2Desc: 'Rèn luyện phản xạ tính nhẩm tích 2 chữ số với 2 chữ số nhanh chóng, chính xác không cần dùng giấy bút hay máy tính.',
     cardMultiply2Tag: 'Cơ bản & Nâng cao',
     cardMultiply11Title: 'Nhân với số 11',
     cardMultiply11Desc: 'Bí quyết tính nhẩm nhân nhanh với số 11 từ 2 chữ số đến nhiều chữ số siêu tốc.',
     cardMultiply11Tag: 'Bí quyết siêu tốc',
+    cardMultiply99Title: 'Nhân với số 99',
+    cardMultiply99Desc: 'Bí quyết tính nhẩm nhân nhanh với số 99 từ 2 chữ số đến nhiều chữ số siêu tốc.',
+    cardMultiply99Tag: 'Bí quyết siêu tốc',
     cardMultiply1DigitTitle: 'Nhân với 1 chữ số',
     cardMultiply1DigitDesc: 'Bí quyết tính nhẩm nhân nhanh số có nhiều chữ số với 1 chữ số (từ 2 đến 9) siêu tốc.',
     cardMultiply1DigitTag: 'Nền tảng & Phản xạ',
@@ -214,12 +246,28 @@ export const translations: Record<Language, Translations> = {
     mentalMathTitle: 'Mental Math',
     mentalMathDesc: 'Brain training academy for advanced cognitive arithmetic, lightning-speed calculation, and brain agility development.',
     mentalMathChallenge: 'Mental Math Challenge',
+    cardMultiplyTitle: 'Multiplication',
+    cardMultiplySub: '2-Digit · Multiply by 11 · Multiply by 1-Digit · Multiply by 99',
+    cardDivideTitle: 'Division',
+    cardAddTitle: 'Addition',
+    cardSubtractTitle: 'Subtraction',
+    cardSqrtTitle: 'Square Root',
+    cardPowerTitle: 'Exponents',
+    cardPercentTitle: 'Percentage',
+    cardPercentSub: 'Basic % · Increase / Decrease · Ratio & Reverse %',
+    cardPercentBasicTitle: 'Basic Percentages',
+    cardPercentChangeTitle: 'Increase & Decrease %',
+    cardPercentReverseTitle: 'Ratio & Reverse %',
+    backToMentalMath: 'Back to Mental Math',
     cardMultiply2Title: '2-Digit Multiplication',
     cardMultiply2Desc: 'Master mental calculation reflexes for multiplying 2-digit numbers with speed and precision without a calculator.',
     cardMultiply2Tag: 'Core & Intermediate',
     cardMultiply11Title: 'Multiply by 11',
     cardMultiply11Desc: 'Fast mental math shortcut for multiplying 2-digit and multi-digit numbers by 11.',
     cardMultiply11Tag: 'Fast Shortcut',
+    cardMultiply99Title: 'Multiply by 99',
+    cardMultiply99Desc: 'Fast mental math shortcut for multiplying 2-digit and multi-digit numbers by 99.',
+    cardMultiply99Tag: 'Fast Shortcut',
     cardMultiply1DigitTitle: 'Multiply by 1-Digit',
     cardMultiply1DigitDesc: 'Mental math mastery for multiplying multi-digit numbers by a single digit (2 to 9) with speed and precision.',
     cardMultiply1DigitTag: 'Core Foundation',

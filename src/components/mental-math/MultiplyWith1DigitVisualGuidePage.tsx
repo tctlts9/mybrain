@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import {
   ArrowLeft,
   BookOpen,
-  Brain,
   Zap,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
   Lightbulb,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { MultiplyWith1DigitGuideCarousel } from './MultiplyWith1DigitGuideCarousel';
+import { isChallengeButtonVisible } from '../../config/buttonVisibility';
 
 interface MultiplyWith1DigitVisualGuidePageProps {
   onBack: () => void;
@@ -190,13 +188,14 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
         </button>
 
         <div className="flex items-center gap-2">
-          {onOpenChallenge && (
+          {isChallengeButtonVisible('MultiplyWith1DigitVisualGuidePage') && onOpenChallenge && (
             <button
+              type="button"
               onClick={onOpenChallenge}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-rose-500/15 hover:from-amber-500/25 hover:to-rose-500/25 border border-amber-500/35 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title={isVi ? 'Thử thách Nhân 1 chữ số (5s / 10s)' : '1-Digit Challenge (5s / 10s)'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
+              title={isVi ? 'Thử thách Nhân 1 chữ số (2s - 12s)' : '1-Digit Challenge (2s - 12s)'}
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
               <span>{isVi ? 'Thử Thách Nhân 1 Chữ Số' : '1-Digit Challenge'}</span>
             </button>
           )}
@@ -209,37 +208,6 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
               <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
             </span>
           </div>
-        </div>
-      </div>
-
-      {/* Page Header Banner */}
-      <div className="rounded-2xl sm:rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-4 sm:p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-              <Brain className="w-3.5 h-3.5" />
-              <span>{isVi ? 'Bí quyết tính nhẩm siêu tốc số 1 chữ số' : 'Mental Math Mastery: × 1-Digit'}</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>{isVi ? 'Hướng Dẫn Trực Quan: Nhân Với 1 Chữ Số' : 'Visual Guide: Multiplying by 1-Digit'}</span>
-              <Sparkles className="w-5 h-5 text-amber-400" />
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
-              {isVi
-                ? 'Phương pháp tính nhẩm từ trái qua phải (Left-to-Right), kỹ thuật cộng dồn liên tiếp và quy tắc bù trừ siêu tốc không cần giấy nháp.'
-                : 'Left-to-right mental arithmetic, continuous accumulation, and rounding-compensation techniques.'}
-            </p>
-          </div>
-
-          <button
-            onClick={onBack}
-            className="self-start sm:self-center px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
-          >
-            <span>{isVi ? 'Bắt đầu Luyện tập ngay' : 'Start Practice Now'}</span>
-            <ArrowLeft className="w-4 h-4 rotate-180" />
-          </button>
         </div>
       </div>
 
@@ -347,12 +315,13 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
         </p>
 
         <div className="flex items-center gap-2">
-          {onOpenChallenge && (
+          {isChallengeButtonVisible('MultiplyWith1DigitVisualGuidePage') && onOpenChallenge && (
             <button
+              type="button"
               onClick={onOpenChallenge}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
               <span>{isVi ? 'Thử Thách Nhân 1 Chữ Số' : '1-Digit Challenge'}</span>
             </button>
           )}

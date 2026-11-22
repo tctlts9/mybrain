@@ -25,6 +25,15 @@ import {
   stopCurrentSpeech,
   parseVoiceNumber,
 } from '../../utils/speechUtils';
+import {
+  isChallengeButtonVisible,
+  isDifficultLevelChallengeButtonVisible,
+} from '../../config/buttonVisibility';
+import {
+  useMentalMathAutoNextConfig,
+  formatAutoNextDelay,
+} from '../../config/mentalMathAutoNext';
+import { AutoNextSettingButton } from './AutoNextSettingButton';
 
 export type Multiply11Topic =
   | 'general'
@@ -46,6 +55,7 @@ export type Multiply11Topic =
 interface MultiplyBy11PageProps {
   onBack: () => void;
   onOpenChallenge?: (topic?: Multiply11Topic) => void;
+  onOpenHardChallenge?: (topic?: Multiply11Topic) => void;
   onOpenVisualGuide?: () => void;
   initialTopic?: Multiply11Topic;
 }
@@ -203,6 +213,7 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
 export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
   onBack,
   onOpenChallenge,
+  onOpenHardChallenge,
   onOpenVisualGuide,
   initialTopic,
 }) => {
@@ -255,6 +266,8 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
   const submitTimerRef = useRef<any>(null);
   const lastParsedRef = useRef<number | null>(null);
   const hasSubmittedRef = useRef<boolean>(false);
+  const autoNextConfig = useMentalMathAutoNextConfig('MultiplyBy11Page');
+  const autoNextTimerRef = useRef<number | null>(null);
 
   // Thông báo kết quả qua loa khi trả lời đúng hoặc sai
   const announceResult = useCallback(
@@ -520,6 +533,27 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
     };
   }, [initialTopic]);
 
+  useEffect(() => {
+    if (feedback === 'correct' && autoNextConfig.delaySec > 0) {
+      if (autoNextTimerRef.current !== null) {
+        window.clearTimeout(autoNextTimerRef.current);
+      }
+      autoNextTimerRef.current = window.setTimeout(() => {
+        autoNextTimerRef.current = null;
+        generateNewQuestion();
+      }, Math.round(autoNextConfig.delaySec * 1000));
+    } else if (autoNextTimerRef.current !== null) {
+      window.clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
+    return () => {
+      if (autoNextTimerRef.current !== null) {
+        window.clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
+      }
+    };
+  }, [feedback, autoNextConfig.delaySec, generateNewQuestion]);
+
   // Phím số ảo 0-9 nhập kết quả nhanh (hỗ trợ tối đa 14 chữ số cho phép tính 10 chữ số)
   const handleKeypadDigit = useCallback(
     (digit: string) => {
@@ -593,18 +627,31 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
               title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
             >
               <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
+              <span>{isVi ? 'Hướng dẫn' : 'Guide'}</span>
             </button>
           )}
 
-          {onOpenChallenge && (
+          {isChallengeButtonVisible('MultiplyBy11Page') && onOpenChallenge && (
             <button
+              type="button"
               onClick={() => onOpenChallenge(selectedTopic)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-rose-500/15 hover:from-amber-500/25 hover:to-rose-500/25 border border-amber-500/35 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title={isVi ? 'Thử thách Nhân với 11 (5s / 10s)' : 'Multiply by 11 Challenge (5s / 10s)'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
+              title={isVi ? 'Thử thách Nhân với 11 (2s - 12s)' : 'Multiply by 11 Challenge (2s - 12s)'}
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <span>{isVi ? 'Thử Thách Nhân 11' : 'Multiply 11 Challenge'}</span>
+              <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+            </button>
+          )}
+
+          {isDifficultLevelChallengeButtonVisible('MultiplyBy11Page') && onOpenHardChallenge && (
+            <button
+              type="button"
+              onClick={() => onOpenHardChallenge(selectedTopic)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
+              title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
+            >
+              <Gauge className="w-3.5 h-3.5 text-white" />
+              <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
             </button>
           )}
 
@@ -632,7 +679,7 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* Button: Visual Guide / Hướng Dẫn Trực Quan */}
             {onOpenVisualGuide && (
               <button
@@ -642,22 +689,37 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
                 title={isVi ? 'Xem hướng dẫn trực quan (Visual Guide)' : 'Visual Guide'}
               >
                 <BookOpen className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Hướng Dẫn' : 'Guide'}</span>
+                <span>{isVi ? 'Hướng dẫn' : 'Guide'}</span>
               </button>
             )}
 
             {/* Button: Mental Math Challenge */}
-            {onOpenChallenge && (
+            {isChallengeButtonVisible('MultiplyBy11Page') && onOpenChallenge && (
               <button
                 type="button"
                 onClick={() => onOpenChallenge(selectedTopic)}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
-                title={isVi ? 'Thử thách nhân 11 trong 5s hoặc 10s' : 'Multiply 11 Challenge in 5s or 10s'}
+                title={isVi ? 'Thử thách nhân 11 từ 2s đến 12s' : 'Multiply 11 Challenge in 2s to 12s'}
               >
                 <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Thử Thách' : 'Challenge'}</span>
+                <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
               </button>
             )}
+
+            {/* Button: Difficult Level Challenge */}
+            {isDifficultLevelChallengeButtonVisible('MultiplyBy11Page') && onOpenHardChallenge && (
+              <button
+                type="button"
+                onClick={() => onOpenHardChallenge(selectedTopic)}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-violet-500/25 transition-all cursor-pointer active:scale-95 text-xs"
+                title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
+              >
+                <Gauge className="w-3.5 h-3.5 text-white" />
+                <span>{isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}</span>
+              </button>
+            )}
+
+            <AutoNextSettingButton pageKey="MultiplyBy11Page" />
 
             {/* Toggle Thông báo kết quả bằng giọng nói / âm thanh */}
             <button
@@ -977,9 +1039,17 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
                 <button
                   type="button"
                   onClick={() => generateNewQuestion()}
-                  className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-300/30 shadow-[0_8px_24px_-4px_rgba(16,185,129,0.45)] hover:shadow-[0_10px_28px_-4px_rgba(20,184,166,0.55)] active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Câu tiếp theo' : 'Next Problem'}</span>
+                  <span>
+                    {autoNextConfig.delaySec > 0
+                      ? isVi
+                        ? `Câu tiếp theo - tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)}`
+                        : `Next Problem - auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)}`
+                      : isVi
+                      ? 'Câu tiếp theo'
+                      : 'Next Problem'}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -987,7 +1057,7 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
                   type="submit"
                   className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Kiểm tra KQ' : 'Answer'}</span>
+                  <span>{isVi ? 'Kết quả' : 'Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
@@ -1020,7 +1090,7 @@ export const MultiplyBy11Page: React.FC<MultiplyBy11PageProps> = ({
                 ) : (
                   <>
                     <Mic className="w-4 h-4 text-amber-400" />
-                    <span>{isVi ? 'Trả lời Voice' : 'Voice'}</span>
+                    <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                   </>
                 )}
               </button>

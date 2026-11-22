@@ -18,8 +18,17 @@ import {
   AlertTriangle,
   Gauge,
   Delete,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { isEditTimerButtonVisible } from '../../config/buttonVisibility';
+import { useMentalMathTimerConfig } from '../../config/mentalMathTimers';
+import {
+  useMentalMathAutoNextConfig,
+  formatAutoNextDelay,
+} from '../../config/mentalMathAutoNext';
+import { MentalMathChallengeTimerModal } from './MentalMathChallengeTimerModal';
+import { AutoNextSettingButton } from './AutoNextSettingButton';
 import {
   playSpeakerChime,
   announceResultFemaleVoice,
@@ -30,6 +39,7 @@ import {
 
 export type Multiply1DigitTopic =
   | 'general'
+  | 'digit2'
   | 'digit3'
   | 'digit4'
   | 'digit5'
@@ -37,11 +47,20 @@ export type Multiply1DigitTopic =
   | 'digit7'
   | 'digit8'
   | 'digit9'
-  | 'digit10';
+  | 'digit10'
+  | 'mul2'
+  | 'mul3'
+  | 'mul4'
+  | 'mul5'
+  | 'mul6'
+  | 'mul7'
+  | 'mul8'
+  | 'mul9';
 
 export interface TopicOption {
   id: Multiply1DigitTopic;
   digits: number;
+  multiplier?: number;
   labelVi: string;
   labelEn: string;
   fullNameVi: string;
@@ -62,6 +81,17 @@ export const MULTIPLY_1_DIGIT_TOPICS: TopicOption[] = [
     icon: '⚡',
     badgeVi: 'Tổng quát: 2 - 10 chữ số × [2..9]',
     badgeEn: 'General: 2 - 10 Digits × [2..9]',
+  },
+  {
+    id: 'digit2',
+    digits: 2,
+    labelVi: '2 Chữ số',
+    labelEn: '2-Digit',
+    fullNameVi: 'Nhân 2 chữ số với 1 chữ số',
+    fullNameEn: 'Multiply 2-Digit by 1-Digit',
+    icon: '🔢',
+    badgeVi: '2 chữ số × [2..9]',
+    badgeEn: '2-Digit × [2..9]',
   },
   {
     id: 'digit3',
@@ -151,11 +181,24 @@ export const MULTIPLY_1_DIGIT_TOPICS: TopicOption[] = [
     badgeVi: '10 chữ số × [2..9]',
     badgeEn: '10-Digit × [2..9]',
   },
+  ...([2, 3, 4, 5, 6, 7, 8, 9] as const).map((m) => ({
+    id: `mul${m}` as Multiply1DigitTopic,
+    digits: 0,
+    multiplier: m,
+    labelVi: `Nhân với ${m}`,
+    labelEn: `Multiply by ${m}`,
+    fullNameVi: `Nhân với ${m} (2 - 10 chữ số × ${m})`,
+    fullNameEn: `Multiply 2 - 10 Digits by ${m}`,
+    icon: '✖️',
+    badgeVi: `Nhân với ${m}`,
+    badgeEn: `Multiply by ${m}`,
+  })),
 ];
 
 interface MultiplyWith1DigitChallengePageProps {
   onBack: () => void;
   initialTopic?: Multiply1DigitTopic;
+  isHard?: boolean;
 }
 
 interface Question {
@@ -164,7 +207,7 @@ interface Question {
   answer: number;
 }
 
-type TimeLimit = 3 | 5 | 10;
+type TimeLimit = number;
 type GameStatus = 'idle' | 'running' | 'paused' | 'answered' | 'completed';
 
 const TOTAL_QUESTIONS = 10;
@@ -210,17 +253,24 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
 export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallengePageProps> = ({
   onBack,
   initialTopic,
+  isHard = false,
 }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
 
+  const hardMode = isHard;
+  const timerConfig = useMentalMathTimerConfig('MultiplyWith1DigitChallengePage');
+  const autoNextConfig = useMentalMathAutoNextConfig('MultiplyWith1DigitChallengePage');
+
   // Topic selection: Tổng quát (General) hoặc 3 đến 10 chữ số
   const [selectedTopic, setSelectedTopic] = useState<Multiply1DigitTopic>(initialTopic ?? 'general');
 
-  // Config: 5s hoặc 10s
-  const [timeLimit, setTimeLimit] = useState<TimeLimit>(10);
-  const [timeLeft, setTimeLeft] = useState<number>(10);
+  // Config: Limit / Timer
+  const [timeLimit, setTimeLimit] = useState<TimeLimit>(timerConfig.defaultLimit);
+  const [timeLeft, setTimeLeft] = useState<number>(timerConfig.defaultLimit);
   const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
+  const [isTimerModalOpen, setIsTimerModalOpen] = useState<boolean>(false);
+  const showEditTimerButton = isEditTimerButtonVisible('MultiplyWith1DigitChallengePage');
 
   // 10 Phép nhân trong 1 lượt thử thách
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
@@ -281,15 +331,19 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
 
   // Generate random problem based on Selected Topic for Multiply by 1-Digit
   const generateProblemForTopic = useCallback(
-    (topicToUse?: Multiply1DigitTopic): Question => {
+    (topicToUse?: Multiply1DigitTopic, hardOverride?: boolean): Question => {
       const active = topicToUse ?? selectedTopic;
+      const activeHard = hardOverride ?? hardMode;
       const isGeneral = active === 'general';
+      const multiplierMatch = active.match(/^mul([2-9])$/);
+      const fixedMultiplier = multiplierMatch ? Number(multiplierMatch[1]) : null;
 
       let digits = 2;
-      if (isGeneral) {
-        // Ngẫu nhiên từ 2 số đến 10 số
-        digits = Math.floor(Math.random() * 9) + 2;
-      } else if (active === 'digit3') digits = 3;
+      if (isGeneral || fixedMultiplier !== null) {
+        // Hard: 6-10 digits; Normal: 2-10 digits
+        digits = activeHard ? Math.floor(Math.random() * 5) + 6 : Math.floor(Math.random() * 9) + 2;
+      } else if (active === 'digit2') digits = 2;
+      else if (active === 'digit3') digits = 3;
       else if (active === 'digit4') digits = 4;
       else if (active === 'digit5') digits = 5;
       else if (active === 'digit6') digits = 6;
@@ -297,10 +351,16 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       else if (active === 'digit8') digits = 8;
       else if (active === 'digit9') digits = 9;
       else if (active === 'digit10') digits = 10;
-      else digits = Math.floor(Math.random() * 9) + 2;
+      else digits = activeHard ? Math.floor(Math.random() * 5) + 6 : Math.floor(Math.random() * 9) + 2;
 
       let multiDigitNum: number;
-      if (digits === 2) {
+      if (activeHard) {
+        let s = String(Math.floor(Math.random() * 7) + 3); // 3..9
+        for (let i = 1; i < digits; i++) {
+          s += String(Math.floor(Math.random() * 8) + 2); // 2..9 (avoid trivial 0/1)
+        }
+        multiDigitNum = Number(s);
+      } else if (digits === 2) {
         multiDigitNum = Math.floor(Math.random() * 88) + 12;
       } else {
         const min = Math.pow(10, digits - 1);
@@ -308,8 +368,10 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
         multiDigitNum = Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
-      // 1 chữ số ngẫu nhiên 2..9
-      const singleDigit = Math.floor(Math.random() * 8) + 2;
+      // Fixed multiplier if mul2..mul9 selected, else Hard: 6..9 / Normal: 2..9
+      const singleDigit =
+        fixedMultiplier ??
+        (activeHard ? Math.floor(Math.random() * 4) + 6 : Math.floor(Math.random() * 8) + 2);
 
       let a = multiDigitNum;
       let b = singleDigit;
@@ -330,7 +392,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
         answer: a * b,
       };
     },
-    [selectedTopic]
+    [selectedTopic, hardMode]
   );
 
   // Announce result
@@ -443,7 +505,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
           return next;
         });
         setWrongStreak(0);
-        const earnedPoints = timeLimit === 3 ? 30 : timeLimit === 5 ? 20 : 10;
+        const earnedPoints = (7 - timeLimit) * 10;
         setScore((prev) => prev + earnedPoints);
         announceResult(true, questionRef.current.answer);
       } else {
@@ -530,21 +592,25 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
   };
 
   // Start Countdown Timer for problem
-  const startTimer = useCallback(() => {
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setTimeLeft(timeLimit);
+  const startTimer = useCallback(
+    (limitOverride?: TimeLimit) => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      const activeLimit = limitOverride ?? timeLimit;
+      setTimeLeft(activeLimit);
 
-    timerIntervalRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerIntervalRef.current);
-          handleTimeout();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [handleTimeout, timeLimit]);
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerIntervalRef.current);
+            handleTimeout();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    },
+    [handleTimeout, timeLimit]
+  );
 
   // Load next question or finish round
   const goToNextQuestion = useCallback(() => {
@@ -581,15 +647,18 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
     stopListening,
   ]);
 
-  // Tự động chuyển câu hỏi sau 3 giây khi có kết quả (chính xác / chưa chính xác / hết giờ)
+  // Tự động chuyển câu hỏi sau số giây tùy chỉnh khi có kết quả
   useEffect(() => {
     if (gameStatus === 'answered') {
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
       }
-      autoNextTimerRef.current = setTimeout(() => {
-        goToNextQuestion();
-      }, 3000);
+      if (autoNextConfig.delaySec > 0) {
+        autoNextTimerRef.current = setTimeout(() => {
+          goToNextQuestion();
+        }, Math.round(autoNextConfig.delaySec * 1000));
+      }
     } else {
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
@@ -603,11 +672,11 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
         autoNextTimerRef.current = null;
       }
     };
-  }, [gameStatus, goToNextQuestion]);
+  }, [gameStatus, goToNextQuestion, autoNextConfig.delaySec]);
 
   // Start a new Challenge Round (10 Questions)
   const startNewChallenge = useCallback(
-    (topicOverride?: Multiply1DigitTopic) => {
+    (topicOverride?: Multiply1DigitTopic, hardOverride?: boolean, limitOverride?: TimeLimit) => {
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
         autoNextTimerRef.current = null;
@@ -628,7 +697,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       setCorrectCount(0);
       setIncorrectCount(0);
 
-      const newQ = generateProblemForTopic(topicToUse);
+      const newQ = generateProblemForTopic(topicToUse, hardOverride);
       setQuestion(newQ);
       questionRef.current = newQ;
       setUserAnswer('');
@@ -636,11 +705,40 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       setVoiceTranscript('');
       setVoiceError('');
       setGameStatus('running');
-      startTimer();
+      startTimer(limitOverride);
       setTimeout(() => inputRef.current?.focus(), 50);
     },
     [generateProblemForTopic, selectedTopic, startTimer, stopListening]
   );
+
+  // Reset Challenge back to idle state (hide question until Start is clicked)
+  const handleReset = useCallback(() => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
+    stopCurrentSpeech();
+    stopListening();
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    setCurrentQuestionIndex(1);
+    setRoundHistory([]);
+    setScore(0);
+    setStreak(0);
+    setWrongStreak(0);
+    setBestStreak(0);
+    setTotalAttempts(0);
+    setCorrectCount(0);
+    setIncorrectCount(0);
+    const newQ = generateProblemForTopic(selectedTopic);
+    setQuestion(newQ);
+    questionRef.current = newQ;
+    setUserAnswer('');
+    setFeedback('idle');
+    setVoiceTranscript('');
+    setVoiceError('');
+    setTimeLeft(timeLimit);
+    setGameStatus('idle');
+  }, [generateProblemForTopic, selectedTopic, stopListening, timeLimit]);
 
   // Switch topic
   const handleSelectTopic = (newTopic: Multiply1DigitTopic) => {
@@ -649,10 +747,12 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       autoNextTimerRef.current = null;
     }
     setSelectedTopic(newTopic);
-    startNewChallenge(newTopic);
+    if (gameStatus === 'running' || gameStatus === 'answered') {
+      startNewChallenge(newTopic);
+    }
   };
 
-  // Switch Time Limit (3s / 5s / 10s)
+  // Switch Time Limit (2s - 12s)
   const handleSelectTimeLimit = (limit: TimeLimit) => {
     if (autoNextTimerRef.current) {
       clearTimeout(autoNextTimerRef.current);
@@ -672,11 +772,63 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
           return prev - 1;
         });
       }, 1000);
+    } else if (gameStatus === 'idle') {
+      setTimeLeft(limit);
     }
   };
 
+  const isFirstTimerSyncRef = useRef(true);
   useEffect(() => {
-    startNewChallenge(initialTopic);
+    if (isFirstTimerSyncRef.current) {
+      isFirstTimerSyncRef.current = false;
+      return;
+    }
+    setTimeLimit(timerConfig.defaultLimit);
+    setTimeLeft(timerConfig.defaultLimit);
+    if (gameStatus === 'running') {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerIntervalRef.current);
+            handleTimeout();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerConfig.defaultLimit, timerConfig.limitOptions]);
+
+  useEffect(() => {
+    if (autoNextTimerRef.current) {
+      clearTimeout(autoNextTimerRef.current);
+      autoNextTimerRef.current = null;
+    }
+    stopCurrentSpeech();
+    stopListening();
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    const topicToUse = initialTopic ?? 'general';
+    setSelectedTopic(topicToUse);
+    setCurrentQuestionIndex(1);
+    setRoundHistory([]);
+    setScore(0);
+    setStreak(0);
+    setWrongStreak(0);
+    setBestStreak(0);
+    setTotalAttempts(0);
+    setCorrectCount(0);
+    setIncorrectCount(0);
+    const newQ = generateProblemForTopic(topicToUse);
+    setQuestion(newQ);
+    questionRef.current = newQ;
+    setUserAnswer('');
+    setFeedback('idle');
+    setVoiceTranscript('');
+    setVoiceError('');
+    setTimeLeft(timeLimit);
+    setGameStatus('idle');
     return () => {
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
@@ -689,6 +841,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
         } catch {}
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTopic]);
 
   // Virtual Keypad handlers (up to 14 digits)
@@ -739,9 +892,9 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
 
   const timerColor =
-    timeLeft <= (timeLimit === 3 ? 1 : 2)
+    timeLeft <= (timeLimit <= 4 ? 1 : timeLimit <= 8 ? 2 : 3)
       ? 'text-rose-500 border-rose-500/40 bg-rose-500/10 animate-pulse'
-      : timeLeft <= (timeLimit === 3 ? 2 : 4)
+      : timeLeft <= (timeLimit <= 4 ? 2 : timeLimit <= 8 ? 4 : 5)
       ? 'text-amber-400 border-amber-500/40 bg-amber-500/10'
       : 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10';
 
@@ -758,6 +911,7 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
         </button>
 
         <div className="flex items-center gap-2">
+          <AutoNextSettingButton pageKey="MultiplyWith1DigitChallengePage" />
           {/* Audio Speaker toggle */}
           <button
             type="button"
@@ -805,47 +959,86 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
       </div>
 
       {/* Main Challenge Container */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div
+        className={`rounded-3xl border bg-gradient-to-br from-slate-900/95 via-slate-900/80 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5 ${
+          hardMode ? 'border-rose-500/45 to-rose-950/35' : 'border-amber-500/30 to-amber-950/30'
+        }`}
+      >
+        <div
+          className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
+            hardMode ? 'bg-rose-500/15' : 'bg-amber-500/10'
+          }`}
+        />
 
-        {/* Header: Title + Mode Settings (5s / 10s) */}
+        {/* Header: Title + Mode Settings (2s - 12s) */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30">
-              <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
+            <div
+              className={`p-1.5 rounded-lg border ${
+                hardMode ? 'bg-rose-500/20 border-rose-500/40' : 'bg-amber-500/20 border-amber-500/30'
+              }`}
+            >
+              {hardMode ? (
+                <Flame className="w-5 h-5 text-orange-400 fill-orange-400" />
+              ) : (
+                <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
+              )}
             </div>
             <div>
-              <h2 className="font-bold text-white text-base sm:text-lg flex items-center gap-2">
+              <h2 className="font-bold text-white text-base sm:text-lg flex flex-wrap items-center gap-2">
                 <span>{isVi ? 'Thử Thách Nhân Với 1 Chữ Số' : '1-Digit Multiplication Challenge'}</span>
+                {hardMode && (
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
+                    <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
+                  </span>
+                )}
               </h2>
               <p className="text-[11px] text-slate-400">
-                {isVi
+                {hardMode
+                  ? isVi
+                    ? `Câu ${currentQuestionIndex}/${TOTAL_QUESTIONS} • Cấp độ khó (×6 đến ×9, số lớn)`
+                    : `Question ${currentQuestionIndex}/${TOTAL_QUESTIONS} • Hard mode (×6 to ×9, larger numbers)`
+                  : isVi
                   ? `Câu ${currentQuestionIndex}/${TOTAL_QUESTIONS} • Thử thách tính nhanh`
                   : `Question ${currentQuestionIndex}/${TOTAL_QUESTIONS} • Blitz math trial`}
               </p>
             </div>
           </div>
 
-          {/* Time Selector: 3s, 5s hoặc 10s */}
-          <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-            <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
-              <Clock className="w-3 h-3 text-amber-400" />
-              <span>{isVi ? 'Thời gian:' : 'Timer:'}</span>
-            </span>
-            {[3, 5, 10].map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => handleSelectTimeLimit(t as TimeLimit)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                  timeLimit === t
-                    ? 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                {t}s
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {/* Time Selector: 2s - 12s */}
+            <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+              <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-400" />
+                <span className="hidden sm:inline">{isVi ? 'Thời gian:' : 'Timer:'}</span>
+              </span>
+              {timerConfig.limitOptions.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => handleSelectTimeLimit(t)}
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                    timeLimit === t
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {t}s
+                </button>
+              ))}
+              {showEditTimerButton && (
+                <button
+                  type="button"
+                  onClick={() => setIsTimerModalOpen(true)}
+                  title={isVi ? 'Chỉnh sửa Timer (Trang này / Toàn Tab)' : 'Edit Timer (This Page / All Tab)'}
+                  aria-label={isVi ? 'Chỉnh sửa Timer' : 'Edit Timer'}
+                  className="ml-0.5 p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800/90 border border-transparent hover:border-amber-500/30 transition-all cursor-pointer active:scale-95"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -858,26 +1051,50 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
             </span>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
-            {MULTIPLY_1_DIGIT_TOPICS.map((mode) => {
-              const isSelected = selectedTopic === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => handleSelectTopic(mode.id)}
-                  title={isVi ? mode.fullNameVi : mode.fullNameEn}
-                  className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
-                      : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
-                  }`}
-                >
-                  <span className="text-sm shrink-0">{mode.icon}</span>
-                  <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
-                </button>
-              );
-            })}
+          <div className="p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-1.5">
+              {MULTIPLY_1_DIGIT_TOPICS.filter((m) => !m.multiplier).map((mode) => {
+                const isSelected = selectedTopic === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => handleSelectTopic(mode.id)}
+                    title={isVi ? mode.fullNameVi : mode.fullNameEn}
+                    className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                        : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
+                    }`}
+                  >
+                    <span className="text-sm shrink-0">{mode.icon}</span>
+                    <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5 pt-1.5 border-t border-slate-800/70">
+              {MULTIPLY_1_DIGIT_TOPICS.filter((m) => Boolean(m.multiplier)).map((mode) => {
+                const isSelected = selectedTopic === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => handleSelectTopic(mode.id)}
+                    title={isVi ? mode.fullNameVi : mode.fullNameEn}
+                    className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                        : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
+                    }`}
+                  >
+                    <span className="text-xs shrink-0">{mode.icon}</span>
+                    <span className="truncate whitespace-nowrap">{isVi ? mode.labelVi : mode.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -930,13 +1147,19 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-                {isVi ? 'Hoàn Thành Lượt Thử Thách!' : 'Challenge Completed!'}
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center justify-center gap-2 flex-wrap">
+                <span>{isVi ? 'Hoàn Thành Lượt Thử Thách!' : 'Challenge Completed!'}</span>
+                {hardMode && (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
+                    <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
+                  </span>
+                )}
               </h3>
               <p className="text-xs sm:text-sm text-slate-300">
                 {isVi
-                  ? `Bạn đã hoàn thành 10 câu với số điểm ${score} • Chuỗi đúng cao nhất: ${bestStreak}`
-                  : `You finished 10 questions with ${score} pts • Best streak: ${bestStreak}`}
+                  ? `Bạn đã hoàn thành 10 câu${hardMode ? ' (Cấp độ Khó)' : ''} với số điểm ${score} • Chuỗi đúng cao nhất: ${bestStreak}`
+                  : `You finished 10 questions${hardMode ? ' (Hard Level)' : ''} with ${score} pts • Best streak: ${bestStreak}`}
               </p>
             </div>
 
@@ -1003,60 +1226,78 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
 
               {/* Large Mathematical Problem Display */}
               <div className="flex flex-col items-center justify-center gap-2.5 sm:gap-3 py-2 w-full">
-                <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
-                  <div
-                    className={`font-black text-white font-mono flex items-center justify-center whitespace-nowrap gap-1.5 sm:gap-2.5 tracking-tight select-none shrink-0 ${formulaFontSize}`}
-                  >
-                    <span>{question.a.toLocaleString()}</span>
-                    <span className="text-amber-400 font-sans">×</span>
-                    <span>{question.b.toLocaleString()}</span>
+                {gameStatus === 'idle' ? (
+                  <div className="py-5 px-5 rounded-2xl bg-slate-900/75 border border-slate-800/90 flex flex-col items-center justify-center gap-2.5 max-w-sm mx-auto my-2">
+                    <div className="w-11 h-11 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                      <Play className="w-5 h-5 fill-sky-400" />
+                    </div>
+                    <p className="text-sm sm:text-base font-bold text-white">
+                      {isVi ? 'Chưa bắt đầu thử thách' : 'Challenge Not Started'}
+                    </p>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      {isVi
+                        ? 'Bấm nút "Bắt đầu" để hiện câu hỏi và bắt đầu tính giờ.'
+                        : 'Click "Start" to reveal the problem and start the timer.'}
+                    </p>
                   </div>
-
-                  {/* Button Loa để phát thông tin câu hỏi */}
-                  <button
-                    type="button"
-                    onClick={() => pronounceQuestion()}
-                    className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
-                      isSpeakingQuestion
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
-                        : 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
-                    }`}
-                    title={
-                      isVi
-                        ? `Phát âm câu hỏi (${getSpelledOutDigits(question.a, true)} nhân ${getSpelledOutDigits(question.b, true)}) - Tốc độ: ${questionSpeed}x`
-                        : `Pronounce question (${question.a} times ${question.b}) - Speed: ${questionSpeed}x`
-                    }
-                  >
-                    <Volume2
-                      className={`w-5 h-5 sm:w-6 sm:h-6 ${isSpeakingQuestion ? 'animate-bounce' : ''}`}
-                    />
-                  </button>
-                </div>
-
-                {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
-                  <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                    <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
-                  </span>
-                  <div className="flex items-center gap-1 ml-0.5">
-                    {[1.25, 1.5, 1.75].map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => handleSetSpeed(s)}
-                        className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
-                          questionSpeed === s
-                            ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
-                            : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
-                        }`}
-                        title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
+                      <div
+                        className={`font-black text-white font-mono flex items-center justify-center whitespace-nowrap gap-1.5 sm:gap-2.5 tracking-tight select-none shrink-0 ${formulaFontSize}`}
                       >
-                        {`${s}x`}
+                        <span>{question.a.toLocaleString()}</span>
+                        <span className="text-amber-400 font-sans">×</span>
+                        <span>{question.b.toLocaleString()}</span>
+                      </div>
+
+                      {/* Button Loa để phát thông tin câu hỏi */}
+                      <button
+                        type="button"
+                        onClick={() => pronounceQuestion()}
+                        className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
+                          isSpeakingQuestion
+                            ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
+                            : 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
+                        }`}
+                        title={
+                          isVi
+                            ? `Phát âm câu hỏi (${getSpelledOutDigits(question.a, true)} nhân ${getSpelledOutDigits(question.b, true)}) - Tốc độ: ${questionSpeed}x`
+                            : `Pronounce question (${question.a} times ${question.b}) - Speed: ${questionSpeed}x`
+                        }
+                      >
+                        <Volume2
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${isSpeakingQuestion ? 'animate-bounce' : ''}`}
+                        />
                       </button>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+
+                    {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
+                      <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                        <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
+                      </span>
+                      <div className="flex items-center gap-1 ml-0.5">
+                        {[1.25, 1.5, 1.75].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => handleSetSpeed(s)}
+                            className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
+                              questionSpeed === s
+                                ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
+                                : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
+                            }`}
+                            title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
+                          >
+                            {`${s}x`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Feedback messages */}
@@ -1128,7 +1369,11 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
                   value={userAnswer}
                   onChange={(e) => setUserAnswer(e.target.value)}
                   placeholder={
-                    isListening
+                    gameStatus === 'idle'
+                      ? isVi
+                        ? 'Bấm "Bắt đầu" để bắt đầu thử thách...'
+                        : 'Click "Start" to begin challenge...'
+                      : isListening
                       ? isVi
                         ? '🎙️ Đang nghe... Hãy đọc to đáp án của bạn'
                         : '🎙️ Listening... Speak your answer aloud'
@@ -1239,30 +1484,51 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
               )}
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2.5">
-                {gameStatus === 'answered' ? (
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                {gameStatus === 'idle' ? (
+                  <button
+                    type="button"
+                    onClick={() => startNewChallenge()}
+                    className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95 text-xs sm:text-sm"
+                  >
+                    <Play className="w-4 h-4 fill-slate-950" />
+                    <span>
+                      {isVi
+                        ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} câu)`
+                        : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}
+                    </span>
+                  </button>
+                ) : gameStatus === 'answered' ? (
                   <button
                     type="button"
                     onClick={goToNextQuestion}
-                    className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                    className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-300/30 shadow-[0_8px_24px_-4px_rgba(16,185,129,0.45)] hover:shadow-[0_10px_28px_-4px_rgba(20,184,166,0.55)] active:scale-95 text-xs sm:text-sm"
                   >
                     <span>
                       {currentQuestionIndex >= TOTAL_QUESTIONS
+                        ? autoNextConfig.delaySec > 0
+                          ? isVi
+                            ? `Xem Tổng Kết (tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)})`
+                            : `View Results (auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)})`
+                          : isVi
+                          ? 'Xem Tổng Kết'
+                          : 'View Results'
+                        : autoNextConfig.delaySec > 0
                         ? isVi
-                          ? 'Xem Tổng Kết (tự chuyển sau 3s)'
-                          : 'View Results (auto in 3s)'
+                          ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)}`
+                          : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)}`
                         : isVi
-                        ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - tự chuyển sau 3s`
-                        : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - auto in 3s`}
+                        ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})`
+                        : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})`}
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
                     type="submit"
-                    className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
+                    className="flex-1 min-w-[130px] h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
                   >
-                    <span>{isVi ? 'Kiểm tra KQ' : 'Answer'}</span>
+                    <span>{isVi ? 'Kết quả' : 'Answer'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
@@ -1281,10 +1547,10 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
                       ? 'Trả lời bằng giọng nói'
                       : 'Answer by voice'
                   }
-                  className={`h-12 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
+                  className={`h-12 px-3.5 sm:px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                     isListening
                       ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse ring-2 ring-rose-400/50'
-                      : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40'
+                      : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
                   }`}
                 >
                   {isListening ? (
@@ -1295,16 +1561,27 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
                   ) : (
                     <>
                       <Mic className="w-4 h-4 text-amber-400" />
-                      <span>{isVi ? 'Voice' : 'Voice'}</span>
+                      <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                     </>
                   )}
+                </button>
+
+                {/* Start Challenge Question button */}
+                <button
+                  type="button"
+                  onClick={() => startNewChallenge()}
+                  title={isVi ? 'Bắt đầu câu hỏi thử thách' : 'Start challenge question'}
+                  className="h-12 px-3.5 sm:px-4 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm transition-all cursor-pointer shadow-md shadow-violet-500/25 active:scale-95 shrink-0"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>{isVi ? 'Bắt đầu' : 'Start'}</span>
                 </button>
 
                 {/* Reset button */}
                 <button
                   type="button"
-                  onClick={() => startNewChallenge()}
-                  title={isVi ? 'Làm lại lượt thử thách mới' : 'Restart challenge'}
+                  onClick={handleReset}
+                  title={isVi ? 'Thiết lập lại thử thách' : 'Reset challenge'}
                   className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -1314,6 +1591,15 @@ export const MultiplyWith1DigitChallengePage: React.FC<MultiplyWith1DigitChallen
           </div>
         )}
       </div>
+
+      {showEditTimerButton && (
+        <MentalMathChallengeTimerModal
+          isOpen={isTimerModalOpen}
+          onClose={() => setIsTimerModalOpen(false)}
+          initialScope="page"
+          initialPageKey="MultiplyWith1DigitChallengePage"
+        />
+      )}
     </div>
   );
 };

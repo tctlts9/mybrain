@@ -520,13 +520,6 @@ export const TwoDigitMentalMathGuideCarousel: React.FC = () => {
                   <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
 
-                {/* Top-Left Step Badge */}
-                {(isVi ? slide.badgeVi : slide.badgeEn) && (
-                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950/85 border border-amber-500/30 text-[10px] sm:text-xs font-semibold text-amber-300 backdrop-blur-md shadow-sm z-10">
-                    {isVi ? slide.badgeVi : slide.badgeEn}
-                  </div>
-                )}
-
                 {/* Mobile Touch Zoom Button / Hint */}
                 <button
                   onClick={(e) => {

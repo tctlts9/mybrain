@@ -18,8 +18,17 @@ import {
   AlertTriangle,
   Gauge,
   Delete,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { isEditTimerButtonVisible } from '../../config/buttonVisibility';
+import { useMentalMathTimerConfig } from '../../config/mentalMathTimers';
+import {
+  useMentalMathAutoNextConfig,
+  formatAutoNextDelay,
+} from '../../config/mentalMathAutoNext';
+import { MentalMathChallengeTimerModal } from './MentalMathChallengeTimerModal';
+import { AutoNextSettingButton } from './AutoNextSettingButton';
 import {
   playSpeakerChime,
   announceResultFemaleVoice,
@@ -162,6 +171,7 @@ export const MULTIPLY_11_TOPICS: TopicOption[] = [
 interface MultiplyBy11ChallengePageProps {
   onBack: () => void;
   initialTopic?: Multiply11Topic;
+  isHard?: boolean;
 }
 
 interface Question {
@@ -170,7 +180,7 @@ interface Question {
   answer: number;
 }
 
-type TimeLimit = 3 | 5 | 10;
+type TimeLimit = number;
 type GameStatus = 'idle' | 'running' | 'paused' | 'answered' | 'completed';
 
 const TOTAL_QUESTIONS = 10;
@@ -216,17 +226,24 @@ const getSpelledOutDigits = (num: number, isVietnamese: boolean): string => {
 export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps> = ({
   onBack,
   initialTopic,
+  isHard = false,
 }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';
 
+  const hardMode = isHard;
+  const timerConfig = useMentalMathTimerConfig('MultiplyBy11ChallengePage');
+  const autoNextConfig = useMentalMathAutoNextConfig('MultiplyBy11ChallengePage');
+
   // Topic selection: Tổng quát (General) hoặc 3 đến 10 chữ số
   const [selectedTopic, setSelectedTopic] = useState<Multiply11Topic>(initialTopic ?? 'general');
 
-  // Config: 5s hoặc 10s
-  const [timeLimit, setTimeLimit] = useState<TimeLimit>(10);
-  const [timeLeft, setTimeLeft] = useState<number>(10);
+  // Config: Limit / Timer
+  const [timeLimit, setTimeLimit] = useState<TimeLimit>(timerConfig.defaultLimit);
+  const [timeLeft, setTimeLeft] = useState<number>(timerConfig.defaultLimit);
   const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
+  const [isTimerModalOpen, setIsTimerModalOpen] = useState<boolean>(false);
+  const showEditTimerButton = isEditTimerButtonVisible('MultiplyBy11ChallengePage');
 
   // 10 Phép nhân trong 1 lượt thử thách
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(1);
@@ -284,11 +301,24 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
   const questionRef = useRef<Question>(question);
   questionRef.current = question;
   const autoNextTimerRef = useRef<any>(null);
+  const gameStatusRef = useRef<GameStatus>(gameStatus);
+  gameStatusRef.current = gameStatus;
+  const isFirstTimerSyncRef = useRef(true);
+
+  useEffect(() => {
+    if (isFirstTimerSyncRef.current) {
+      isFirstTimerSyncRef.current = false;
+      return;
+    }
+    setTimeLimit(timerConfig.defaultLimit);
+    setTimeLeft(timerConfig.defaultLimit);
+  }, [timerConfig.defaultLimit, timerConfig.limitOptions]);
 
   // Generate random problem based on Selected Topic for Multiply by 11
   const generateProblemForTopic = useCallback(
-    (topicToUse?: Multiply11Topic): Question => {
+    (topicToUse?: Multiply11Topic, hardOverride?: boolean): Question => {
       const active = topicToUse ?? selectedTopic;
+      const activeHard = hardOverride ?? hardMode;
       const isGeneral =
         active === 'general' ||
         active === 'general11' ||
@@ -298,8 +328,8 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
       let digits = 2;
       if (isGeneral) {
-        // Ngẫu nhiên từ 2 số đến 10 số
-        digits = Math.floor(Math.random() * 9) + 2;
+        // Hard: 6-10 digits; Normal: 2-10 digits
+        digits = activeHard ? Math.floor(Math.random() * 5) + 6 : Math.floor(Math.random() * 9) + 2;
       } else if (active === 'digit3' || active === 'threeDigit11') digits = 3;
       else if (active === 'digit4') digits = 4;
       else if (active === 'digit5') digits = 5;
@@ -309,10 +339,16 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
       else if (active === 'digit9') digits = 9;
       else if (active === 'digit10') digits = 10;
       else if (active === 'multiDigit11') digits = Math.random() > 0.5 ? 5 : 4;
-      else digits = Math.floor(Math.random() * 9) + 2;
+      else digits = activeHard ? Math.floor(Math.random() * 5) + 6 : Math.floor(Math.random() * 9) + 2;
 
       let num: number;
-      if (digits === 2) {
+      if (activeHard) {
+        let s = String(Math.floor(Math.random() * 5) + 5); // 5..9
+        for (let i = 1; i < digits; i++) {
+          s += String(Math.floor(Math.random() * 6) + 4); // 4..9 -> carry-heavy adjacent pairs
+        }
+        num = Number(s);
+      } else if (digits === 2) {
         num = Math.floor(Math.random() * 88) + 12; // 12..99
       } else {
         const min = Math.pow(10, digits - 1);
@@ -336,7 +372,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
       return { a, b, answer: a * b };
     },
-    [selectedTopic]
+    [selectedTopic, hardMode]
   );
 
   // Stop Timer
@@ -421,7 +457,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
           return next;
         });
         setWrongStreak(0);
-        const pointsAwarded = timeLimit === 3 ? 30 : timeLimit === 5 ? 20 : 10;
+        const pointsAwarded = Math.max(10, (14 - timeLimit) * 5);
         setScore((prev) => prev + pointsAwarded);
         announceResult(true, questionRef.current.answer);
       } else {
@@ -557,15 +593,18 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
     setTimeout(() => inputRef.current?.focus(), 60);
   }, [currentQuestionIndex, generateProblemForTopic, selectedTopic, clearCountdown, startCountdown, timeLimit]);
 
-  // Tự động chuyển câu hỏi sau 3 giây khi có kết quả (chính xác / chưa chính xác / hết giờ)
+  // Tự động chuyển câu hỏi sau số giây tùy chỉnh khi có kết quả
   useEffect(() => {
     if (gameStatus === 'answered') {
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
+        autoNextTimerRef.current = null;
       }
-      autoNextTimerRef.current = setTimeout(() => {
-        goToNextQuestion();
-      }, 3000);
+      if (autoNextConfig.delaySec > 0) {
+        autoNextTimerRef.current = setTimeout(() => {
+          goToNextQuestion();
+        }, Math.round(autoNextConfig.delaySec * 1000));
+      }
     } else {
       if (autoNextTimerRef.current) {
         clearTimeout(autoNextTimerRef.current);
@@ -579,9 +618,9 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
         autoNextTimerRef.current = null;
       }
     };
-  }, [gameStatus, goToNextQuestion]);
+  }, [gameStatus, goToNextQuestion, autoNextConfig.delaySec]);
 
-  // Switch Time Limit (3s / 5s / 10s)
+  // Switch Time Limit (2s - 12s)
   const handleSelectTimeLimit = (newLimit: TimeLimit) => {
     if (autoNextTimerRef.current) {
       clearTimeout(autoNextTimerRef.current);
@@ -635,6 +674,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
     setQuestion(newQ);
     questionRef.current = newQ;
   };
+
 
   // Phím số ảo 0-9 nhập kết quả nhanh trong Thử thách (hỗ trợ tối đa 14 chữ số)
   const handleKeypadDigit = useCallback(
@@ -759,7 +799,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
   // Timer Progress Calculation
   const timerPercentage = Math.max(0, Math.min(100, (timeLeft / timeLimit) * 100));
-  const isUrgent = timeLeft <= (timeLimit === 3 ? 1 : timeLimit === 5 ? 2 : 3);
+  const isUrgent = timeLeft <= (timeLimit <= 4 ? 1 : timeLimit <= 8 ? 2 : 3);
 
   const currentTopicMeta =
     MULTIPLY_11_TOPICS.find((t) => t.id === selectedTopic) ||
@@ -815,45 +855,69 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
       </div>
 
       {/* Main Challenge Arena Container */}
-      <div className="rounded-3xl border border-amber-500/35 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-amber-950/30 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5">
+      <div
+        className={`rounded-3xl border bg-gradient-to-br from-slate-900/95 via-slate-900/80 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5 ${
+          hardMode ? 'border-rose-500/45 to-rose-950/35' : 'border-amber-500/35 to-amber-950/30'
+        }`}
+      >
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
+            hardMode ? 'bg-rose-500/15' : 'bg-amber-500/10'
+          }`}
+        />
 
         {/* Top Header Row: Title, Mode Toggles & Sound */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-md shadow-amber-500/25">
-              <Zap className="w-5 h-5 fill-slate-950" />
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-md ${
+                hardMode
+                  ? 'bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-rose-500/25'
+                  : 'bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 shadow-amber-500/25'
+              }`}
+            >
+              {hardMode ? <Flame className="w-5 h-5 fill-yellow-200 text-yellow-200" /> : <Zap className="w-5 h-5 fill-slate-950" />}
             </div>
             <div>
               <h1 className="font-bold text-white text-base sm:text-lg flex flex-wrap items-center gap-2">
                 <span>{isVi ? 'Thử Thách Nhân Với Số 11' : 'Multiply by 11 Challenge'}</span>
+                {hardMode && (
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
+                    <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
+                  </span>
+                )}
                 <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
                 </span>
               </h1>
               <p className="text-xs text-slate-400 hidden sm:block">
-                {isVi
-                  ? 'Thử thách phản xạ tính nhẩm siêu tốc nhân với 11 trong 5s hoặc 10s'
-                  : 'Speed mental calculation challenge multiplying by 11 within 5s or 10s'}
+                {hardMode
+                  ? isVi
+                    ? 'Cấp độ khó: nhiều chữ số hơn, nhớ liên tục, phản xạ tốc độ cao'
+                    : 'Hard mode: more digits, frequent carries, faster pace'
+                  : isVi
+                  ? 'Thử thách phản xạ tính nhẩm siêu tốc nhân với 11 từ 2s đến 12s'
+                  : 'Speed mental calculation challenge multiplying by 11 within 2s to 12s'}
               </p>
             </div>
           </div>
 
-          {/* Right Controls: 3s/5s/10s selector & Speaker Toggle */}
-          <div className="flex items-center gap-2 text-xs">
-            {/* Mode Selector (3s, 5s, 10s) */}
-            <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-              <span className="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1">
+          {/* Right Controls: 2s-12s selector & Speaker Toggle */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {/* Mode Selector (2s - 12s) */}
+            <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+              <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
                 <Clock className="w-3 h-3 text-amber-400" />
-                <span>{isVi ? 'Thời gian:' : 'Timer:'}</span>
+                <span className="hidden sm:inline">{isVi ? 'Thời gian:' : 'Timer:'}</span>
               </span>
-              {[3, 5, 10].map((t) => (
+              {timerConfig.limitOptions.map((t) => (
                 <button
                   key={t}
                   type="button"
-                  onClick={() => handleSelectTimeLimit(t as TimeLimit)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                  onClick={() => handleSelectTimeLimit(t)}
+                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                     timeLimit === t
                       ? 'bg-amber-500 text-slate-950 shadow-sm'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -863,7 +927,20 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                   {t}s
                 </button>
               ))}
+              {showEditTimerButton && (
+                <button
+                  type="button"
+                  onClick={() => setIsTimerModalOpen(true)}
+                  title={isVi ? 'Chỉnh sửa Timer (Trang này / Toàn Tab)' : 'Edit Timer (This Page / All Tab)'}
+                  aria-label={isVi ? 'Chỉnh sửa Timer' : 'Edit Timer'}
+                  className="ml-0.5 p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800/90 border border-transparent hover:border-amber-500/30 transition-all cursor-pointer active:scale-95"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
+
+            <AutoNextSettingButton pageKey="MultiplyBy11ChallengePage" />
 
             {/* Sound Toggle */}
             <button
@@ -972,13 +1049,19 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                 <Trophy className="w-8 h-8 text-amber-400" />
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1">
-                {isVi ? 'Hoàn thành thử thách 10 phép nhân với 11!' : '10-Problem Multiply by 11 Challenge Completed!'}
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1 flex items-center justify-center gap-2 flex-wrap">
+                <span>{isVi ? 'Hoàn thành thử thách 10 phép nhân với 11!' : '10-Problem Multiply by 11 Challenge Completed!'}</span>
+                {hardMode && (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
+                    <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
+                  </span>
+                )}
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 mb-6">
                 {isVi
-                  ? `Chuyên đề: ${currentTopicMeta.labelVi} • Thời gian: ${timeLimit}s / phép tính`
-                  : `Topic: ${currentTopicMeta.labelEn} • Time limit: ${timeLimit}s / problem`}
+                  ? `Chuyên đề: ${currentTopicMeta.labelVi}${hardMode ? ' (Cấp độ Khó)' : ''} • Thời gian: ${timeLimit}s / phép tính`
+                  : `Topic: ${currentTopicMeta.labelEn}${hardMode ? ' (Hard Level)' : ''} • Time limit: ${timeLimit}s / problem`}
               </p>
 
               {/* Thống kê 3 chỉ số Đúng, Sai, % Độ chính xác */}
@@ -1082,9 +1165,9 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                     className={`h-full transition-all duration-200 ease-linear ${
                       isUrgent
                         ? 'bg-rose-500 shadow-sm shadow-rose-500/50'
-                        : timeLimit === 3
+                        : timeLimit <= 4
                         ? 'bg-purple-400'
-                        : timeLimit === 5
+                        : timeLimit <= 8
                         ? 'bg-amber-400'
                         : 'bg-emerald-400'
                     }`}
@@ -1139,57 +1222,75 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
 
                 {/* Math Formula Display (Nhân với 11) with Speaker Button & Speed Selector */}
                 <div className="flex flex-col items-center justify-center gap-2.5 sm:gap-3 py-3 w-full">
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
-                    <div className={`font-black text-white font-mono flex items-center justify-center whitespace-nowrap gap-1.5 sm:gap-2.5 tracking-tight select-none shrink-0 ${formulaFontSize}`}>
-                      <span>{question.a.toLocaleString()}</span>
-                      <span className="text-amber-400 font-sans">×</span>
-                      <span>{question.b.toLocaleString()}</span>
+                  {gameStatus === 'idle' ? (
+                    <div className="py-5 px-5 rounded-2xl bg-slate-900/75 border border-slate-800/90 flex flex-col items-center justify-center gap-2.5 max-w-sm mx-auto my-2">
+                      <div className="w-11 h-11 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                        <Play className="w-5 h-5 fill-sky-400" />
+                      </div>
+                      <p className="text-sm sm:text-base font-bold text-white">
+                        {isVi ? 'Chưa bắt đầu thử thách' : 'Challenge Not Started'}
+                      </p>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        {isVi
+                          ? 'Bấm nút "Bắt đầu" để hiện câu hỏi và bắt đầu tính giờ.'
+                          : 'Click "Start" to reveal the problem and start the timer.'}
+                      </p>
                     </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
+                        <div className={`font-black text-white font-mono flex items-center justify-center whitespace-nowrap gap-1.5 sm:gap-2.5 tracking-tight select-none shrink-0 ${formulaFontSize}`}>
+                          <span>{question.a.toLocaleString()}</span>
+                          <span className="text-amber-400 font-sans">×</span>
+                          <span>{question.b.toLocaleString()}</span>
+                        </div>
 
-                    {/* Button Loa để phát thông tin câu hỏi */}
-                    <button
-                      type="button"
-                      onClick={() => pronounceQuestion()}
-                      className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
-                        isSpeakingQuestion
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
-                          : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
-                      }`}
-                      title={
-                        isVi
-                          ? `Phát âm câu hỏi (${getSpelledOutDigits(question.a, true)} nhân ${getSpelledOutDigits(question.b, true)}) - Tốc độ ${questionSpeed}x`
-                          : `Pronounce question (${question.a} times ${question.b}) - Speed ${questionSpeed}x`
-                      }
-                      aria-label="Phát âm câu hỏi"
-                    >
-                      <Volume2 className={`w-5 h-5 sm:w-6 sm:h-6 ${isSpeakingQuestion ? 'animate-bounce' : ''}`} />
-                    </button>
-                  </div>
-
-                  {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
-                    <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                      <Gauge className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
-                    </span>
-                    <div className="flex items-center gap-1 ml-0.5">
-                      {[1.25, 1.5, 1.75].map((s) => (
+                        {/* Button Loa để phát thông tin câu hỏi */}
                         <button
-                          key={s}
                           type="button"
-                          onClick={() => handleSetSpeed(s)}
-                          className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
-                            questionSpeed === s
-                              ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
-                              : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
+                          onClick={() => pronounceQuestion()}
+                          className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
+                            isSpeakingQuestion
+                              ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
+                              : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
                           }`}
-                          title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
+                          title={
+                            isVi
+                              ? `Phát âm câu hỏi (${getSpelledOutDigits(question.a, true)} nhân ${getSpelledOutDigits(question.b, true)}) - Tốc độ ${questionSpeed}x`
+                              : `Pronounce question (${question.a} times ${question.b}) - Speed ${questionSpeed}x`
+                          }
+                          aria-label="Phát âm câu hỏi"
                         >
-                          {`${s}x`}
+                          <Volume2 className={`w-5 h-5 sm:w-6 sm:h-6 ${isSpeakingQuestion ? 'animate-bounce' : ''}`} />
                         </button>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+
+                      {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
+                        <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                          <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                          <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
+                        </span>
+                        <div className="flex items-center gap-1 ml-0.5">
+                          {[1.25, 1.5, 1.75].map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => handleSetSpeed(s)}
+                              className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
+                                questionSpeed === s
+                                  ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
+                                  : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
+                              }`}
+                              title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
+                            >
+                              {`${s}x`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Immediate Result Feedback Badge */}
@@ -1349,12 +1450,12 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                 )}
 
                 {/* Action Buttons: Start / Submit / Next / Voice */}
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                   {gameStatus === 'idle' ? (
                     <button
                       type="button"
                       onClick={() => startChallengeSession()}
-                      className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95 text-xs sm:text-sm"
                     >
                       <Play className="w-4 h-4 fill-slate-950" />
                       <span>{isVi ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} phép nhân)` : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
@@ -1364,9 +1465,17 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                       <button
                         type="button"
                         onClick={goToNextQuestion}
-                        className="flex-1 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-300/30 shadow-[0_8px_24px_-4px_rgba(16,185,129,0.45)] hover:shadow-[0_10px_28px_-4px_rgba(20,184,166,0.55)] active:scale-95 text-xs sm:text-sm"
                       >
-                        <span>{isVi ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - tự chuyển sau 3s` : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - auto in 3s`}</span>
+                        <span>
+                          {autoNextConfig.delaySec > 0
+                            ? isVi
+                              ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)}`
+                              : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}) - auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)}`
+                            : isVi
+                            ? `Câu tiếp theo (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})`
+                            : `Next Problem (${currentQuestionIndex + 1}/${TOTAL_QUESTIONS})`}
+                        </span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     ) : (
@@ -1379,19 +1488,27 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                           }
                           setGameStatus('completed');
                         }}
-                        className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <Trophy className="w-4 h-4" />
-                        <span>{isVi ? 'Xem kết quả thử thách (tự chuyển sau 3s)' : 'View Results (auto in 3s)'}</span>
+                        <span>
+                          {autoNextConfig.delaySec > 0
+                            ? isVi
+                              ? `Xem kết quả thử thách (tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)})`
+                              : `View Results (auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)})`
+                            : isVi
+                            ? 'Xem kết quả thử thách'
+                            : 'View Results'}
+                        </span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     )
                   ) : (
                     <button
                       type="submit"
-                      className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
                     >
-                      <span>{isVi ? 'Xác nhận kết quả' : 'Submit Answer'}</span>
+                      <span>{isVi ? 'Kết quả' : 'Submit Answer'}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   )}
@@ -1402,7 +1519,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                     onClick={toggleListening}
                     disabled={gameStatus !== 'running'}
                     title={isVi ? 'Trả lời bằng giọng nói' : 'Answer by voice'}
-                    className={`h-12 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
+                    className={`h-12 px-3.5 sm:px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse'
                         : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -1416,9 +1533,20 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                     ) : (
                       <>
                         <Mic className="w-4 h-4 text-amber-400" />
-                        <span>Voice</span>
+                        <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                       </>
                     )}
+                  </button>
+
+                  {/* Start Challenge Question button */}
+                  <button
+                    type="button"
+                    onClick={() => startChallengeSession()}
+                    title={isVi ? 'Bắt đầu câu hỏi thử thách' : 'Start challenge question'}
+                    className="h-12 px-3.5 sm:px-4 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold flex items-center justify-center gap-1.5 text-xs sm:text-sm transition-all cursor-pointer shadow-md shadow-violet-500/25 active:scale-95 shrink-0"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>{isVi ? 'Bắt đầu' : 'Start'}</span>
                   </button>
 
                   {/* Reset Session button */}
@@ -1436,6 +1564,15 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
           )}
         </div>
       </div>
+
+      {showEditTimerButton && (
+        <MentalMathChallengeTimerModal
+          isOpen={isTimerModalOpen}
+          onClose={() => setIsTimerModalOpen(false)}
+          initialScope="page"
+          initialPageKey="MultiplyBy11ChallengePage"
+        />
+      )}
     </div>
   );
 };

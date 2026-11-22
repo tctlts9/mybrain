@@ -24,6 +24,10 @@ import {
   stopCurrentSpeech,
 } from '../../utils/speechUtils';
 import { parseSchulteVoiceActions } from '../../utils/schulteVoice';
+import {
+  isChallengeButtonVisible,
+  isDifficultLevelChallengeButtonVisible,
+} from '../../config/buttonVisibility';
 
 type GridSize = 3 | 4 | 5 | 6;
 type OrderMode = 'asc' | 'desc';
@@ -494,7 +498,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
         </button>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {onOpenChallenge && (
+          {isChallengeButtonVisible('SchulteTablePage') && onOpenChallenge && (
             <button
               type="button"
               onClick={() => {
@@ -510,7 +514,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </button>
           )}
 
-          {onOpenDifficultyChallenge && (
+          {isDifficultLevelChallengeButtonVisible('SchulteTablePage') && onOpenDifficultyChallenge && (
             <button
               type="button"
               onClick={() => {

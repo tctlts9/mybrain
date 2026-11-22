@@ -22,10 +22,11 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { playSpeakerChime } from '../../utils/speechUtils';
 import { parseSchulteVoiceActions } from '../../utils/schulteVoice';
+import { isDifficultLevelChallengeButtonVisible } from '../../config/buttonVisibility';
 
 export type SchulteGridSize = 3 | 4 | 5 | 6;
 type OrderMode = 'asc' | 'desc';
-type TimeLimit = 5 | 10 | 15 | 20 | 25 | 30;
+type TimeLimit = 20 | 40 | 60 | 80 | 100 | 120;
 type ChallengeStatus = 'idle' | 'running' | 'round-ended' | 'completed';
 
 interface SchulteTableChallengePageProps {
@@ -46,7 +47,7 @@ interface RoundHistoryItem {
 
 const TOTAL_ROUNDS = 3;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
-const TIME_LIMITS: TimeLimit[] = [5, 10, 15, 20, 25, 30];
+const TIME_LIMITS: TimeLimit[] = [20, 40, 60, 80, 100, 120];
 const ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const generateShuffledNumbers = (size: SchulteGridSize): number[] => {
@@ -70,7 +71,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
   // Challenge Config
   const [gridSize, setGridSize] = useState<SchulteGridSize>(initialGridSize);
   const [orderMode, setOrderMode] = useState<OrderMode>('asc');
-  const [timeLimit, setTimeLimit] = useState<TimeLimit>(30);
+  const [timeLimit, setTimeLimit] = useState<TimeLimit>(60);
   const [showCenterDot, setShowCenterDot] = useState<boolean>(true);
   const [highlightFound, setHighlightFound] = useState<boolean>(true);
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
@@ -571,7 +572,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
         </button>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {onOpenDifficultyChallenge && (
+          {isDifficultLevelChallengeButtonVisible('SchulteTableChallengePage') && onOpenDifficultyChallenge && (
             <button
               type="button"
               onClick={() => {
@@ -754,6 +755,17 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                 <Mic className="w-3.5 h-3.5 text-amber-400" />
               )}
               <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời' : 'Voice'}</span>
+            </button>
+
+            {/* Start Challenge Button */}
+            <button
+              type="button"
+              onClick={() => startChallengeSession()}
+              title={isVi ? 'Bắt đầu câu hỏi thử thách' : 'Start challenge question'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
+            >
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>{isVi ? 'Bắt đầu' : 'Start'}</span>
             </button>
           <button
             type="button"
@@ -1110,7 +1122,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
                   <button
                     type="button"
                     onClick={goToNextRound}
-                    className="w-full h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                    className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-300/30 shadow-[0_8px_24px_-4px_rgba(16,185,129,0.45)] hover:shadow-[0_10px_28px_-4px_rgba(20,184,166,0.55)] active:scale-95 text-xs sm:text-sm"
                   >
                     <span>
                       {currentRound >= TOTAL_ROUNDS

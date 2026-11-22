@@ -22,9 +22,9 @@ export const DivisionVisualGuidePage: React.FC<DivisionVisualGuidePageProps> = (
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-[#C4C4C4]/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-[#C4C4C4]" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại Luyện tập Phép chia' : 'Back to Division Practice'}</span>
         </button>
 
@@ -42,7 +42,7 @@ export const DivisionVisualGuidePage: React.FC<DivisionVisualGuidePageProps> = (
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
             <span>{isVi ? 'Phép chia' : 'Division'}</span>
             <span className="text-slate-600">/</span>
-            <span className="text-[#C4C4C4] font-semibold flex items-center gap-1">
+            <span className="text-yellow-400 font-semibold flex items-center gap-1">
               <BookOpen className="w-3 h-3" />
               <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
             </span>

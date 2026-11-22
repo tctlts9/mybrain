@@ -312,9 +312,9 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
             stopListening();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-blue-400" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -370,7 +370,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
             <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
             <span className="text-slate-600">/</span>
-            <span className="text-blue-400 font-semibold">
+            <span className="text-yellow-400 font-semibold">
               {isVi ? meta.titleVi : meta.titleEn}
             </span>
           </div>
@@ -378,13 +378,13 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
       </div>
 
       {/* Main Training Container */}
-      <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-blue-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-3xl border border-yellow-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-yellow-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header Row */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-400" />
+            <Sparkles className="w-5 h-5 text-yellow-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
               {isVi ? 'Luyện tập' : 'Training'}
             </h2>
@@ -448,7 +448,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-blue-500/15 text-blue-300 border-blue-500/40 shadow-xs ring-1 ring-blue-400/20'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs ring-1 ring-yellow-400/20'
                   : 'bg-slate-950/70 text-slate-500 border-slate-800'
               }`}
               title={
@@ -462,7 +462,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               }
             >
               {isSpeakerEnabled ? (
-                <Volume2 className={`w-3.5 h-3.5 text-blue-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
+                <Volume2 className={`w-3.5 h-3.5 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
               ) : (
                 <VolumeX className="w-3.5 h-3.5 text-slate-500" />
               )}
@@ -482,7 +482,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
         {/* Topic Selector */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 px-1">
-            <Sliders className="w-3.5 h-3.5 text-blue-400" />
+            <Sliders className="w-3.5 h-3.5 text-yellow-400" />
             <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
           </div>
 
@@ -498,7 +498,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
                   selectedTopic === topic.id
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold shadow-md shadow-blue-500/25 ring-1 ring-blue-400'
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                     : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                 }`}
               >
@@ -514,7 +514,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
           {/* Left: Question Display */}
           <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center">
             <div className="flex items-center justify-center mb-2">
-              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-blue-400 font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
                 {isVi ? activeTopicObj.badgeVi : activeTopicObj.badgeEn}
               </span>
             </div>
@@ -523,7 +523,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 max-w-full pt-4 pb-2 px-1">
                 <div className={`${question.a.toLocaleString().length >= 6 ? 'text-3xl sm:text-5xl' : 'text-4xl sm:text-6xl'} font-extrabold text-white tracking-tight font-sans tabular-nums leading-none inline-flex items-start justify-center whitespace-nowrap`}>
                   <span>{question.a.toLocaleString()}</span>
-                  <span className="text-xl sm:text-3xl md:text-4xl text-blue-400 ml-1 font-extrabold leading-none -translate-y-1.5 sm:-translate-y-2 select-none">
+                  <span className="text-xl sm:text-3xl md:text-4xl text-yellow-400 ml-1 font-extrabold leading-none -translate-y-1.5 sm:-translate-y-2 select-none">
                     {question.b}
                   </span>
                 </div>
@@ -533,8 +533,8 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   onClick={() => pronounceQuestion()}
                   className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                     isSpeakingQuestion
-                      ? 'bg-blue-500 text-white border-blue-400 ring-2 ring-blue-400/50 shadow-blue-500/30 animate-pulse'
-                      : 'bg-slate-900/90 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border-blue-500/40 hover:border-blue-400 shadow-blue-500/10'
+                      ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 shadow-yellow-500/30 animate-pulse'
+                      : 'bg-slate-900/90 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400 shadow-yellow-500/10'
                   }`}
                   title={isVi ? `Đọc câu hỏi - Tốc độ: ${questionSpeed}x` : `Pronounce question - Speed: ${questionSpeed}x`}
                 >
@@ -545,7 +545,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               {/* Playback speed selector */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-blue-400" />
+                  <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                   <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
@@ -556,7 +556,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                       onClick={() => handleSetSpeed(s)}
                       className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                         questionSpeed === s
-                          ? 'bg-blue-500 text-white shadow-xs ring-1 ring-blue-400 font-extrabold'
+                          ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-400 font-extrabold'
                           : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                       }`}
                     >
@@ -569,7 +569,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
 
             {feedback !== 'idle' && (
               <div className="mt-3 w-full rounded-2xl bg-slate-900/80 border border-slate-800 px-3.5 py-2.5 text-xs text-slate-300 leading-relaxed text-left">
-                <span className="font-bold text-blue-400 mr-1.5">{isVi ? 'Gợi ý:' : 'Method:'}</span>
+                <span className="font-bold text-yellow-400 mr-1.5">{isVi ? 'Gợi ý:' : 'Method:'}</span>
                 {isVi ? question.hintVi : question.hintEn}
               </div>
             )}
@@ -642,7 +642,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
-                    : 'border-slate-700 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20'
+                    : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                 }`}
               />
               {userAnswer && feedback !== 'correct' && (
@@ -665,7 +665,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={feedback === 'correct'}
-                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-blue-500/20 active:bg-blue-500 active:text-white text-white hover:text-blue-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-blue-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -678,7 +678,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={feedback === 'correct'}
-                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-blue-500/20 active:bg-blue-500 active:text-white text-white hover:text-blue-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-blue-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -699,7 +699,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   type="button"
                   onClick={handleKeypadBackspace}
                   disabled={feedback === 'correct' || !userAnswer}
-                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-blue-500/20 active:bg-blue-500 active:text-white text-slate-400 hover:text-blue-300 border border-slate-800 hover:border-blue-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                   title={isVi ? 'Xóa 1 số' : 'Backspace'}
                   aria-label="Backspace"
                 >
@@ -749,7 +749,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               ) : (
                 <button
                   type="submit"
-                  className="flex-1 h-12 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-500/20 active:scale-95 text-xs sm:text-sm"
+                  className="flex-1 h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                 >
                   <span>{isVi ? 'Kết quả' : 'Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -772,7 +772,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 className={`h-12 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   isListening
                     ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse ring-2 ring-rose-400/50'
-                    : 'bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border-slate-700 hover:border-blue-500/40'
+                    : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-slate-700 hover:border-yellow-500/40'
                 }`}
               >
                 {isListening ? (
@@ -782,7 +782,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   </>
                 ) : (
                   <>
-                    <Mic className="w-4 h-4 text-blue-400" />
+                    <Mic className="w-4 h-4 text-yellow-400" />
                     <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                   </>
                 )}

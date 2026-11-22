@@ -175,12 +175,12 @@ export const CustomTopicControlsRow: React.FC<CustomTopicControlsRowProps> = ({
         title={isVi ? buttonTitleVi : buttonTitleEn}
         className={`py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed ${
           isSelected
-            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+            ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
             : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
         }`}
       >
         <SlidersHorizontal
-          className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-slate-950' : 'text-amber-400'}`}
+          className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-slate-950' : 'text-yellow-400'}`}
         />
         <span className="whitespace-nowrap">{isVi ? buttonLabelVi : buttonLabelEn}</span>
       </button>
@@ -188,10 +188,10 @@ export const CustomTopicControlsRow: React.FC<CustomTopicControlsRowProps> = ({
       {isSelected && (
         <div className="flex flex-wrap items-center gap-2 animate-in fade-in duration-150">
           {/* Textbox 1: Độ dài Chữ số */}
-          <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-xl border border-amber-500/35">
+          <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-xl border border-yellow-500/35">
             <label
               htmlFor={`${idPrefix}-custom-digit-length`}
-              className="text-[11px] font-semibold text-amber-300 whitespace-nowrap select-none"
+              className="text-[11px] font-semibold text-yellow-300 whitespace-nowrap select-none"
             >
               {isVi ? digitLengthLabelVi : digitLengthLabelEn}
             </label>
@@ -210,7 +210,7 @@ export const CustomTopicControlsRow: React.FC<CustomTopicControlsRowProps> = ({
               }}
               aria-label={isVi ? `Độ dài chữ số (1 - ${maxCustomDigits})` : `Digit length (1 - ${maxCustomDigits})`}
               title={isVi ? `Nhập độ dài chữ số (từ 1 đến ${maxCustomDigits})` : `Enter digit length (1 to ${maxCustomDigits})`}
-              className="w-16 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums transition-colors disabled:opacity-60"
+              className="w-16 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 focus:border-yellow-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums transition-colors disabled:opacity-60"
             />
           </div>
 

@@ -735,9 +735,9 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
       <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-amber-400" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -781,7 +781,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
             <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
             <span className="text-slate-600">/</span>
-            <span className="text-amber-400 font-semibold">
+            <span className="text-yellow-400 font-semibold">
               {isVi ? 'Nhân với số 99' : 'Multiply by 99'}
             </span>
           </div>
@@ -789,14 +789,14 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
       </div>
 
       {/* Training Section */}
-      <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-amber-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
+      <div className="rounded-3xl border border-yellow-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-yellow-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
         {/* Subtle backdrop glow */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Header Row: Title, Action Buttons & Result Audio Announcement Toggle */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
+            <Sparkles className="w-5 h-5 text-yellow-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
               {isVi ? 'Luyện tập: Nhân với số 99' : 'Training: Multiply by 99'}
             </h2>
@@ -854,7 +854,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-xs ring-1 ring-amber-400/20'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs ring-1 ring-yellow-400/20'
                   : 'bg-slate-950/70 text-slate-500 border-slate-800'
               }`}
               title={
@@ -869,7 +869,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
             >
               {isSpeakerEnabled ? (
                 <Volume2
-                  className={`w-3.5 h-3.5 text-amber-400 ${isSpeaking ? 'animate-bounce' : ''}`}
+                  className={`w-3.5 h-3.5 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`}
                 />
               ) : (
                 <VolumeX className="w-3.5 h-3.5 text-slate-500" />
@@ -890,7 +890,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
         {/* Group Buttons: Lựa chọn bài training theo yêu cầu */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 px-1">
-            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <Sliders className="w-3.5 h-3.5 text-yellow-400" />
             <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
           </div>
 
@@ -918,7 +918,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                     title={modeTitle}
                     className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                        ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                         : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                     }`}
                   >
@@ -944,7 +944,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                     title={multiplierTitle}
                     className={`py-1.5 px-2 sm:py-2 sm:px-2.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                        ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                         : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                     }`}
                   >
@@ -961,7 +961,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
           <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center">
             {/* Header: Topic Badge */}
             <div className="flex items-center justify-center mb-2">
-              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
                 {dynamicBadge}
               </span>
             </div>
@@ -971,7 +971,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full py-1 px-1">
                 <div className={`font-black text-white font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 tracking-tight select-none leading-tight ${formulaFontSize}`}>
                   <span className="whitespace-nowrap">{question.a.toLocaleString()}</span>
-                  <span className="text-amber-400 font-sans">×</span>
+                  <span className="text-yellow-400 font-sans">×</span>
                   <span className="whitespace-nowrap">{question.b.toLocaleString()}</span>
                 </div>
 
@@ -981,8 +981,8 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                   onClick={() => pronounceQuestion()}
                   className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                     isSpeakingQuestion
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
-                      : 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
+                      ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 shadow-yellow-500/30 animate-pulse'
+                      : 'bg-slate-900/90 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400 shadow-yellow-500/10'
                   }`}
                   title={
                     isVi
@@ -1002,7 +1002,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
               {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                  <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                   <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
@@ -1013,7 +1013,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                       onClick={() => handleSetSpeed(s)}
                       className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                         questionSpeed === s
-                          ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
+                          ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-400 font-extrabold'
                           : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                       }`}
                       title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
@@ -1087,7 +1087,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                 className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
-                    : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
+                    : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                 }`}
               />
               {userAnswer && feedback !== 'correct' && (
@@ -1112,7 +1112,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={feedback === 'correct'}
-                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -1126,7 +1126,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={feedback === 'correct'}
-                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -1149,11 +1149,11 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                   type="button"
                   onClick={handleKeypadBackspace}
                   disabled={feedback === 'correct' || !userAnswer}
-                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                   title={isVi ? 'Xóa 1 số' : 'Backspace'}
                   aria-label="Backspace"
                 >
-                  <Delete className="w-4 h-4 text-slate-400 hover:text-amber-300" />
+                  <Delete className="w-4 h-4 text-slate-400 hover:text-yellow-300" />
                 </button>
               </div>
             </div>
@@ -1212,7 +1212,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
               ) : (
                 <button
                   type="submit"
-                  className="flex-1 h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
+                  className="flex-1 h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                 >
                   <span>{isVi ? 'Kết quả' : 'Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1236,7 +1236,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                 className={`h-12 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   isListening
                     ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse ring-2 ring-rose-400/50'
-                    : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40'
+                    : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border border-slate-700 hover:border-yellow-500/40'
                 }`}
               >
                 {isListening ? (
@@ -1246,7 +1246,7 @@ export const MultiplyBy99Page: React.FC<MultiplyBy99PageProps> = ({
                   </>
                 ) : (
                   <>
-                    <Mic className="w-4 h-4 text-amber-400" />
+                    <Mic className="w-4 h-4 text-yellow-400" />
                     <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                   </>
                 )}

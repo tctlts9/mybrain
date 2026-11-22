@@ -416,9 +416,9 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
             stopListening();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-[#D8E46B]/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-[#D8E46B]" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -431,13 +431,13 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
               stopListening();
               onBack();
             }}
-            className="hover:text-[#D8E46B] transition-colors cursor-pointer underline-offset-2 hover:underline"
+            className="hover:text-yellow-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
           >
             {isVi ? 'Luyện tập' : 'Training'}
           </button>
           <span className="text-slate-600">/</span>
-          <span className="text-[#D8E46B] font-bold flex items-center gap-1">
-            <Zap className="w-3.5 h-3.5 text-[#D8E46B] fill-[#D8E46B]" />
+          <span className="text-yellow-400 font-bold flex items-center gap-1">
+            <Zap className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
             <span>{isVi ? `Thử Thách ${meta.titleVi}` : `${meta.titleEn} Challenge`}</span>
           </span>
         </div>
@@ -448,12 +448,12 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
         className={`rounded-3xl border bg-gradient-to-br from-slate-900/95 via-slate-900/80 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5 ${
           hardMode
             ? 'border-rose-500/45 to-rose-950/35'
-            : 'border-[#D8E46B]/35 to-[#2f360d]/30'
+            : 'border-yellow-500/35 to-yellow-950/30'
         }`}
       >
         <div
           className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-            hardMode ? 'bg-rose-500/15' : 'bg-[#D8E46B]/10'
+            hardMode ? 'bg-rose-500/15' : 'bg-yellow-500/10'
           }`}
         />
 
@@ -464,7 +464,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
               className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-md ${
                 hardMode
                   ? 'bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-rose-500/25'
-                  : 'bg-gradient-to-br from-[#D8E46B] to-[#b7c63a] text-slate-950 shadow-[#D8E46B]/25'
+                  : 'bg-gradient-to-br from-yellow-400 to-amber-500 text-slate-950 shadow-yellow-500/25'
               }`}
             >
               {hardMode ? <Flame className="w-5 h-5 fill-yellow-200 text-yellow-200" /> : <Zap className="w-5 h-5 fill-slate-950" />}
@@ -478,7 +478,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                     <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
                   </span>
                 )}
-                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-[#D8E46B]/15 text-[#e4ee8e] border border-[#D8E46B]/30">
+                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-300 border border-yellow-500/30">
                   {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
                 </span>
               </h1>
@@ -497,7 +497,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
           <div className="flex items-center gap-2 text-xs flex-wrap">
             <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
               <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-[#D8E46B]" />
+                <Clock className="w-3 h-3 text-yellow-400" />
                 <span className="hidden sm:inline">{isVi ? 'Thời gian:' : 'Timer:'}</span>
               </span>
               {timerConfig.limitOptions.map((sec) => (
@@ -511,7 +511,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                   }}
                   className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 disabled:opacity-50 ${
                     timeLimit === sec
-                      ? 'bg-[#D8E46B] text-slate-950 shadow-sm'
+                      ? 'bg-yellow-400 text-slate-950 shadow-sm'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800'
                   }`}
                 >
@@ -524,7 +524,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                   onClick={() => setIsTimerModalOpen(true)}
                   title={isVi ? 'Chỉnh sửa Timer (Trang này / Toàn Tab)' : 'Edit Timer (This Page / All Tab)'}
                   aria-label={isVi ? 'Chỉnh sửa Timer' : 'Edit Timer'}
-                  className="ml-0.5 p-1.5 rounded-lg text-slate-400 hover:text-[#D8E46B] hover:bg-slate-800/90 border border-transparent hover:border-[#D8E46B]/30 transition-all cursor-pointer active:scale-95"
+                  className="ml-0.5 p-1.5 rounded-lg text-slate-400 hover:text-yellow-400 hover:bg-slate-800/90 border border-transparent hover:border-yellow-500/30 transition-all cursor-pointer active:scale-95"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                 </button>
@@ -542,13 +542,13 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
               }}
               className={`p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-[#D8E46B]/15 text-[#e4ee8e] border-[#D8E46B]/40 shadow-xs'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs'
                   : 'bg-slate-950 text-slate-500 border-slate-800'
               }`}
               title={isSpeakerEnabled ? (isVi ? 'Âm thanh: BẬT' : 'Sound: ON') : isVi ? 'Âm thanh: TẮT' : 'Sound: OFF'}
             >
               {isSpeakerEnabled ? (
-                <Volume2 className={`w-4 h-4 text-[#D8E46B] ${isSpeaking ? 'animate-bounce' : ''}`} />
+                <Volume2 className={`w-4 h-4 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
               ) : (
                 <VolumeX className="w-4 h-4 text-slate-500" />
               )}
@@ -570,7 +570,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
               }}
               className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${
                 selectedTopic === topic.id
-                  ? 'bg-gradient-to-r from-[#D8E46B] to-[#b7c63a] text-slate-950 font-bold shadow-md shadow-[#D8E46B]/25 ring-1 ring-[#D8E46B]'
+                  ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                   : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
               }`}
             >
@@ -621,8 +621,8 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
         <div className="w-full space-y-3">
           {status === 'completed' ? (
             <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[#D8E46B]/15 border border-[#D8E46B]/30 flex items-center justify-center mx-auto mb-4 text-[#D8E46B] shadow-lg shadow-[#D8E46B]/20">
-                <Trophy className="w-8 h-8 text-[#D8E46B]" />
+              <div className="w-16 h-16 rounded-2xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center mx-auto mb-4 text-yellow-400 shadow-lg shadow-yellow-500/20">
+                <Trophy className="w-8 h-8 text-yellow-400" />
               </div>
 
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1 flex items-center justify-center gap-2 flex-wrap">
@@ -702,7 +702,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                 <button
                   type="button"
                   onClick={() => startChallenge()}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D8E46B] to-[#b7c63a] hover:from-[#e4ee8e] hover:to-[#c8d84c] text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-[#D8E46B]/25 transition-all cursor-pointer active:scale-95"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-yellow-500/25 transition-all cursor-pointer active:scale-95"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
                   <span>{isVi ? `Bắt đầu thử thách mới (${TOTAL_QUESTIONS} câu)` : `Start New Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
@@ -728,17 +728,17 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
                   <div
                     className={`h-full transition-all duration-200 ease-linear ${
-                      isUrgent && status === 'running' ? 'bg-rose-500 shadow-sm shadow-rose-500/50' : 'bg-[#D8E46B]'
+                      isUrgent && status === 'running' ? 'bg-rose-500 shadow-sm shadow-rose-500/50' : 'bg-yellow-400'
                     }`}
                     style={{ width: `${status === 'idle' ? 100 : timerPercentage}%` }}
                   />
                 </div>
 
                 <div className="flex items-center justify-center gap-2 flex-wrap mb-2 mt-1">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#D8E46B] font-semibold px-2.5 py-0.5 rounded-full bg-[#D8E46B]/10 border border-[#D8E46B]/25">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/25">
                     {isVi ? currentTopicMeta.badgeVi : currentTopicMeta.badgeEn}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-[#e4ee8e] px-2.5 py-0.5 rounded-full bg-[#D8E46B]/10 border border-[#D8E46B]/25">
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-yellow-300 px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/25">
                     <span>{isVi ? `Câu ${questionIndex}/${TOTAL_QUESTIONS}` : `Problem ${questionIndex}/${TOTAL_QUESTIONS}`}</span>
                   </span>
                   <span
@@ -748,7 +748,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                         : 'bg-slate-900 text-slate-300 border-slate-800'
                     }`}
                   >
-                    <Timer className={`w-3 h-3 ${isUrgent && status === 'running' ? 'text-rose-400' : 'text-[#D8E46B]'}`} />
+                    <Timer className={`w-3 h-3 ${isUrgent && status === 'running' ? 'text-rose-400' : 'text-yellow-400'}`} />
                     <span className="font-mono">{status === 'idle' ? `${timeLimit}s` : `${timeLeft}s`}</span>
                   </span>
                 </div>
@@ -763,7 +763,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                         ? 'bg-emerald-500 border-emerald-400 shadow-xs shadow-emerald-500/40'
                         : 'bg-rose-500 border-rose-400 shadow-xs shadow-rose-500/40';
                     } else if (qNum === questionIndex && (status === 'running' || status === 'answered')) {
-                      bg = 'bg-[#D8E46B] border-[#e4ee8e] animate-pulse';
+                      bg = 'bg-yellow-400 border-yellow-300 animate-pulse';
                     }
                     return <div key={idx} className={`h-1.5 rounded-full border transition-all duration-300 ${bg}`} />;
                   })}
@@ -802,7 +802,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 max-w-full py-2 px-1">
                             <div className={`${sizeClass} font-black text-white tracking-normal font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 leading-tight`}>
                               <span className="whitespace-nowrap">{aStr}</span>
-                              <span className="text-[#D8E46B] font-sans">+</span>
+                              <span className="text-yellow-400 font-sans">+</span>
                               <span className="whitespace-nowrap">{bStr}</span>
                             </div>
 
@@ -811,8 +811,8 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                           onClick={() => pronounceQuestion()}
                           className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                             isSpeakingQuestion
-                              ? 'bg-[#D8E46B] text-slate-950 border-[#e4ee8e] ring-2 ring-[#D8E46B]/50 animate-pulse'
-                              : 'bg-slate-900 hover:bg-slate-800 text-[#D8E46B] hover:text-[#e4ee8e] border-[#D8E46B]/40 hover:border-[#D8E46B]'
+                              ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 animate-pulse'
+                              : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400'
                           }`}
                           title={isVi ? 'Phát âm câu hỏi' : 'Pronounce question'}
                         >
@@ -824,7 +824,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
 
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                         <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                          <Gauge className="w-3.5 h-3.5 text-[#D8E46B]" />
+                          <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                           <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                         </span>
                         <div className="flex items-center gap-1 ml-0.5">
@@ -835,7 +835,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                               onClick={() => handleSetSpeed(s)}
                               className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                                 questionSpeed === s
-                                  ? 'bg-[#D8E46B] text-slate-950 shadow-xs ring-1 ring-[#e4ee8e] font-extrabold'
+                                  ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-300 font-extrabold'
                                   : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                               }`}
                             >
@@ -903,7 +903,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                         ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                         : isUrgent && status === 'running'
                         ? 'border-rose-500/80 ring-2 ring-rose-500/30'
-                        : 'border-slate-700 focus:border-[#D8E46B] focus:ring-2 focus:ring-[#D8E46B]/20'
+                        : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                     }`}
                   />
                   {userAnswer && status === 'running' && (
@@ -926,7 +926,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                         type="button"
                         onClick={() => setUserAnswer((p) => (p.length >= 14 ? p : p + digit))}
                         disabled={status !== 'running'}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-[#D8E46B]/20 active:bg-[#D8E46B] active:text-slate-950 text-white hover:text-[#e4ee8e] font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-[#D8E46B]/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       >
                         {digit}
                       </button>
@@ -937,7 +937,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                         type="button"
                         onClick={() => setUserAnswer((p) => (p.length >= 14 ? p : p + digit))}
                         disabled={status !== 'running'}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-[#D8E46B]/20 active:bg-[#D8E46B] active:text-slate-950 text-white hover:text-[#e4ee8e] font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-[#D8E46B]/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       >
                         {digit}
                       </button>
@@ -954,7 +954,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                       type="button"
                       onClick={() => setUserAnswer((p) => p.slice(0, -1))}
                       disabled={status !== 'running' || !userAnswer}
-                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-[#D8E46B]/20 active:bg-[#D8E46B] active:text-slate-950 text-slate-400 hover:text-[#e4ee8e] border border-slate-800 hover:border-[#D8E46B]/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     >
                       <Delete className="w-4 h-4" />
                     </button>
@@ -986,7 +986,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                     <button
                       type="button"
                       onClick={() => startChallenge()}
-                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-[#D8E46B] to-[#b7c63a] hover:from-[#e4ee8e] hover:to-[#c8d84c] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#D8E46B]/25 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                     >
                       <Play className="w-4 h-4 fill-slate-950" />
                       <span>{isVi ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} câu)` : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
@@ -996,7 +996,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                       <button
                         type="button"
                         onClick={() => advanceQuestion(questionIndex + 1, selectedTopic, timeLimit)}
-                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-[#D8E46B] hover:bg-[#e4ee8e] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#D8E46B]/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <span>
                           {autoNextConfig.delaySec > 0
@@ -1016,7 +1016,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                           clearTimers();
                           setStatus('completed');
                         }}
-                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-[#D8E46B] to-[#b7c63a] hover:from-[#e4ee8e] hover:to-[#c8d84c] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#D8E46B]/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <Trophy className="w-4 h-4" />
                         <span>
@@ -1034,7 +1034,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                   ) : (
                     <button
                       type="submit"
-                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-[#D8E46B] hover:bg-[#e4ee8e] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#D8E46B]/20 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                     >
                       <span>{isVi ? 'Kết quả' : 'Submit Answer'}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -1049,7 +1049,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                     className={`h-12 px-3.5 sm:px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse'
-                        : 'bg-slate-900 hover:bg-slate-800 text-[#D8E46B] hover:text-[#e4ee8e] border-slate-700 hover:border-[#D8E46B]/40 disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-slate-700 hover:border-yellow-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                   >
                     {isListening ? (
@@ -1059,7 +1059,7 @@ export const AdditionChallengePage: React.FC<AdditionChallengePageProps> = ({
                       </>
                     ) : (
                       <>
-                        <Mic className="w-4 h-4 text-[#D8E46B]" />
+                        <Mic className="w-4 h-4 text-yellow-400" />
                         <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                       </>
                     )}

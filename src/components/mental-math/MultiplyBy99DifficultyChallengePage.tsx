@@ -1223,10 +1223,10 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
             clearCountdown();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
           title={isVi ? 'Quay về trang Luyện tập Nhân với 99' : 'Back to Multiply by 99 Practice'}
         >
-          <ArrowLeft className="w-4 h-4 text-amber-400" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -1238,7 +1238,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
               clearCountdown();
               onBack();
             }}
-            className="hover:text-amber-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
+            className="hover:text-yellow-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
             title={isVi ? 'Về trang Luyện tập Nhân với 99' : 'Go to Multiply by 99 Practice'}
           >
             {isVi ? 'Nhân với số 99' : 'Multiply by 99'}
@@ -1254,13 +1254,13 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
       {/* Main Challenge Arena Container */}
       <div
         className={`rounded-3xl border bg-gradient-to-br from-slate-900/95 via-slate-900/80 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5 ${
-          hardMode ? 'border-rose-500/45 to-rose-950/35' : 'border-amber-500/35 to-amber-950/30'
+          hardMode ? 'border-rose-500/45 to-rose-950/35' : 'border-yellow-500/35 to-yellow-950/30'
         }`}
       >
         {/* Ambient Top Glow */}
         <div
           className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-            hardMode ? 'bg-rose-500/15' : 'bg-amber-500/10'
+            hardMode ? 'bg-rose-500/15' : 'bg-yellow-500/10'
           }`}
         />
 
@@ -1271,7 +1271,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
               className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-md ${
                 hardMode
                   ? 'bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-rose-500/25'
-                  : 'bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 shadow-amber-500/25'
+                  : 'bg-gradient-to-br from-yellow-400 to-amber-500 text-slate-950 shadow-yellow-500/25'
               }`}
             >
               {hardMode ? <Flame className="w-5 h-5 fill-yellow-200 text-yellow-200" /> : <Zap className="w-5 h-5 fill-slate-950" />}
@@ -1285,7 +1285,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                     <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
                   </span>
                 )}
-                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
                   {dynamicBadge}
                 </span>
               </h1>
@@ -1308,8 +1308,8 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
               answerTimeLimit={answerTimeLimit}
               disabled={gameStatus === 'running'}
               isVi={isVi}
-              clockIconClassName="text-amber-400"
-              limitFocusClassName="focus:border-amber-400"
+              clockIconClassName="text-yellow-400"
+              limitFocusClassName="focus:border-yellow-400"
               onChangeTimeLimit={(sec) => {
                 handleSelectTimeLimit(sec);
                 if (gameStatus === 'idle') setTimeLeft(sec);
@@ -1329,7 +1329,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
               }}
               className={`p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-xs'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs'
                   : 'bg-slate-950 text-slate-500 border-slate-800'
               }`}
               title={
@@ -1343,7 +1343,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
               }
             >
               {isSpeakerEnabled ? (
-                <Volume2 className={`w-4 h-4 text-amber-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
+                <Volume2 className={`w-4 h-4 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
               ) : (
                 <VolumeX className="w-4 h-4 text-slate-500" />
               )}
@@ -1376,7 +1376,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                   title={topicTitle}
                   className={`py-1.5 px-1.5 sm:py-2 sm:px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                     isSelected
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                      ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                       : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                   }`}
                 >
@@ -1405,7 +1405,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                   title={multiplierTitle}
                   className={`py-1.5 px-2 sm:py-2 sm:px-2.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                     isSelected
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                      ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                       : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                   }`}
                 >
@@ -1427,13 +1427,13 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
               }
               className={`py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
                 selectedTopic === 'custom'
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-md shadow-amber-500/25 ring-1 ring-amber-400'
+                  ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                   : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
               }`}
             >
               <SlidersHorizontal
                 className={`w-3.5 h-3.5 shrink-0 ${
-                  selectedTopic === 'custom' ? 'text-slate-950' : 'text-amber-400'
+                  selectedTopic === 'custom' ? 'text-slate-950' : 'text-yellow-400'
                 }`}
               />
               <span className="whitespace-nowrap">
@@ -1444,10 +1444,10 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
             {selectedTopic === 'custom' && (
               <div className="flex flex-wrap items-center gap-2 animate-in fade-in duration-150">
                 {/* Textbox 1: Độ dài Chữ số */}
-                <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-xl border border-amber-500/35">
+                <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-xl border border-yellow-500/35">
                   <label
                     htmlFor="mul99-custom-digit-length"
-                    className="text-[11px] font-semibold text-amber-300 whitespace-nowrap select-none"
+                    className="text-[11px] font-semibold text-yellow-300 whitespace-nowrap select-none"
                   >
                     {isVi ? 'Độ dài Chữ số:' : 'Digit length:'}
                   </label>
@@ -1465,7 +1465,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                     }}
                     aria-label={isVi ? 'Độ dài chữ số (1 - 100)' : 'Digit length (1 - 100)'}
                     title={isVi ? 'Nhập độ dài chữ số (từ 1 đến 100)' : 'Enter digit length (1 to 100)'}
-                    className="w-16 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums transition-colors"
+                    className="w-16 px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 focus:border-yellow-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums transition-colors"
                   />
                 </div>
 
@@ -1596,8 +1596,8 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
         <div className="w-full space-y-3">
           {gameStatus === 'completed' ? (
             <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400 shadow-lg shadow-amber-500/20">
-                <Trophy className="w-8 h-8 text-amber-400" />
+              <div className="w-16 h-16 rounded-2xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center mx-auto mb-4 text-yellow-400 shadow-lg shadow-yellow-500/20">
+                <Trophy className="w-8 h-8 text-yellow-400" />
               </div>
 
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1 flex items-center justify-center gap-2 flex-wrap">
@@ -1696,7 +1696,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                 <button
                   type="button"
                   onClick={() => startChallengeSession()}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all cursor-pointer active:scale-95"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-yellow-500/25 transition-all cursor-pointer active:scale-95"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
                   <span>{isVi ? 'Bắt đầu thử thách mới (10 câu)' : 'Start New Challenge (10 Problems)'}</span>
@@ -1739,7 +1739,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                         : timeLimit <= 4
                         ? 'bg-purple-400'
                         : timeLimit <= 8
-                        ? 'bg-amber-400'
+                        ? 'bg-yellow-400'
                         : 'bg-emerald-400'
                     }`}
                     style={{ width: `${gameStatus === 'idle' ? 100 : timerPercentage}%` }}
@@ -1748,7 +1748,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
 
                 {/* Badges: Topic, Question Progress 10/10, and Countdown */}
                 <div className="flex items-center justify-center gap-2 flex-wrap mb-2 mt-1">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-amber-400 font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
                     {dynamicBadge}
                   </span>
                   <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-cyan-300 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25">
@@ -1763,7 +1763,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                         : 'bg-slate-900 text-slate-300 border-slate-800'
                     }`}
                   >
-                    <Timer className={`w-3 h-3 ${isUrgent && gameStatus === 'running' ? 'text-rose-400' : challengePhase === 'answering' && gameStatus === 'running' ? 'text-cyan-400' : 'text-amber-400'}`} />
+                    <Timer className={`w-3 h-3 ${isUrgent && gameStatus === 'running' ? 'text-rose-400' : challengePhase === 'answering' && gameStatus === 'running' ? 'text-cyan-400' : 'text-yellow-400'}`} />
                     <span className="font-mono">
                       {gameStatus === 'idle'
                         ? `${timeLimit}s`
@@ -1787,7 +1787,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                         ? 'bg-emerald-500 border-emerald-400 shadow-xs shadow-emerald-500/40'
                         : 'bg-rose-500 border-rose-400 shadow-xs shadow-rose-500/40';
                     } else if (qNum === currentQuestionIndex && (gameStatus === 'running' || gameStatus === 'answered')) {
-                      bg = 'bg-amber-400 border-amber-300 animate-pulse';
+                      bg = 'bg-yellow-400 border-amber-300 animate-pulse';
                     }
                     return (
                       <div
@@ -1853,7 +1853,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                                   : 'text-xl sm:text-2xl md:text-3xl'
                               }`}
                             >
-                              <span className="text-amber-400 font-sans shrink-0">×</span>
+                              <span className="text-yellow-400 font-sans shrink-0">×</span>
                               <div className="flex flex-col items-center justify-center gap-1 leading-snug">
                                 {multiplierLines.map((line, idx) => (
                                   <span key={idx} className="whitespace-nowrap">
@@ -1869,8 +1869,8 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                               onClick={() => pronounceQuestion()}
                               className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                                 isSpeakingQuestion
-                                  ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
-                                  : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
+                                  ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 shadow-yellow-500/30 animate-pulse'
+                                  : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400 shadow-yellow-500/10'
                               }`}
                               title={
                                 isVi
@@ -1887,7 +1887,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full py-1 px-1">
                           <div className={`font-black text-white font-mono tabular-nums flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 tracking-tight select-none leading-tight ${formulaFontSize}`}>
                             <span className="whitespace-nowrap">{formatBigIntStr(question.a)}</span>
-                            <span className="text-amber-400 font-sans">×</span>
+                            <span className="text-yellow-400 font-sans">×</span>
                             <span className="whitespace-nowrap">{formatBigIntStr(question.b)}</span>
                           </div>
 
@@ -1897,8 +1897,8 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                             onClick={() => pronounceQuestion()}
                             className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                               isSpeakingQuestion
-                                ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/30 animate-pulse'
-                                : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400 shadow-amber-500/10'
+                                ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 shadow-yellow-500/30 animate-pulse'
+                                : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400 shadow-yellow-500/10'
                             }`}
                             title={
                               isVi
@@ -1915,7 +1915,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                       {/* Tùy chỉnh tốc độ loa phát câu hỏi (1.25x, 1.5x, 1.75x) */}
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                         <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                          <Gauge className="w-3.5 h-3.5 text-amber-400" />
+                          <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                           <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                         </span>
                         <div className="flex items-center gap-1 ml-0.5">
@@ -1926,7 +1926,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                               onClick={() => handleSetSpeed(s)}
                               className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                                 questionSpeed === s
-                                  ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-400 font-extrabold'
+                                  ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-400 font-extrabold'
                                   : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                               }`}
                               title={isVi ? `Chỉnh tốc độ đọc ${s}x` : `Playback speed ${s}x`}
@@ -2027,7 +2027,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                       canAnswer
                         ? isListening
                           ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
-                          : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'
+                          : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                         : 'border-slate-850 opacity-60 cursor-not-allowed'
                     }`}
                   />
@@ -2053,7 +2053,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                         type="button"
                         onClick={() => handleKeypadDigit(String(digit))}
                         disabled={!canAnswer}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                         aria-label={`Digit ${digit}`}
                       >
                         {digit}
@@ -2067,7 +2067,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                         type="button"
                         onClick={() => handleKeypadDigit(String(digit))}
                         disabled={!canAnswer}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-white hover:text-amber-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-amber-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                         aria-label={`Digit ${digit}`}
                       >
                         {digit}
@@ -2090,11 +2090,11 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                       type="button"
                       onClick={handleKeypadBackspace}
                       disabled={!canAnswer || !userAnswer}
-                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-amber-500/20 active:bg-amber-500 active:text-slate-950 text-slate-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       title={isVi ? 'Xóa 1 số' : 'Backspace'}
                       aria-label="Backspace"
                     >
-                      <Delete className="w-4 h-4 text-slate-400 hover:text-amber-300" />
+                      <Delete className="w-4 h-4 text-slate-400 hover:text-yellow-300" />
                     </button>
                   </div>
                 </div>
@@ -2127,7 +2127,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                     <button
                       type="button"
                       onClick={() => startChallengeSession()}
-                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                     >
                       <Play className="w-4 h-4 fill-slate-950" />
                       <span>{isVi ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} phép nhân)` : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
@@ -2160,7 +2160,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                           }
                           setGameStatus('completed');
                         }}
-                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-emerald-500 hover:from-yellow-300 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <Trophy className="w-4 h-4" />
                         <span>
@@ -2188,7 +2188,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                   ) : (
                     <button
                       type="submit"
-                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                     >
                       <span>{isVi ? 'Kết quả' : 'Submit Answer'}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -2204,7 +2204,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                     className={`h-12 px-3.5 sm:px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse'
-                        : 'bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-700 hover:border-amber-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border border-slate-700 hover:border-yellow-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                   >
                     {isListening ? (
@@ -2214,7 +2214,7 @@ export const MultiplyBy99DifficultyChallengePage: React.FC<MultiplyBy99Difficult
                       </>
                     ) : (
                       <>
-                        <Mic className="w-4 h-4 text-amber-400" />
+                        <Mic className="w-4 h-4 text-yellow-400" />
                         <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                       </>
                     )}

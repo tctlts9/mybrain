@@ -608,9 +608,9 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
             stopListening();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-blue-400" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -623,7 +623,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
               stopListening();
               onBack();
             }}
-            className="hover:text-blue-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
+            className="hover:text-yellow-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
           >
             {isVi ? 'Luyện tập' : 'Training'}
           </button>
@@ -640,12 +640,12 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
         className={`rounded-3xl border bg-gradient-to-br from-slate-900/95 via-slate-900/80 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5 ${
           hardMode
             ? 'border-rose-500/45 to-rose-950/35'
-            : 'border-blue-500/35 to-blue-950/30'
+            : 'border-yellow-500/35 to-yellow-950/30'
         }`}
       >
         <div
           className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-            hardMode ? 'bg-rose-500/15' : 'bg-blue-500/10'
+            hardMode ? 'bg-rose-500/15' : 'bg-yellow-500/10'
           }`}
         />
 
@@ -656,10 +656,10 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
               className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-md ${
                 hardMode
                   ? 'bg-gradient-to-br from-rose-500 to-orange-500 shadow-rose-500/25'
-                  : 'bg-gradient-to-br from-blue-500 to-indigo-500 shadow-blue-500/25'
+                  : 'bg-gradient-to-br from-yellow-400 to-amber-500 text-slate-950 shadow-yellow-500/25'
               }`}
             >
-              {hardMode ? <Flame className="w-5 h-5 fill-yellow-200 text-yellow-200" /> : <Zap className="w-5 h-5 fill-white" />}
+              {hardMode ? <Flame className="w-5 h-5 fill-yellow-200 text-yellow-200" /> : <Zap className="w-5 h-5 fill-slate-950" />}
             </div>
             <div>
               <h1 className="font-bold text-white text-base sm:text-lg flex flex-wrap items-center gap-2">
@@ -670,7 +670,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                     <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
                   </span>
                 )}
-                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">
                   {dynamicBadge}
                 </span>
               </h1>
@@ -692,8 +692,8 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
               answerTimeLimit={answerTimeLimit}
               disabled={status === 'running'}
               isVi={isVi}
-              clockIconClassName="text-blue-400"
-              limitFocusClassName="focus:border-blue-400"
+              clockIconClassName="text-yellow-400"
+              limitFocusClassName="focus:border-yellow-400"
               onChangeTimeLimit={(sec) => {
                 setTimeLimit(sec);
                 if (status === 'idle') setTimeLeft(sec);
@@ -715,13 +715,13 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
               }}
               className={`p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-blue-500/15 text-blue-300 border-blue-500/40 shadow-xs'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs'
                   : 'bg-slate-950 text-slate-500 border-slate-800'
               }`}
               title={isSpeakerEnabled ? (isVi ? 'Âm thanh: BẬT' : 'Sound: ON') : isVi ? 'Âm thanh: TẮT' : 'Sound: OFF'}
             >
               {isSpeakerEnabled ? (
-                <Volume2 className={`w-4 h-4 text-blue-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
+                <Volume2 className={`w-4 h-4 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
               ) : (
                 <VolumeX className="w-4 h-4 text-slate-500" />
               )}
@@ -749,7 +749,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${
                   selectedTopic === topic.id
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold shadow-md shadow-blue-500/25 ring-1 ring-blue-400'
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                     : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                 }`}
               >
@@ -874,8 +874,8 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
         <div className="w-full space-y-3">
           {status === 'completed' ? (
             <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mx-auto mb-4 text-blue-400 shadow-lg shadow-blue-500/20">
-                <Trophy className="w-8 h-8 text-blue-400" />
+              <div className="w-16 h-16 rounded-2xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center mx-auto mb-4 text-yellow-400 shadow-lg shadow-yellow-500/20">
+                <Trophy className="w-8 h-8 text-yellow-400" />
               </div>
 
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1 flex items-center justify-center gap-2 flex-wrap">
@@ -955,9 +955,9 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                 <button
                   type="button"
                   onClick={() => startChallenge()}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all cursor-pointer active:scale-95"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-yellow-500/25 transition-all cursor-pointer active:scale-95"
                 >
-                  <Play className="w-4 h-4 fill-white" />
+                  <Play className="w-4 h-4 fill-slate-950" />
                   <span>{isVi ? `Bắt đầu thử thách mới (${TOTAL_QUESTIONS} câu)` : `Start New Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
                 </button>
 
@@ -995,17 +995,17 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                         ? 'bg-rose-500 shadow-sm shadow-rose-500/50'
                         : challengePhase === 'answering' && status === 'running'
                         ? 'bg-cyan-400'
-                        : 'bg-blue-400'
+                        : 'bg-yellow-400'
                     }`}
                     style={{ width: `${status === 'idle' ? 100 : timerPercentage}%` }}
                   />
                 </div>
 
                 <div className="flex items-center justify-center gap-2 flex-wrap mb-2 mt-1">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-blue-400 font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
                     {dynamicBadge}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-indigo-300 px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/25">
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-amber-300 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25">
                     <span>{isVi ? `Câu ${questionIndex}/${TOTAL_QUESTIONS}` : `Problem ${questionIndex}/${TOTAL_QUESTIONS}`}</span>
                   </span>
                   <span
@@ -1017,7 +1017,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                         : 'bg-slate-900 text-slate-300 border-slate-800'
                     }`}
                   >
-                    <Timer className={`w-3 h-3 ${isUrgent && status === 'running' ? 'text-rose-400' : challengePhase === 'answering' && status === 'running' ? 'text-cyan-400' : 'text-blue-400'}`} />
+                    <Timer className={`w-3 h-3 ${isUrgent && status === 'running' ? 'text-rose-400' : challengePhase === 'answering' && status === 'running' ? 'text-cyan-400' : 'text-yellow-400'}`} />
                     <span className="font-mono">
                       {status === 'idle'
                         ? `${timeLimit}s`
@@ -1040,7 +1040,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                         ? 'bg-emerald-500 border-emerald-400 shadow-xs shadow-emerald-500/40'
                         : 'bg-rose-500 border-rose-400 shadow-xs shadow-rose-500/40';
                     } else if (qNum === questionIndex && (status === 'running' || status === 'answered')) {
-                      bg = 'bg-blue-400 border-blue-300 animate-pulse';
+                      bg = 'bg-yellow-400 border-yellow-300 animate-pulse';
                     }
                     return <div key={idx} className={`h-1.5 rounded-full border transition-all duration-300 ${bg}`} />;
                   })}
@@ -1087,7 +1087,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                                 </span>
                               ))}
                             </div>
-                            <span className="text-xl sm:text-2xl md:text-3xl text-blue-400 ml-1 font-extrabold leading-none -translate-y-2 select-none">
+                            <span className="text-xl sm:text-2xl md:text-3xl text-yellow-400 ml-1 font-extrabold leading-none -translate-y-2 select-none">
                               ^{question.b}
                             </span>
                           </div>
@@ -1097,8 +1097,8 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                             onClick={() => pronounceQuestion()}
                             className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                               isSpeakingQuestion
-                                ? 'bg-blue-500 text-white border-blue-400 ring-2 ring-blue-400/50 animate-pulse'
-                                : 'bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border-blue-500/40 hover:border-blue-400'
+                                ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 animate-pulse'
+                                : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400'
                             }`}
                             title={isVi ? 'Phát âm câu hỏi' : 'Pronounce question'}
                           >
@@ -1117,7 +1117,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                             } font-extrabold text-white tracking-tight font-sans tabular-nums leading-none inline-flex items-start justify-center whitespace-nowrap`}
                           >
                             <span>{formattedA}</span>
-                            <span className="text-xl sm:text-3xl md:text-4xl text-blue-400 ml-1 font-extrabold leading-none -translate-y-1.5 sm:-translate-y-2 select-none">
+                            <span className="text-xl sm:text-3xl md:text-4xl text-yellow-400 ml-1 font-extrabold leading-none -translate-y-1.5 sm:-translate-y-2 select-none">
                               {question.b}
                             </span>
                           </div>
@@ -1127,8 +1127,8 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                             onClick={() => pronounceQuestion()}
                             className={`p-2.5 sm:p-3 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                               isSpeakingQuestion
-                                ? 'bg-blue-500 text-white border-blue-400 ring-2 ring-blue-400/50 animate-pulse'
-                                : 'bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border-blue-500/40 hover:border-blue-400'
+                                ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 animate-pulse'
+                                : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400'
                             }`}
                             title={isVi ? 'Phát âm câu hỏi' : 'Pronounce question'}
                           >
@@ -1139,7 +1139,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
 
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                         <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                          <Gauge className="w-3.5 h-3.5 text-blue-400" />
+                          <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                           <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                         </span>
                         <div className="flex items-center gap-1 ml-0.5">
@@ -1150,7 +1150,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                               onClick={() => handleSetSpeed(s)}
                               className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                                 questionSpeed === s
-                                  ? 'bg-blue-500 text-white shadow-xs ring-1 ring-blue-400 font-extrabold'
+                                  ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-400 font-extrabold'
                                   : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                               }`}
                             >
@@ -1232,7 +1232,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                         ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                         : isUrgent && canAnswer
                         ? 'border-rose-500/80 ring-2 ring-rose-500/30'
-                        : 'border-slate-700 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20'
+                        : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                     }`}
                   />
                   {userAnswer && canAnswer && (
@@ -1255,7 +1255,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                         type="button"
                         onClick={() => setUserAnswer((p) => (p.length >= 250 ? p : p + digit))}
                         disabled={!canAnswer}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-blue-500/20 active:bg-blue-500 active:text-white text-white hover:text-blue-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-blue-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       >
                         {digit}
                       </button>
@@ -1266,7 +1266,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                         type="button"
                         onClick={() => setUserAnswer((p) => (p.length >= 250 ? p : p + digit))}
                         disabled={!canAnswer}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-blue-500/20 active:bg-blue-500 active:text-white text-white hover:text-blue-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-blue-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       >
                         {digit}
                       </button>
@@ -1283,7 +1283,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                       type="button"
                       onClick={() => setUserAnswer((p) => p.slice(0, -1))}
                       disabled={!canAnswer || !userAnswer}
-                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-blue-500/20 active:bg-blue-500 active:text-white text-slate-400 hover:text-blue-300 border border-slate-800 hover:border-blue-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     >
                       <Delete className="w-4 h-4" />
                     </button>
@@ -1315,9 +1315,9 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                     <button
                       type="button"
                       onClick={() => startChallenge()}
-                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-500/25 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                     >
-                      <Play className="w-4 h-4 fill-white" />
+                      <Play className="w-4 h-4 fill-slate-950" />
                       <span>{isVi ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} câu)` : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
                     </button>
                   ) : status === 'answered' ? (
@@ -1346,7 +1346,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                           setStatus('completed');
                           setChallengePhase('idle');
                         }}
-                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-400 hover:to-emerald-400 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-emerald-500 hover:from-yellow-300 hover:to-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <Trophy className="w-4 h-4" />
                         <span>
@@ -1374,7 +1374,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                   ) : (
                     <button
                       type="submit"
-                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-500/20 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                     >
                       <span>{isVi ? 'Kết quả' : 'Submit Answer'}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -1389,7 +1389,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                     className={`h-12 px-3.5 sm:px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse'
-                        : 'bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border-slate-700 hover:border-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-slate-700 hover:border-yellow-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                   >
                     {isListening ? (
@@ -1399,7 +1399,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                       </>
                     ) : (
                       <>
-                        <Mic className="w-4 h-4 text-blue-400" />
+                        <Mic className="w-4 h-4 text-yellow-400" />
                         <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                       </>
                     )}

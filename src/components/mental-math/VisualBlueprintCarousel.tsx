@@ -260,7 +260,7 @@ const ACCENT_THEME: Record<
 
 export const VisualBlueprintCarousel: React.FC<VisualBlueprintCarouselProps> = ({
   slides,
-  accentColor = 'amber',
+  accentColor = 'yellow',
 }) => {
   const { language } = useLanguage();
   const isVi = language === 'vi';

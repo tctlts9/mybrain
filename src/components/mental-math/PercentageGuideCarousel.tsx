@@ -278,8 +278,8 @@ const MobileInteractiveZoomViewer: React.FC<MobileInteractiveZoomViewerProps> = 
     >
       {/* Top Floating Control Toolbar */}
       <div className="absolute top-3 inset-x-3 sm:top-5 sm:inset-x-6 z-30 flex items-center justify-between pointer-events-auto">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-[#F4A7B9] font-mono text-xs font-bold shadow-xl backdrop-blur-md">
-          <ZoomIn className="w-3.5 h-3.5 text-[#F4A7B9]" />
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-yellow-400 font-mono text-xs font-bold shadow-xl backdrop-blur-md">
+          <ZoomIn className="w-3.5 h-3.5 text-yellow-400" />
           <span>{Math.round(scale * 100)}%</span>
         </div>
 
@@ -291,7 +291,7 @@ const MobileInteractiveZoomViewer: React.FC<MobileInteractiveZoomViewerProps> = 
             title={isVi ? 'Phóng to (+)' : 'Zoom In (+)'}
             aria-label="Zoom in"
           >
-            <ZoomIn className="w-4 h-4 text-[#F4A7B9]" />
+            <ZoomIn className="w-4 h-4 text-yellow-400" />
           </button>
 
           <button
@@ -302,14 +302,14 @@ const MobileInteractiveZoomViewer: React.FC<MobileInteractiveZoomViewerProps> = 
             title={isVi ? 'Thu nhỏ (-)' : 'Zoom Out (-)'}
             aria-label="Zoom out"
           >
-            <ZoomOut className="w-4 h-4 text-[#F4A7B9]" />
+            <ZoomOut className="w-4 h-4 text-yellow-400" />
           </button>
 
           {scale > 1.05 && (
             <button
               type="button"
               onClick={handleResetZoom}
-              className="w-9 h-9 rounded-full bg-slate-900/90 hover:bg-slate-800 text-[#F4A7B9] border border-[#F4A7B9]/40 flex items-center justify-center transition-all active:scale-90 shadow-xl cursor-pointer"
+              className="w-9 h-9 rounded-full bg-slate-900/90 hover:bg-slate-800 text-yellow-400 border border-yellow-500/40 flex items-center justify-center transition-all active:scale-90 shadow-xl cursor-pointer"
               title={isVi ? 'Đặt lại 100%' : 'Reset 100%'}
               aria-label="Reset zoom"
             >
@@ -351,7 +351,7 @@ const MobileInteractiveZoomViewer: React.FC<MobileInteractiveZoomViewerProps> = 
       {/* Bottom Hint Banner for Mobile Touch Users */}
       <div className="absolute bottom-4 inset-x-4 sm:bottom-6 sm:inset-x-auto flex justify-center pointer-events-none z-30">
         <div className="px-3 py-1.5 rounded-full bg-slate-950/85 border border-slate-800 text-[11px] sm:text-xs text-slate-300 flex items-center gap-2 shadow-2xl backdrop-blur-md text-center">
-          <Move className="w-3.5 h-3.5 text-[#F4A7B9] shrink-0" />
+          <Move className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
           <span>
             {isVi
               ? 'Vuốt 2 ngón tay để zoom • Chạm 2 lần để zoom nhanh • Kéo để di chuyển'
@@ -472,13 +472,13 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
       {/* Top Header: Title & Navigation Controls */}
       <div className="flex items-center justify-between px-1 sm:px-2 pt-0.5 sm:pt-1">
         <div className="flex items-center gap-2 sm:gap-2.5">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-[#F4A7B9]/15 border border-[#F4A7B9]/30 flex items-center justify-center text-[#F4A7B9] shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 shrink-0">
             <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <div>
             <h2 className="font-bold text-white text-xs sm:text-sm md:text-base flex items-center gap-1.5 sm:gap-2">
               <span>{isVi ? 'Hướng Dẫn' : 'Visual Guide'}</span>
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#F4A7B9]" />
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" />
             </h2>
             <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">
               {isVi ? 'Vuốt ngang để chuyển bước • Vuốt 2 ngón để zoom' : 'Swipe to switch steps • Pinch to zoom'}
@@ -499,14 +499,14 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
             <span className="sm:hidden">{isVi ? 'Tải PDF' : 'PDF'}</span>
           </button>
 
-          <span className="px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950 border border-slate-800 text-[11px] sm:text-xs font-mono font-bold text-[#F4A7B9] shadow-xs">
+          <span className="px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950 border border-slate-800 text-[11px] sm:text-xs font-mono font-bold text-yellow-400 shadow-xs">
             {activeIndex + 1} / {slides.length}
           </span>
           <button
             type="button"
             onClick={() => scrollToSlide(activeIndex - 1)}
             disabled={activeIndex === 0}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-[#F4A7B9]/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-yellow-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
             title={isVi ? 'Ảnh trước' : 'Previous'}
             aria-label="Previous image"
           >
@@ -516,7 +516,7 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
             type="button"
             onClick={() => scrollToSlide(activeIndex + 1)}
             disabled={activeIndex === slides.length - 1}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-[#F4A7B9]/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-yellow-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
             title={isVi ? 'Ảnh sau' : 'Next'}
             aria-label="Next image"
           >
@@ -526,7 +526,7 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
       </div>
 
       {/* Main Image Slider Container: Responsive for Mobile, Tablet, Web App */}
-      <div className="relative group overflow-hidden rounded-xl sm:rounded-2xl border border-[#F4A7B9]/25 bg-[#061830] shadow-xl">
+      <div className="relative group overflow-hidden rounded-xl sm:rounded-2xl border border-yellow-500/25 bg-[#061830] shadow-xl">
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
@@ -562,7 +562,7 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
                     setInitialZoomScale(1);
                     setZoomImage(slide.image);
                   }}
-                  className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-[#F4A7B9] transition-all cursor-pointer backdrop-blur-md opacity-85 hover:opacity-100 shadow-md active:scale-90 z-10"
+                  className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-yellow-400 transition-all cursor-pointer backdrop-blur-md opacity-85 hover:opacity-100 shadow-md active:scale-90 z-10"
                   title={isVi ? 'Phóng to ảnh' : 'Zoom image'}
                   aria-label="Zoom diagram"
                 >
@@ -577,9 +577,9 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
                     setInitialZoomScale(1);
                     setZoomImage(slide.image);
                   }}
-                  className="sm:hidden absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/85 hover:bg-slate-900 border border-[#F4A7B9]/40 text-[10px] font-semibold text-[#FBCFE8] backdrop-blur-md cursor-pointer active:scale-95 shadow-lg z-10"
+                  className="sm:hidden absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/85 hover:bg-slate-900 border border-yellow-500/40 text-[10px] font-semibold text-yellow-300 backdrop-blur-md cursor-pointer active:scale-95 shadow-lg z-10"
                 >
-                  <ZoomIn className="w-3.5 h-3.5 text-[#F4A7B9]" />
+                  <ZoomIn className="w-3.5 h-3.5 text-yellow-400" />
                   <span>{isVi ? 'Vuốt zoom ảnh' : 'Pinch to zoom'}</span>
                 </button>
               </div>
@@ -592,7 +592,7 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
           type="button"
           onClick={() => scrollToSlide(activeIndex - 1)}
           disabled={activeIndex === 0}
-          className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-950/80 hover:bg-[#F4A7B9] hover:text-slate-950 disabled:opacity-0 disabled:pointer-events-none text-white border border-slate-700/80 backdrop-blur-md items-center justify-center transition-all shadow-lg active:scale-90 z-20 cursor-pointer"
+          className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-950/80 hover:bg-yellow-400 hover:text-slate-950 disabled:opacity-0 disabled:pointer-events-none text-white border border-slate-700/80 backdrop-blur-md items-center justify-center transition-all shadow-lg active:scale-90 z-20 cursor-pointer"
           aria-label="Previous"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -601,7 +601,7 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
           type="button"
           onClick={() => scrollToSlide(activeIndex + 1)}
           disabled={activeIndex === slides.length - 1}
-          className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-950/80 hover:bg-[#F4A7B9] hover:text-slate-950 disabled:opacity-0 disabled:pointer-events-none text-white border border-slate-700/80 backdrop-blur-md items-center justify-center transition-all shadow-lg active:scale-90 z-20 cursor-pointer"
+          className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-950/80 hover:bg-yellow-400 hover:text-slate-950 disabled:opacity-0 disabled:pointer-events-none text-white border border-slate-700/80 backdrop-blur-md items-center justify-center transition-all shadow-lg active:scale-90 z-20 cursor-pointer"
           aria-label="Next"
         >
           <ChevronRight className="w-5 h-5" />
@@ -616,7 +616,7 @@ export const PercentageGuideCarousel: React.FC<PercentageGuideCarouselProps> = (
               onClick={() => scrollToSlide(i)}
               className={`transition-all rounded-full cursor-pointer ${
                 activeIndex === i
-                  ? 'w-5 sm:w-6 h-1.5 sm:h-2 bg-[#F4A7B9] shadow-[0_0_8px_rgba(244,167,185,0.9)]'
+                  ? 'w-5 sm:w-6 h-1.5 sm:h-2 bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.9)]'
                   : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-slate-600 hover:bg-slate-400'
               }`}
               aria-label={`Slide ${i + 1}`}

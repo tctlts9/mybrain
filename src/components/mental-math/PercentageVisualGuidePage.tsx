@@ -31,9 +31,9 @@ export const PercentageVisualGuidePage: React.FC<PercentageVisualGuidePageProps>
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-[#F4A7B9]/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-[#F4A7B9]" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>
             {isVi
               ? `Quay lại ${meta.titleVi}`
@@ -55,7 +55,7 @@ export const PercentageVisualGuidePage: React.FC<PercentageVisualGuidePageProps>
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
             <span>{isVi ? meta.titleVi : meta.titleEn}</span>
             <span className="text-slate-600">/</span>
-            <span className="text-[#F4A7B9] font-semibold flex items-center gap-1">
+            <span className="text-yellow-400 font-semibold flex items-center gap-1">
               <BookOpen className="w-3 h-3" />
               <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
             </span>

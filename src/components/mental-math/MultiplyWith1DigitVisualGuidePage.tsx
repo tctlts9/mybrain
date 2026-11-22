@@ -181,9 +181,9 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-amber-400" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại Luyện tập Nhân 1 chữ số' : 'Back to Practice'}</span>
         </button>
 
@@ -203,8 +203,8 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
             <span>{isVi ? 'Nhân với 1 chữ số' : 'Multiply by 1-Digit'}</span>
             <span className="text-slate-600">/</span>
-            <span className="text-amber-400 font-semibold flex items-center gap-1">
-              <BookOpen className="w-3 h-3 text-amber-400" />
+            <span className="text-yellow-400 font-semibold flex items-center gap-1">
+              <BookOpen className="w-3 h-3 text-yellow-400" />
               <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
             </span>
           </div>
@@ -223,7 +223,7 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
               type="button"
               onClick={() => setSlideIndex(idx)}
               className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                slideIndex === idx ? 'w-8 bg-amber-400' : 'w-2.5 bg-slate-800 hover:bg-slate-700'
+                slideIndex === idx ? 'w-8 bg-yellow-400' : 'w-2.5 bg-slate-800 hover:bg-slate-700'
               }`}
               title={`Slide ${idx + 1}`}
             />
@@ -254,11 +254,11 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
       </div>
 
       {/* Active Slide Card */}
-      <div className="rounded-3xl border border-amber-500/30 bg-slate-950/90 p-5 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
+      <div className="rounded-3xl border border-yellow-500/30 bg-slate-950/90 p-5 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
         {/* Title and Badge */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-400 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-yellow-400 px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/20">
               {isVi ? cur.badgeVi : cur.badgeEn}
             </span>
             <h2 className="text-lg sm:text-2xl font-bold text-white mt-1.5">
@@ -267,8 +267,8 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
           </div>
 
           {/* Large Equation */}
-          <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900 border border-amber-500/30 shadow-inner font-mono font-black text-xl sm:text-2xl text-white">
-            <span className="text-amber-400">{cur.formula}</span>
+          <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900 border border-yellow-500/30 shadow-inner font-mono font-black text-xl sm:text-2xl text-white">
+            <span className="text-yellow-400">{cur.formula}</span>
             <span className="text-emerald-400">{cur.result}</span>
           </div>
         </div>
@@ -278,10 +278,10 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
           {steps.map((st, i) => (
             <div
               key={i}
-              className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/90 space-y-3 relative group hover:border-amber-500/40 transition-all shadow-md"
+              className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/90 space-y-3 relative group hover:border-yellow-500/40 transition-all shadow-md"
             >
               <div className="flex items-center justify-between">
-                <span className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 font-bold font-mono text-xs flex items-center justify-center border border-amber-500/30">
+                <span className="w-7 h-7 rounded-full bg-yellow-500/20 text-yellow-300 font-bold font-mono text-xs flex items-center justify-center border border-yellow-500/30">
                   {i + 1}
                 </span>
                 <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
@@ -295,10 +295,10 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
         </div>
 
         {/* Pro Tip Box */}
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs text-amber-200">
-          <Lightbulb className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3 text-xs text-yellow-200">
+          <Lightbulb className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-bold uppercase tracking-wider text-[11px] text-amber-400 block">
+            <span className="font-bold uppercase tracking-wider text-[11px] text-yellow-400 block">
               {isVi ? 'Bí Quyết Tính Nhanh' : 'Pro Tip'}
             </span>
             <p className="leading-relaxed">{isVi ? cur.tipVi : cur.tipEn}</p>
@@ -327,7 +327,7 @@ export const MultiplyWith1DigitVisualGuidePage: React.FC<MultiplyWith1DigitVisua
           )}
           <button
             onClick={onBack}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95"
+            className="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-yellow-500/20 transition-all cursor-pointer active:scale-95"
           >
             <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Training'}</span>
           </button>

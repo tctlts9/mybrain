@@ -599,9 +599,9 @@ export const MentalMathTab: React.FC = () => {
           <button
             type="button"
             onClick={() => setCurrentPage('card')}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-white transition-all text-xs sm:text-sm font-semibold cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-slate-300 hover:text-white transition-all text-xs sm:text-sm font-semibold cursor-pointer active:scale-95"
           >
-            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <ArrowLeft className="w-4 h-4 text-yellow-400" />
             <span>{t.backToMentalMath}</span>
           </button>
 
@@ -625,7 +625,7 @@ export const MentalMathTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsTimerModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/50 text-amber-300 hover:text-amber-200 transition-all text-xs font-bold cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-yellow-500/50 text-yellow-300 hover:text-yellow-200 transition-all text-xs font-bold cursor-pointer active:scale-95"
                 title={isVi ? 'Chỉnh sửa Timer toàn Tab hoặc từng Page' : 'Edit Timer globally or per page'}
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -657,7 +657,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('two-digit-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={cardBg}
@@ -666,9 +666,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply2Title}
               </h2>
             </div>
@@ -685,7 +685,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('multiply-11-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={card11Bg}
@@ -694,9 +694,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply11Title}
               </h2>
             </div>
@@ -713,7 +713,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('multiply-1-digit-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={card1DigitBg}
@@ -722,9 +722,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply1DigitTitle}
               </h2>
             </div>
@@ -741,7 +741,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('multiply-99-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={cardMultiplyBg}
@@ -750,9 +750,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/55 via-slate-950/15 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardMultiply99Title}
               </h2>
             </div>
@@ -785,9 +785,9 @@ export const MentalMathTab: React.FC = () => {
           <button
             type="button"
             onClick={() => setCurrentPage('card')}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-slate-300 hover:text-white transition-all text-xs sm:text-sm font-semibold cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-slate-300 hover:text-white transition-all text-xs sm:text-sm font-semibold cursor-pointer active:scale-95"
           >
-            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <ArrowLeft className="w-4 h-4 text-yellow-400" />
             <span>{t.backToMentalMath}</span>
           </button>
 
@@ -811,7 +811,7 @@ export const MentalMathTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsTimerModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/50 text-amber-300 hover:text-amber-200 transition-all text-xs font-bold cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 hover:border-yellow-500/50 text-yellow-300 hover:text-yellow-200 transition-all text-xs font-bold cursor-pointer active:scale-95"
                 title={isVi ? 'Chỉnh sửa Timer toàn Tab hoặc từng Page' : 'Edit Timer globally or per page'}
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -845,7 +845,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('percentage-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={cardPercentBasicBg}
@@ -854,9 +854,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardPercentBasicTitle}
               </h2>
             </div>
@@ -879,7 +879,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('percentage-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={cardPercentChangeBg}
@@ -888,9 +888,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardPercentChangeTitle}
               </h2>
             </div>
@@ -913,7 +913,7 @@ export const MentalMathTab: React.FC = () => {
                 setCurrentPage('percentage-page');
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={cardPercentReverseBg}
@@ -922,9 +922,9 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {t.cardPercentReverseTitle}
               </h2>
             </div>
@@ -1027,15 +1027,15 @@ export const MentalMathTab: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsTimerModalOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/50 text-slate-200 hover:text-amber-200 shadow-lg transition-all text-xs sm:text-sm font-bold cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-yellow-500/50 text-slate-200 hover:text-yellow-200 shadow-lg transition-all text-xs sm:text-sm font-bold cursor-pointer active:scale-95"
               title={
                 isVi
                   ? 'Chỉnh sửa Timer cho toàn Tab Mental Math hoặc riêng lẻ từng page'
                   : 'Edit Timer for all Mental Math pages or individually per page'
               }
             >
-              <Clock className="w-4 h-4 text-amber-400" />
-              <SlidersHorizontal className="w-3.5 h-3.5 text-amber-300" />
+              <Clock className="w-4 h-4 text-yellow-400" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-yellow-300" />
               <span>{isVi ? 'Chỉnh sửa Timer' : 'Edit Timer'}</span>
             </button>
           )}
@@ -1054,7 +1054,7 @@ export const MentalMathTab: React.FC = () => {
                 card.onSelect();
               }
             }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-amber-500/40 hover:border-amber-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-amber-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
           >
             <img
               src={card.image}
@@ -1063,14 +1063,14 @@ export const MentalMathTab: React.FC = () => {
               className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
             />
             <div className="absolute inset-0 bg-radial from-slate-950/70 via-slate-950/30 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-amber-400/20 group-hover:ring-amber-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
 
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none gap-1.5">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-amber-100 whitespace-nowrap">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
                 {card.title}
               </h2>
               {card.subtitle && (
-                <p className="text-[11px] sm:text-xs font-medium text-amber-200/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.95)] max-w-[90%] truncate">
+                <p className="text-[11px] sm:text-xs font-medium text-yellow-200/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.95)] max-w-[90%] truncate">
                   {card.subtitle}
                 </p>
               )}

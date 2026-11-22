@@ -313,9 +313,9 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
             stopListening();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-[#D8E46B]/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-[#D8E46B]" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -371,7 +371,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
             <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
             <span className="text-slate-600">/</span>
-            <span className="text-[#D8E46B] font-semibold">
+            <span className="text-yellow-400 font-semibold">
               {isVi ? meta.titleVi : meta.titleEn}
             </span>
           </div>
@@ -379,13 +379,13 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
       </div>
 
       {/* Main Training Container */}
-      <div className="rounded-3xl border border-[#D8E46B]/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-[#2f360d]/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#D8E46B]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-3xl border border-yellow-500/30 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-yellow-950/25 p-3.5 sm:p-5 shadow-xl relative overflow-hidden space-y-3.5">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header Row */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-800/80">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#D8E46B]" />
+            <Sparkles className="w-5 h-5 text-yellow-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
               {isVi ? 'Luyện tập' : 'Training'}
             </h2>
@@ -449,7 +449,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-[#D8E46B]/15 text-[#e4ee8e] border-[#D8E46B]/40 shadow-xs ring-1 ring-[#D8E46B]/20'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs ring-1 ring-yellow-400/20'
                   : 'bg-slate-950/70 text-slate-500 border-slate-800'
               }`}
               title={
@@ -463,7 +463,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
               }
             >
               {isSpeakerEnabled ? (
-                <Volume2 className={`w-3.5 h-3.5 text-[#D8E46B] ${isSpeaking ? 'animate-bounce' : ''}`} />
+                <Volume2 className={`w-3.5 h-3.5 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
               ) : (
                 <VolumeX className="w-3.5 h-3.5 text-slate-500" />
               )}
@@ -483,7 +483,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
         {/* Topic Selector */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 px-1">
-            <Sliders className="w-3.5 h-3.5 text-[#D8E46B]" />
+            <Sliders className="w-3.5 h-3.5 text-yellow-400" />
             <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
           </div>
 
@@ -499,7 +499,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
                   selectedTopic === topic.id
-                    ? 'bg-gradient-to-r from-[#D8E46B] to-[#b7c63a] text-slate-950 font-bold shadow-md shadow-[#D8E46B]/25 ring-1 ring-[#D8E46B]'
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                     : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                 }`}
               >
@@ -515,7 +515,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
           {/* Left: Question Display */}
           <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center">
             <div className="flex items-center justify-center mb-2">
-              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#D8E46B] font-semibold px-2.5 py-0.5 rounded-full bg-[#D8E46B]/10 border border-[#D8E46B]/25">
+              <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/25">
                 {isVi ? activeTopicObj.badgeVi : activeTopicObj.badgeEn}
               </span>
             </div>
@@ -537,7 +537,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                   <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 max-w-full py-2 px-1">
                     <div className={`${sizeClass} font-black text-white tracking-normal font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 leading-tight`}>
                       <span className="whitespace-nowrap">{aStr}</span>
-                      <span className="text-[#D8E46B] font-sans">+</span>
+                      <span className="text-yellow-400 font-sans">+</span>
                       <span className="whitespace-nowrap">{bStr}</span>
                     </div>
 
@@ -546,8 +546,8 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                   onClick={() => pronounceQuestion()}
                   className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                     isSpeakingQuestion
-                      ? 'bg-[#D8E46B] text-slate-950 border-[#e4ee8e] ring-2 ring-[#D8E46B]/50 shadow-[#D8E46B]/30 animate-pulse'
-                      : 'bg-slate-900/90 hover:bg-slate-800 text-[#D8E46B] hover:text-[#e4ee8e] border-[#D8E46B]/40 hover:border-[#D8E46B] shadow-[#D8E46B]/10'
+                      ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 shadow-yellow-500/30 animate-pulse'
+                      : 'bg-slate-900/90 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400 shadow-yellow-500/10'
                   }`}
                   title={isVi ? `Đọc câu hỏi - Tốc độ: ${questionSpeed}x` : `Pronounce question - Speed: ${questionSpeed}x`}
                 >
@@ -560,7 +560,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
               {/* Playback speed selector */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-[#D8E46B]" />
+                  <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                   <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
@@ -571,7 +571,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                       onClick={() => handleSetSpeed(s)}
                       className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                         questionSpeed === s
-                          ? 'bg-[#D8E46B] text-slate-950 shadow-xs ring-1 ring-[#e4ee8e] font-extrabold'
+                          ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-300 font-extrabold'
                           : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                       }`}
                     >
@@ -584,7 +584,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
 
             {feedback !== 'idle' && (
               <div className="mt-3 w-full rounded-2xl bg-slate-900/80 border border-slate-800 px-3.5 py-2.5 text-xs text-slate-300 leading-relaxed text-left">
-                <span className="font-bold text-[#D8E46B] mr-1.5">{isVi ? 'Gợi ý:' : 'Method:'}</span>
+                <span className="font-bold text-yellow-400 mr-1.5">{isVi ? 'Gợi ý:' : 'Method:'}</span>
                 {isVi ? question.hintVi : question.hintEn}
               </div>
             )}
@@ -657,7 +657,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                 className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
-                    : 'border-slate-700 focus:border-[#D8E46B] focus:ring-2 focus:ring-[#D8E46B]/20'
+                    : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                 }`}
               />
               {userAnswer && feedback !== 'correct' && (
@@ -680,7 +680,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={feedback === 'correct'}
-                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-[#D8E46B]/20 active:bg-[#D8E46B] active:text-slate-950 text-white hover:text-[#e4ee8e] font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-[#D8E46B]/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -693,7 +693,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                     type="button"
                     onClick={() => handleKeypadDigit(String(digit))}
                     disabled={feedback === 'correct'}
-                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-[#D8E46B]/20 active:bg-[#D8E46B] active:text-slate-950 text-white hover:text-[#e4ee8e] font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-[#D8E46B]/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                    className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     aria-label={`Digit ${digit}`}
                   >
                     {digit}
@@ -714,7 +714,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                   type="button"
                   onClick={handleKeypadBackspace}
                   disabled={feedback === 'correct' || !userAnswer}
-                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-[#D8E46B]/20 active:bg-[#D8E46B] active:text-slate-950 text-slate-400 hover:text-[#e4ee8e] border border-slate-800 hover:border-[#D8E46B]/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                  className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                   title={isVi ? 'Xóa 1 số' : 'Backspace'}
                   aria-label="Backspace"
                 >
@@ -748,7 +748,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                 <button
                   type="button"
                   onClick={() => generateNewQuestion()}
-                  className="flex-1 h-12 rounded-xl bg-[#D8E46B] hover:bg-[#e4ee8e] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#D8E46B]/25 active:scale-95 text-xs sm:text-sm"
+                  className="flex-1 h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                 >
                   <span>
                     {autoNextConfig.delaySec > 0
@@ -764,7 +764,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
               ) : (
                 <button
                   type="submit"
-                  className="flex-1 h-12 rounded-xl bg-[#D8E46B] hover:bg-[#e4ee8e] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#D8E46B]/20 active:scale-95 text-xs sm:text-sm"
+                  className="flex-1 h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                 >
                   <span>{isVi ? 'Kết quả' : 'Answer'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -787,7 +787,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                 className={`h-12 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   isListening
                     ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse ring-2 ring-rose-400/50'
-                    : 'bg-slate-900 hover:bg-slate-800 text-[#D8E46B] hover:text-[#e4ee8e] border-slate-700 hover:border-[#D8E46B]/40'
+                    : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-slate-700 hover:border-yellow-500/40'
                 }`}
               >
                 {isListening ? (
@@ -797,7 +797,7 @@ export const AdditionPage: React.FC<AdditionPageProps> = ({
                   </>
                 ) : (
                   <>
-                    <Mic className="w-4 h-4 text-[#D8E46B]" />
+                    <Mic className="w-4 h-4 text-yellow-400" />
                     <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                   </>
                 )}

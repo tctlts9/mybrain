@@ -602,9 +602,9 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
             stopListening();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-[#C4C4C4]/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-[#C4C4C4]" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại' : 'Back'}</span>
         </button>
 
@@ -617,7 +617,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
               stopListening();
               onBack();
             }}
-            className="hover:text-[#C4C4C4] transition-colors cursor-pointer underline-offset-2 hover:underline"
+            className="hover:text-yellow-400 transition-colors cursor-pointer underline-offset-2 hover:underline"
           >
             {isVi ? 'Luyện tập' : 'Training'}
           </button>
@@ -634,12 +634,12 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
         className={`rounded-3xl border bg-gradient-to-br from-slate-900/95 via-slate-900/80 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5 ${
           hardMode
             ? 'border-rose-500/45 to-rose-950/35'
-            : 'border-[#C4C4C4]/35 to-[#2a2a2a]/30'
+            : 'border-yellow-500/35 to-yellow-950/30'
         }`}
       >
         <div
           className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-            hardMode ? 'bg-rose-500/15' : 'bg-[#C4C4C4]/10'
+            hardMode ? 'bg-rose-500/15' : 'bg-yellow-500/10'
           }`}
         />
 
@@ -650,7 +650,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
               className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-md ${
                 hardMode
                   ? 'bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-rose-500/25'
-                  : 'bg-gradient-to-br from-[#C4C4C4] to-[#9a9a9a] text-slate-950 shadow-[#C4C4C4]/25'
+                  : 'bg-gradient-to-br from-yellow-400 to-amber-500 text-slate-950 shadow-yellow-500/25'
               }`}
             >
               {hardMode ? <Flame className="w-5 h-5 fill-yellow-200 text-yellow-200" /> : <Zap className="w-5 h-5 fill-slate-950" />}
@@ -664,7 +664,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                     <span>{isVi ? 'Cấp độ Khó' : 'Hard Level'}</span>
                   </span>
                 )}
-                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-[#C4C4C4]/15 text-[#E0E0E0] border border-[#C4C4C4]/30">
+                <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-300 border border-yellow-500/30">
                   {dynamicBadge}
                 </span>
               </h1>
@@ -686,8 +686,8 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
               answerTimeLimit={answerTimeLimit}
               disabled={status === 'running'}
               isVi={isVi}
-              clockIconClassName="text-[#C4C4C4]"
-              limitFocusClassName="focus:border-[#C4C4C4]"
+              clockIconClassName="text-yellow-400"
+              limitFocusClassName="focus:border-yellow-400"
               onChangeTimeLimit={(sec) => {
                 setTimeLimit(sec);
                 if (status === 'idle') setTimeLeft(sec);
@@ -709,13 +709,13 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
               }}
               className={`p-2 rounded-xl border transition-all cursor-pointer active:scale-95 ${
                 isSpeakerEnabled
-                  ? 'bg-[#C4C4C4]/15 text-[#E0E0E0] border-[#C4C4C4]/40 shadow-xs'
+                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs'
                   : 'bg-slate-950 text-slate-500 border-slate-800'
               }`}
               title={isSpeakerEnabled ? (isVi ? 'Âm thanh: BẬT' : 'Sound: ON') : isVi ? 'Âm thanh: TẮT' : 'Sound: OFF'}
             >
               {isSpeakerEnabled ? (
-                <Volume2 className={`w-4 h-4 text-[#C4C4C4] ${isSpeaking ? 'animate-bounce' : ''}`} />
+                <Volume2 className={`w-4 h-4 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
               ) : (
                 <VolumeX className="w-4 h-4 text-slate-500" />
               )}
@@ -743,7 +743,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${
                   selectedTopic === topic.id
-                    ? 'bg-gradient-to-r from-[#C4C4C4] to-[#9a9a9a] text-slate-950 font-bold shadow-md shadow-[#C4C4C4]/25 ring-1 ring-[#C4C4C4]'
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
                     : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                 }`}
               >
@@ -864,8 +864,8 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
         <div className="w-full space-y-3">
           {status === 'completed' ? (
             <div className="max-w-2xl mx-auto rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-9 text-center shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-[#C4C4C4]/15 border border-[#C4C4C4]/30 flex items-center justify-center mx-auto mb-4 text-[#C4C4C4] shadow-lg shadow-[#C4C4C4]/20">
-                <Trophy className="w-8 h-8 text-[#C4C4C4]" />
+              <div className="w-16 h-16 rounded-2xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center mx-auto mb-4 text-yellow-400 shadow-lg shadow-yellow-500/20">
+                <Trophy className="w-8 h-8 text-yellow-400" />
               </div>
 
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-1 flex items-center justify-center gap-2 flex-wrap">
@@ -945,7 +945,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                 <button
                   type="button"
                   onClick={() => startChallenge()}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#C4C4C4] to-[#9a9a9a] hover:from-[#E0E0E0] hover:to-[#b5b5b5] text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-[#C4C4C4]/25 transition-all cursor-pointer active:scale-95"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-yellow-500/25 transition-all cursor-pointer active:scale-95"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
                   <span>{isVi ? `Bắt đầu thử thách mới (${TOTAL_QUESTIONS} câu)` : `Start New Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
@@ -986,17 +986,17 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                         ? 'bg-rose-500 shadow-sm shadow-rose-500/50'
                         : challengePhase === 'answering' && status === 'running'
                         ? 'bg-cyan-400'
-                        : 'bg-[#C4C4C4]'
+                        : 'bg-yellow-400'
                     }`}
                     style={{ width: `${status === 'idle' ? 100 : timerPercentage}%` }}
                   />
                 </div>
 
                 <div className="flex items-center justify-center gap-2 flex-wrap mb-2 mt-1">
-                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#C4C4C4] font-semibold px-2.5 py-0.5 rounded-full bg-[#C4C4C4]/10 border border-[#C4C4C4]/25">
+                  <span className="text-[11px] sm:text-xs uppercase tracking-wider text-yellow-400 font-semibold px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/25">
                     {dynamicBadge}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-[#E0E0E0] px-2.5 py-0.5 rounded-full bg-[#C4C4C4]/10 border border-[#C4C4C4]/25">
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-bold text-yellow-300 px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/25">
                     <span>{isVi ? `Câu ${questionIndex}/${TOTAL_QUESTIONS}` : `Problem ${questionIndex}/${TOTAL_QUESTIONS}`}</span>
                   </span>
                   <span
@@ -1008,7 +1008,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                         : 'bg-slate-900 text-slate-300 border-slate-800'
                     }`}
                   >
-                    <Timer className={`w-3 h-3 ${isUrgent && status === 'running' ? 'text-rose-400' : challengePhase === 'answering' && status === 'running' ? 'text-cyan-400' : 'text-[#C4C4C4]'}`} />
+                    <Timer className={`w-3 h-3 ${isUrgent && status === 'running' ? 'text-rose-400' : challengePhase === 'answering' && status === 'running' ? 'text-cyan-400' : 'text-yellow-400'}`} />
                     <span className="font-mono">
                       {status === 'idle'
                         ? `${timeLimit}s`
@@ -1032,7 +1032,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                         ? 'bg-emerald-500 border-emerald-400 shadow-xs shadow-emerald-500/40'
                         : 'bg-rose-500 border-rose-400 shadow-xs shadow-rose-500/40';
                     } else if (qNum === questionIndex && (status === 'running' || status === 'answered')) {
-                      bg = 'bg-[#C4C4C4] border-[#E0E0E0] animate-pulse';
+                      bg = 'bg-yellow-400 border-yellow-300 animate-pulse';
                     }
                     return <div key={idx} className={`h-1.5 rounded-full border transition-all duration-300 ${bg}`} />;
                   })}
@@ -1083,7 +1083,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                             <div
                               className={`font-black text-white font-mono tabular-nums flex items-start justify-center gap-2 tracking-tight ${formulaFontSize}`}
                             >
-                              <span className="text-[#C4C4C4] font-sans shrink-0">÷</span>
+                              <span className="text-yellow-400 font-sans shrink-0">÷</span>
                               <div className="flex flex-col items-center justify-center gap-1 leading-snug">
                                 {linesB.map((line, idx) => (
                                   <span key={idx} className="whitespace-nowrap">
@@ -1098,8 +1098,8 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                               onClick={() => pronounceQuestion()}
                               className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                                 isSpeakingQuestion
-                                  ? 'bg-[#C4C4C4] text-slate-950 border-[#E0E0E0] ring-2 ring-[#C4C4C4]/50 animate-pulse'
-                                  : 'bg-slate-900 hover:bg-slate-800 text-[#C4C4C4] hover:text-[#E0E0E0] border-[#C4C4C4]/40 hover:border-[#C4C4C4]'
+                                  ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 animate-pulse'
+                                  : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400'
                               }`}
                               title={isVi ? 'Phát âm câu hỏi' : 'Pronounce question'}
                             >
@@ -1121,7 +1121,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                             } font-black text-white tracking-normal font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 leading-tight`}
                           >
                             <span className="whitespace-nowrap">{formattedA}</span>
-                            <span className="text-[#C4C4C4] font-sans">÷</span>
+                            <span className="text-yellow-400 font-sans">÷</span>
                             <span className="whitespace-nowrap">{formattedB}</span>
                           </div>
 
@@ -1130,8 +1130,8 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                             onClick={() => pronounceQuestion()}
                             className={`p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center shrink-0 ${
                               isSpeakingQuestion
-                                ? 'bg-[#C4C4C4] text-slate-950 border-[#E0E0E0] ring-2 ring-[#C4C4C4]/50 animate-pulse'
-                                : 'bg-slate-900 hover:bg-slate-800 text-[#C4C4C4] hover:text-[#E0E0E0] border-[#C4C4C4]/40 hover:border-[#C4C4C4]'
+                                ? 'bg-yellow-400 text-slate-950 border-yellow-300 ring-2 ring-yellow-400/50 animate-pulse'
+                                : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-yellow-500/40 hover:border-yellow-400'
                             }`}
                             title={isVi ? 'Phát âm câu hỏi' : 'Pronounce question'}
                           >
@@ -1142,7 +1142,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
 
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                         <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                          <Gauge className="w-3.5 h-3.5 text-[#C4C4C4]" />
+                          <Gauge className="w-3.5 h-3.5 text-yellow-400" />
                           <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
                         </span>
                         <div className="flex items-center gap-1 ml-0.5">
@@ -1153,7 +1153,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                               onClick={() => handleSetSpeed(s)}
                               className={`px-2 py-0.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer active:scale-95 ${
                                 questionSpeed === s
-                                  ? 'bg-[#C4C4C4] text-slate-950 shadow-xs ring-1 ring-[#E0E0E0] font-extrabold'
+                                  ? 'bg-yellow-400 text-slate-950 shadow-xs ring-1 ring-yellow-300 font-extrabold'
                                   : 'hover:text-white hover:bg-slate-800/80 text-slate-400'
                               }`}
                             >
@@ -1236,7 +1236,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                         ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                         : isUrgent && canAnswer
                         ? 'border-rose-500/80 ring-2 ring-rose-500/30'
-                        : 'border-slate-700 focus:border-[#C4C4C4] focus:ring-2 focus:ring-[#C4C4C4]/20'
+                        : 'border-slate-700 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20'
                     }`}
                   />
                   {userAnswer && canAnswer && (
@@ -1259,7 +1259,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                         type="button"
                         onClick={() => setUserAnswer((p) => (p.length >= 250 ? p : p + digit))}
                         disabled={!canAnswer}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-[#C4C4C4]/20 active:bg-[#C4C4C4] active:text-slate-950 text-white hover:text-[#E0E0E0] font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-[#C4C4C4]/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       >
                         {digit}
                       </button>
@@ -1270,7 +1270,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                         type="button"
                         onClick={() => setUserAnswer((p) => (p.length >= 250 ? p : p + digit))}
                         disabled={!canAnswer}
-                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-[#C4C4C4]/20 active:bg-[#C4C4C4] active:text-slate-950 text-white hover:text-[#E0E0E0] font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-[#C4C4C4]/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                        className="h-9 sm:h-10 rounded-xl bg-slate-900/95 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-white hover:text-yellow-300 font-mono text-base sm:text-lg font-bold border border-slate-800 hover:border-yellow-500/50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
                       >
                         {digit}
                       </button>
@@ -1287,7 +1287,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                       type="button"
                       onClick={() => setUserAnswer((p) => p.slice(0, -1))}
                       disabled={!canAnswer || !userAnswer}
-                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-[#C4C4C4]/20 active:bg-[#C4C4C4] active:text-slate-950 text-slate-400 hover:text-[#E0E0E0] border border-slate-800 hover:border-[#C4C4C4]/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
+                      className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed select-none flex items-center justify-center"
                     >
                       <Delete className="w-4 h-4" />
                     </button>
@@ -1319,7 +1319,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                     <button
                       type="button"
                       onClick={() => startChallenge()}
-                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-[#C4C4C4] to-[#9a9a9a] hover:from-[#E0E0E0] hover:to-[#b5b5b5] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#C4C4C4]/25 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                     >
                       <Play className="w-4 h-4 fill-slate-950" />
                       <span>{isVi ? `Bắt đầu thử thách (${TOTAL_QUESTIONS} câu)` : `Start Challenge (${TOTAL_QUESTIONS} Problems)`}</span>
@@ -1329,7 +1329,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                       <button
                         type="button"
                         onClick={() => advanceQuestion(questionIndex + 1, selectedTopic, timeLimit, answerTimeLimit)}
-                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-[#C4C4C4] hover:bg-[#E0E0E0] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#C4C4C4]/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <span>
                           {autoNextConfig.delaySec > 0
@@ -1350,7 +1350,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                           setStatus('completed');
                           setChallengePhase('idle');
                         }}
-                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-[#C4C4C4] to-[#9a9a9a] hover:from-[#E0E0E0] hover:to-[#b5b5b5] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#C4C4C4]/25 active:scale-95 text-xs sm:text-sm"
+                        className="flex-1 min-w-[140px] h-12 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <Trophy className="w-4 h-4" />
                         <span>
@@ -1378,7 +1378,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                   ) : (
                     <button
                       type="submit"
-                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-[#C4C4C4] hover:bg-[#E0E0E0] text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#C4C4C4]/20 active:scale-95 text-xs sm:text-sm"
+                      className="flex-1 min-w-[130px] h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                     >
                       <span>{isVi ? 'Kết quả' : 'Submit Answer'}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -1393,7 +1393,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                     className={`h-12 px-3.5 sm:px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                       isListening
                         ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/40 animate-pulse'
-                        : 'bg-slate-900 hover:bg-slate-800 text-[#C4C4C4] hover:text-[#E0E0E0] border-slate-700 hover:border-[#C4C4C4]/40 disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 hover:text-yellow-300 border-slate-700 hover:border-yellow-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                   >
                     {isListening ? (
@@ -1403,7 +1403,7 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                       </>
                     ) : (
                       <>
-                        <Mic className="w-4 h-4 text-[#C4C4C4]" />
+                        <Mic className="w-4 h-4 text-yellow-400" />
                         <span>{isVi ? 'Trả lời' : 'Voice'}</span>
                       </>
                     )}

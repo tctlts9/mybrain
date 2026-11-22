@@ -22,9 +22,9 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
-          <ArrowLeft className="w-4 h-4 text-amber-400" />
+          <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Practice'}</span>
         </button>
 
@@ -76,7 +76,7 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
           )}
           <button
             onClick={onBack}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95"
+            className="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-yellow-500/20 transition-all cursor-pointer active:scale-95"
           >
             <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Training'}</span>
           </button>

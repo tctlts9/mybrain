@@ -536,7 +536,7 @@ export const PercentagePage: React.FC<PercentagePageProps> = ({
         {/* Side-by-Side Arena */}
         <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch pt-0.5">
           {/* Left: Question Display */}
-          <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
+          <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center">
             <div className="flex items-center justify-center mb-2">
               <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#F4A7B9] font-semibold px-2.5 py-0.5 rounded-full bg-[#F4A7B9]/10 border border-[#F4A7B9]/25">
                 {isVi ? activeTopicObj.badgeVi : activeTopicObj.badgeEn}
@@ -544,23 +544,34 @@ export const PercentagePage: React.FC<PercentagePageProps> = ({
             </div>
 
             <div className="flex flex-col items-center justify-center gap-3 py-2 w-full">
-              <div className="flex items-center justify-center gap-3 sm:gap-4 max-w-full overflow-x-auto no-scrollbar py-2 px-2">
-                <div className="text-3xl sm:text-5xl font-black text-white tracking-wide font-mono flex items-center gap-2 sm:gap-2.5 whitespace-nowrap">
-                  {tokens.map((tok, idx) => (
-                    <span
-                      key={idx}
-                      className={
-                        tok.accent
-                          ? 'text-[#F4A7B9] font-sans'
-                          : tok.text === 'của' || tok.text === 'of' || tok.text === '='
-                          ? 'text-slate-400 text-2xl sm:text-3xl font-sans font-bold'
-                          : ''
-                      }
-                    >
-                      {tok.text}
-                    </span>
-                  ))}
-                </div>
+              {(() => {
+                const formulaLen = (isVi ? question.labelVi : question.labelEn).length;
+                const formulaFontSize =
+                  formulaLen > 24
+                    ? 'text-base sm:text-2xl md:text-3xl'
+                    : formulaLen > 15
+                    ? 'text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem]'
+                    : formulaLen > 10
+                    ? 'text-2xl sm:text-4xl lg:text-5xl'
+                    : 'text-3xl sm:text-5xl';
+                return (
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3.5 w-full max-w-full py-2 px-1">
+                    <div className={`${formulaFontSize} font-black text-white tracking-wide font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 leading-tight`}>
+                      {tokens.map((tok, idx) => (
+                        <span
+                          key={idx}
+                          className={
+                            tok.accent
+                              ? 'text-[#F4A7B9] font-sans whitespace-nowrap'
+                              : tok.text === 'của' || tok.text === 'of' || tok.text === '='
+                              ? 'text-slate-400 text-[0.72em] font-sans font-bold whitespace-nowrap'
+                              : 'whitespace-nowrap'
+                          }
+                        >
+                          {tok.text}
+                        </span>
+                      ))}
+                    </div>
 
                 <button
                   type="button"
@@ -574,7 +585,9 @@ export const PercentagePage: React.FC<PercentagePageProps> = ({
                 >
                   <Volume2 className={`w-5 h-5 sm:w-6 sm:h-6 ${isSpeakingQuestion ? 'animate-bounce' : ''}`} />
                 </button>
-              </div>
+                  </div>
+                );
+              })()}
 
               {/* Playback speed selector */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
@@ -677,14 +690,14 @@ export const PercentagePage: React.FC<PercentagePageProps> = ({
                     : 'Type answer or tap numeric keys below...'
                 }
                 disabled={feedback === 'correct'}
-                className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                className={`w-full h-13 sm:h-14 px-10 sm:px-12 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                     : 'border-slate-700 focus:border-[#F4A7B9] focus:ring-2 focus:ring-[#F4A7B9]/20'
                 }`}
               />
               {question.answerSuffix && (
-                <span className="absolute right-11 text-xl font-black text-[#F4A7B9] font-mono pointer-events-none">
+                <span className="absolute right-11 text-lg sm:text-xl font-black text-[#F4A7B9] font-mono pointer-events-none">
                   {question.answerSuffix}
                 </span>
               )}

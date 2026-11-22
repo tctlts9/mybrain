@@ -986,7 +986,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
               <div
                 className={`${
                   isCustomLayout ? 'w-full' : 'landscape-math-col md:col-span-6'
-                } rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center`}
+                } rounded-3xl bg-slate-950 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center`}
               >
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
                   <div
@@ -1106,10 +1106,14 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center gap-3 sm:gap-4 max-w-full overflow-x-auto no-scrollbar pt-4 pb-2 px-2">
+                        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 max-w-full pt-4 pb-2 px-1">
                           <div
                             className={`${
-                              isCustomLayout ? formulaFontSize : 'text-5xl sm:text-6xl'
+                              isCustomLayout
+                                ? formulaFontSize
+                                : formattedA.length >= 6
+                                ? 'text-3xl sm:text-5xl'
+                                : 'text-4xl sm:text-6xl'
                             } font-extrabold text-white tracking-tight font-sans tabular-nums leading-none inline-flex items-start justify-center whitespace-nowrap`}
                           >
                             <span>{formattedA}</span>
@@ -1223,7 +1227,7 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                     disabled={!canAnswer}
                     className={`w-full h-13 sm:h-14 px-5 pr-11 text-center ${
                       userAnswer.length > 22 ? 'text-base sm:text-xl' : 'text-2xl sm:text-3xl'
-                    } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                    } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                       isListening
                         ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                         : isUrgent && canAnswer

@@ -809,12 +809,12 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
   const maxDigits = Math.max(String(question.a).length, String(question.b).length);
   const formulaFontSize =
     maxDigits >= 9
-      ? 'text-base xs:text-lg sm:text-2xl md:text-3xl'
+      ? 'text-lg sm:text-2xl md:text-3xl'
       : maxDigits >= 6
-      ? 'text-lg xs:text-xl sm:text-3xl md:text-4xl'
+      ? 'text-xl sm:text-3xl md:text-4xl'
       : maxDigits >= 4
-      ? 'text-xl xs:text-2xl sm:text-4xl md:text-5xl'
-      : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
+      ? 'text-2xl sm:text-4xl md:text-5xl'
+      : 'text-3xl sm:text-5xl md:text-6xl';
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
@@ -1158,7 +1158,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
             </div>
           ) : (
             <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch">
-              <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
+              <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
                 {/* Top Timer Bar */}
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
                   <div
@@ -1238,11 +1238,11 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
-                        <div className={`font-black text-white font-mono flex items-center justify-center whitespace-nowrap gap-1.5 sm:gap-2.5 tracking-tight select-none shrink-0 ${formulaFontSize}`}>
-                          <span>{question.a.toLocaleString()}</span>
+                      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full py-1 px-1">
+                        <div className={`font-black text-white font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 tracking-tight select-none leading-tight ${formulaFontSize}`}>
+                          <span className="whitespace-nowrap">{question.a.toLocaleString()}</span>
                           <span className="text-amber-400 font-sans">×</span>
-                          <span>{question.b.toLocaleString()}</span>
+                          <span className="whitespace-nowrap">{question.b.toLocaleString()}</span>
                         </div>
 
                         {/* Button Loa để phát thông tin câu hỏi */}
@@ -1351,7 +1351,7 @@ export const MultiplyBy11ChallengePage: React.FC<MultiplyBy11ChallengePageProps>
                         : 'Type answer or tap numeric keys...'
                     }
                     disabled={gameStatus !== 'running'}
-                    className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                    className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                       gameStatus === 'running'
                         ? isListening
                           ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'

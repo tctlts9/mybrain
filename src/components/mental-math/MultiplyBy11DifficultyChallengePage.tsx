@@ -1264,12 +1264,12 @@ export const MultiplyBy11DifficultyChallengePage: React.FC<MultiplyBy11Difficult
       ? 'text-base sm:text-xl md:text-2xl lg:text-3xl'
       : 'text-xl sm:text-3xl md:text-4xl lg:text-5xl'
     : maxDigits >= 9
-    ? 'text-base xs:text-lg sm:text-2xl md:text-3xl'
+    ? 'text-lg sm:text-2xl md:text-3xl'
     : maxDigits >= 6
-    ? 'text-lg xs:text-xl sm:text-3xl md:text-4xl'
+    ? 'text-xl sm:text-3xl md:text-4xl'
     : maxDigits >= 4
-    ? 'text-xl xs:text-2xl sm:text-4xl md:text-5xl'
-    : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
+    ? 'text-2xl sm:text-4xl md:text-5xl'
+    : 'text-3xl sm:text-5xl md:text-6xl';
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
@@ -1741,7 +1741,7 @@ export const MultiplyBy11DifficultyChallengePage: React.FC<MultiplyBy11Difficult
               <div
                 className={`${
                   isCustomLayout ? 'w-full' : 'landscape-math-col md:col-span-6'
-                } rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center`}
+                } rounded-3xl bg-slate-950 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center`}
               >
                 {/* Top Timer Bar */}
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
@@ -1899,11 +1899,11 @@ export const MultiplyBy11DifficultyChallengePage: React.FC<MultiplyBy11Difficult
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
-                          <div className={`font-black text-white font-mono tabular-nums flex items-center justify-center whitespace-nowrap gap-1.5 sm:gap-2.5 tracking-tight select-none shrink-0 ${formulaFontSize}`}>
-                            <span>{formatBigIntStr(question.a)}</span>
+                        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full py-1 px-1">
+                          <div className={`font-black text-white font-mono tabular-nums flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 tracking-tight select-none leading-tight ${formulaFontSize}`}>
+                            <span className={isCustomLayout ? 'break-all' : 'whitespace-nowrap'}>{formatBigIntStr(question.a)}</span>
                             <span className="text-amber-400 font-sans">×</span>
-                            <span>{formatBigIntStr(question.b)}</span>
+                            <span className={isCustomLayout ? 'break-all' : 'whitespace-nowrap'}>{formatBigIntStr(question.b)}</span>
                           </div>
 
                           {/* Button Loa để phát thông tin câu hỏi */}
@@ -2038,7 +2038,7 @@ export const MultiplyBy11DifficultyChallengePage: React.FC<MultiplyBy11Difficult
                     disabled={!canAnswer}
                     className={`w-full h-13 sm:h-14 px-5 pr-11 text-center ${
                       userAnswer.length > 22 ? 'text-base sm:text-xl' : 'text-2xl sm:text-3xl'
-                    } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                    } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                       canAnswer
                         ? isListening
                           ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'

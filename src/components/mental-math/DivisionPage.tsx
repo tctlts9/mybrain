@@ -513,7 +513,7 @@ export const DivisionPage: React.FC<DivisionPageProps> = ({
         {/* Side-by-Side Arena */}
         <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch pt-0.5">
           {/* Left: Question Display */}
-          <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center">
+          <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center">
             <div className="flex items-center justify-center mb-2">
               <span className="text-[11px] sm:text-xs uppercase tracking-wider text-[#C4C4C4] font-semibold px-2.5 py-0.5 rounded-full bg-[#C4C4C4]/10 border border-[#C4C4C4]/25">
                 {isVi ? activeTopicObj.badgeVi : activeTopicObj.badgeEn}
@@ -533,10 +533,10 @@ export const DivisionPage: React.FC<DivisionPageProps> = ({
                     : 'text-3xl sm:text-5xl';
                 return (
                   <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 max-w-full py-2 px-1">
-                    <div className={`${sizeClass} font-black text-white tracking-normal font-mono flex items-center gap-1.5 sm:gap-2.5 whitespace-nowrap`}>
-                      <span>{aStr}</span>
+                    <div className={`${sizeClass} font-black text-white tracking-normal font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 leading-tight`}>
+                      <span className="whitespace-nowrap">{aStr}</span>
                       <span className="text-[#C4C4C4] font-sans">÷</span>
-                      <span>{bStr}</span>
+                      <span className="whitespace-nowrap">{bStr}</span>
                     </div>
 
                     <button
@@ -652,7 +652,7 @@ export const DivisionPage: React.FC<DivisionPageProps> = ({
                     : 'Type answer or tap numeric keys below...'
                 }
                 disabled={feedback === 'correct'}
-                className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                   isListening
                     ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                     : 'border-slate-700 focus:border-[#C4C4C4] focus:ring-2 focus:ring-[#C4C4C4]/20'

@@ -722,7 +722,7 @@ export const SquareRootChallengePage: React.FC<SquareRootChallengePageProps> = (
             </div>
           ) : (
             <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch">
-              <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
+              <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
                   <div
                     className={`h-full transition-all duration-200 ease-linear ${
@@ -784,8 +784,8 @@ export const SquareRootChallengePage: React.FC<SquareRootChallengePageProps> = (
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center justify-center gap-3 sm:gap-4 max-w-full overflow-x-auto no-scrollbar py-2 px-2">
-                        <div className="text-4xl sm:text-6xl font-black text-white tracking-tight font-mono flex items-center justify-center whitespace-nowrap">
+                      <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 max-w-full py-2 px-1">
+                        <div className={`${question.a.toLocaleString().length >= 6 ? 'text-2xl sm:text-4xl lg:text-5xl' : 'text-3xl sm:text-5xl lg:text-6xl'} font-black text-white tracking-tight font-mono flex items-center justify-center whitespace-nowrap`}>
                           <span className="text-violet-400 mr-1.5 font-sans">√</span>
                           <span className="border-t-4 border-violet-400/80 pt-1 px-1.5">
                             {question.a.toLocaleString()}
@@ -882,7 +882,7 @@ export const SquareRootChallengePage: React.FC<SquareRootChallengePageProps> = (
                         : 'Type answer or tap numeric keys...'
                     }
                     disabled={status !== 'running'}
-                    className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                    className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                       isListening
                         ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                         : isUrgent && status === 'running'

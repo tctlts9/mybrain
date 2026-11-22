@@ -604,7 +604,15 @@ export const PercentageDifficultyChallengePage: React.FC<PercentageDifficultyCha
   const timerPercentage = Math.max(0, Math.min(100, (timeLeft / activePhaseDuration) * 100));
   const tokens = isVi ? question.displayVi : question.displayEn;
   const formulaLabelStr = isVi ? question.labelVi : question.labelEn;
-  const formulaFontSize = getCustomFormulaFontSize(formulaLabelStr.length);
+  const formulaFontSize = isCustomLayout
+    ? getCustomFormulaFontSize(formulaLabelStr.length)
+    : formulaLabelStr.length > 24
+    ? 'text-base sm:text-2xl md:text-3xl'
+    : formulaLabelStr.length > 15
+    ? 'text-xl sm:text-3xl md:text-4xl lg:text-[2.75rem]'
+    : formulaLabelStr.length > 10
+    ? 'text-2xl sm:text-4xl lg:text-5xl'
+    : 'text-3xl sm:text-5xl';
   const formattedAnswer = formatAnswerText(question);
 
   return (
@@ -1001,7 +1009,7 @@ export const PercentageDifficultyChallengePage: React.FC<PercentageDifficultyCha
               <div
                 className={`${
                   isCustomLayout ? 'w-full' : 'landscape-math-col md:col-span-6'
-                } rounded-3xl bg-slate-950 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center`}
+                } rounded-3xl bg-slate-950 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative overflow-hidden flex flex-col items-center justify-center`}
               >
                 <div className="absolute top-0 left-0 right-0 h-2 bg-slate-900">
                   <div
@@ -1091,29 +1099,21 @@ export const PercentageDifficultyChallengePage: React.FC<PercentageDifficultyCha
                     </div>
                   ) : (
                     <>
-                      <div
-                        className={`flex items-center justify-center gap-3 sm:gap-4 max-w-full py-2 px-2 ${
-                          isCustomLayout ? 'flex-wrap' : 'overflow-x-auto no-scrollbar'
-                        }`}
-                      >
+                      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3.5 w-full max-w-full py-2 px-1">
                         <div
-                          className={`${
-                            isCustomLayout ? formulaFontSize : 'text-3xl sm:text-5xl'
-                          } font-black text-white tracking-wide font-mono flex items-center justify-center gap-2 sm:gap-2.5 ${
-                            isCustomLayout ? 'flex-wrap' : 'whitespace-nowrap'
-                          }`}
+                          className={`${formulaFontSize} font-black text-white tracking-wide font-mono flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 leading-tight`}
                         >
                           {tokens.map((tok, idx) => (
                             <span
                               key={idx}
                               className={
                                 tok.accent
-                                  ? 'text-[#F4A7B9] font-sans'
+                                  ? 'text-[#F4A7B9] font-sans whitespace-nowrap'
                                   : tok.text === 'của' || tok.text === 'of' || tok.text === '='
-                                  ? 'text-slate-400 text-xl sm:text-3xl font-sans font-bold'
+                                  ? 'text-slate-400 text-[0.72em] font-sans font-bold whitespace-nowrap'
                                   : isCustomLayout
                                   ? 'break-all'
-                                  : ''
+                                  : 'whitespace-nowrap'
                               }
                             >
                               {tok.text}
@@ -1224,9 +1224,11 @@ export const PercentageDifficultyChallengePage: React.FC<PercentageDifficultyCha
                         : 'Type answer or tap numeric keys...'
                     }
                     disabled={!canAnswer}
-                    className={`w-full h-13 sm:h-14 px-5 pr-11 text-center ${
+                    className={`w-full h-13 sm:h-14 px-4 sm:px-5 ${
+                      question.answerSuffix && (canAnswer || userAnswer.length > 0) ? 'pr-12' : 'pr-11'
+                    } text-center ${
                       userAnswer.length > 22 ? 'text-base sm:text-xl' : 'text-2xl sm:text-3xl'
-                    } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                    } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                       isListening
                         ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                         : isUrgent && canAnswer
@@ -1234,8 +1236,8 @@ export const PercentageDifficultyChallengePage: React.FC<PercentageDifficultyCha
                         : 'border-slate-700 focus:border-[#F4A7B9] focus:ring-2 focus:ring-[#F4A7B9]/20'
                     }`}
                   />
-                  {question.answerSuffix && (
-                    <span className="absolute right-11 text-xl font-black text-[#F4A7B9] font-mono pointer-events-none">
+                  {question.answerSuffix && (canAnswer || userAnswer.length > 0) && (
+                    <span className="absolute right-11 text-lg sm:text-xl font-black text-[#F4A7B9] font-mono pointer-events-none">
                       {question.answerSuffix}
                     </span>
                   )}

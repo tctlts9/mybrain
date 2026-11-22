@@ -1273,12 +1273,12 @@ export const MultiplyWith1DigitDifficultyChallengePage: React.FC<MultiplyWith1Di
     : totalFormulaDigits >= 14 || maxDigits >= 11
     ? 'text-base sm:text-xl md:text-2xl'
     : maxDigits >= 9
-    ? 'text-base xs:text-lg sm:text-2xl md:text-3xl'
+    ? 'text-lg sm:text-2xl md:text-3xl'
     : maxDigits >= 6
-    ? 'text-lg xs:text-xl sm:text-3xl md:text-4xl'
+    ? 'text-xl sm:text-3xl md:text-4xl'
     : maxDigits >= 4
-    ? 'text-xl xs:text-2xl sm:text-4xl md:text-5xl'
-    : 'text-2xl xs:text-3xl sm:text-5xl md:text-6xl';
+    ? 'text-2xl sm:text-4xl md:text-5xl'
+    : 'text-3xl sm:text-5xl md:text-6xl';
 
   const activePhaseDuration = challengePhase === 'answering' ? answerTimeLimit : timeLimit;
   const timerColor =
@@ -1744,7 +1744,7 @@ export const MultiplyWith1DigitDifficultyChallengePage: React.FC<MultiplyWith1Di
             <div
               className={`${
                 isCustomLayout ? 'w-full' : 'landscape-math-col md:col-span-6'
-              } rounded-3xl bg-slate-950/80 border border-slate-800 p-5 sm:p-7 text-center shadow-inner relative group flex flex-col items-center justify-center`}
+              } rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center`}
             >
               {/* Header: Progress & Timer Countdown */}
               <div className="flex items-center justify-between gap-2.5 mb-3 px-2">
@@ -1853,13 +1853,13 @@ export const MultiplyWith1DigitDifficultyChallengePage: React.FC<MultiplyWith1Di
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-full overflow-x-auto no-scrollbar py-1">
+                      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-full py-1 px-1">
                         <div
-                          className={`font-black text-white font-mono tabular-nums flex items-center justify-center gap-1.5 sm:gap-2.5 tracking-tight select-none whitespace-nowrap shrink-0 ${formulaFontSize}`}
+                          className={`font-black text-white font-mono tabular-nums flex flex-wrap items-center justify-center gap-x-1.5 sm:gap-x-2.5 gap-y-1 tracking-tight select-none leading-tight ${formulaFontSize}`}
                         >
-                          <span>{formatBigIntStr(question.a)}</span>
+                          <span className="whitespace-nowrap">{formatBigIntStr(question.a)}</span>
                           <span className="text-amber-400 font-sans">×</span>
-                          <span>{formatBigIntStr(question.b)}</span>
+                          <span className="whitespace-nowrap">{formatBigIntStr(question.b)}</span>
                         </div>
 
                         {/* Button Loa để phát thông tin câu hỏi */}
@@ -2019,7 +2019,7 @@ export const MultiplyWith1DigitDifficultyChallengePage: React.FC<MultiplyWith1Di
                   disabled={!canAnswer}
                   className={`w-full h-13 sm:h-14 px-5 pr-11 text-center ${
                     userAnswer.length > 22 ? 'text-base sm:text-xl' : 'text-2xl sm:text-3xl'
-                  } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 focus:outline-none transition-all shadow-inner ${
+                  } font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
                     isListening
                       ? 'border-rose-500 ring-2 ring-rose-500/40 animate-pulse'
                       : 'border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20'

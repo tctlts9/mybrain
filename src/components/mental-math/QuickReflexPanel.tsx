@@ -211,6 +211,8 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef<boolean>(false);
   const lastSolvedSpeechRef = useRef<{ value: number; time: number } | null>(null);
+  const consumedLengthByResultRef = useRef<Map<number, number>>(new Map());
+  const consumedValueByResultRef = useRef<Map<number, number>>(new Map());
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -379,6 +381,8 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
     setIsListening(false);
+    consumedLengthByResultRef.current.clear();
+    consumedValueByResultRef.current.clear();
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -494,14 +498,20 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
         ...boxStatusesRef.current,
         [boxIndex]: 'correct',
       };
+      const nextPending = findNextPendingBox(nextStatuses, boxIndex);
+      if (nextPending !== null && nextStatuses[nextPending] === 'incorrect') {
+        nextStatuses[nextPending] = 'pending';
+      }
+
       boxStatusesRef.current = nextStatuses;
       setBoxStatuses(nextStatuses);
       setUserEntries((prev) => ({
         ...prev,
         [boxIndex]: formattedDisplay,
+        ...(nextPending !== null ? { [nextPending]: '' } : {}),
       }));
+      setVoiceTranscript('');
 
-      const nextPending = findNextPendingBox(nextStatuses, boxIndex);
       if (nextPending === null) {
         // All 9 boxes completed!
         const elapsed = Date.now() - roundStartAtRef.current;
@@ -517,10 +527,12 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
           );
         }
       } else {
+        activeBoxIndexRef.current = nextPending;
         setActiveBoxIndex(nextPending);
         if (isSpeakerEnabled) {
           playSpeakerChime('correct');
         }
+        setTimeout(() => inputRef.current?.focus(), 20);
       }
     },
     [isSpeakerEnabled, isVi, stopListening]
@@ -620,6 +632,9 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
     stopCurrentSpeech();
     setVoiceError('');
     setVoiceTranscript('');
+    consumedLengthByResultRef.current.clear();
+    consumedValueByResultRef.current.clear();
+    lastSolvedSpeechRef.current = null;
     const recognition = new SpeechRecognition();
     recognition.lang = isVi ? 'vi-VN' : 'en-US';
     recognition.continuous = true;
@@ -629,19 +644,19 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
       if (roundStateRef.current !== 'running') return;
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const res = event.results[i];
-        const transcript = res[0]?.transcript || '';
-        setVoiceTranscript(transcript);
+        const fullTranscript = res[0]?.transcript || '';
+        const consumedOffset = consumedLengthByResultRef.current.get(i) ?? 0;
+        const activeTranscript = fullTranscript.slice(consumedOffset);
+        if (!activeTranscript.trim()) continue;
 
-        const parsed = parseQuickReflexVoice(transcript, isVi ? 'vi' : 'en');
+        setVoiceTranscript(activeTranscript.trim());
+
+        const parsed = parseQuickReflexVoice(activeTranscript, isVi ? 'vi' : 'en');
         if (parsed === null) continue;
 
-        // Prevent immediately re-applying the exact same spoken number to the next box
-        const now = Date.now();
-        if (
-          lastSolvedSpeechRef.current &&
-          Math.abs(lastSolvedSpeechRef.current.value - parsed) < 0.001 &&
-          now - lastSolvedSpeechRef.current.time < 1200
-        ) {
+        // Ignore if this exact result slot already solved a box with this same value (e.g. interim -> final revision)
+        const prevSlotVal = consumedValueByResultRef.current.get(i);
+        if (prevSlotVal !== undefined && Math.abs(prevSlotVal - parsed) < 0.001) {
           continue;
         }
 
@@ -649,13 +664,25 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
         const activeBox = resultBoxesRef.current.find((b) => b.index === idx);
         if (!activeBox) continue;
 
-        setUserEntries((prev) => ({ ...prev, [idx]: String(parsed) }));
+        // Prevent a delayed final/repeat transcript from the just-solved box from leaking into the new box
+        const now = Date.now();
+        if (
+          lastSolvedSpeechRef.current &&
+          Math.abs(lastSolvedSpeechRef.current.value - parsed) < 0.001 &&
+          now - lastSolvedSpeechRef.current.time < 3500 &&
+          Math.abs(activeBox.value - parsed) >= 0.001
+        ) {
+          continue;
+        }
 
         if (Math.abs(parsed - activeBox.value) < 0.001) {
           lastSolvedSpeechRef.current = { value: parsed, time: now };
+          consumedLengthByResultRef.current.set(i, fullTranscript.length);
+          consumedValueByResultRef.current.set(i, parsed);
           markBoxCorrect(idx, activeBox.formatted);
           return;
         } else if (res.isFinal) {
+          setUserEntries((prev) => ({ ...prev, [idx]: String(parsed) }));
           setBoxStatuses((prev) => ({ ...prev, [idx]: 'incorrect' }));
         }
       }
@@ -664,6 +691,8 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
     recognition.onerror = () => stopListening();
     recognition.onend = () => {
       if (isListeningRef.current && roundStateRef.current === 'running') {
+        consumedLengthByResultRef.current.clear();
+        consumedValueByResultRef.current.clear();
         try {
           recognition.start();
         } catch {

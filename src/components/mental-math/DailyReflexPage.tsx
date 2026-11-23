@@ -86,7 +86,7 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
     initialMode || 'dailyMix'
   );
   const [difficulty, setDifficulty] = useState<DailyReflexDifficulty>('normal');
-  const [isQuickReflexActive, setIsQuickReflexActive] = useState<boolean>(false);
+  const [isQuickReflexActive, setIsQuickReflexActive] = useState<boolean>(true);
   const [customOps, setCustomOps] = useState<ReflexOperation[]>(DEFAULT_CUSTOM_OPS);
   const [targetPaceSec, setTargetPaceSec] = useState<number>(0);
 

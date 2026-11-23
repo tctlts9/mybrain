@@ -52,6 +52,7 @@ import {
 } from '../../config/mentalMathAutoNext';
 import { AutoNextSettingButton } from './AutoNextSettingButton';
 import { DailyReflexQuestionDisplay } from './DailyReflexQuestionDisplay';
+import { QuickReflexPanel } from './QuickReflexPanel';
 
 interface DailyReflexPageProps {
   onBack: () => void;
@@ -85,6 +86,7 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
     initialMode || 'dailyMix'
   );
   const [difficulty, setDifficulty] = useState<DailyReflexDifficulty>('normal');
+  const [isQuickReflexActive, setIsQuickReflexActive] = useState<boolean>(false);
   const [customOps, setCustomOps] = useState<ReflexOperation[]>(DEFAULT_CUSTOM_OPS);
   const [targetPaceSec, setTargetPaceSec] = useState<number>(0);
 
@@ -146,7 +148,7 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
 
   // Live reaction stopwatch while question is unanswered
   useEffect(() => {
-    if (feedback === 'correct') return;
+    if (feedback === 'correct' || isQuickReflexActive) return;
     const interval = window.setInterval(() => {
       const elapsed = Date.now() - questionStartRef.current;
       setElapsedMs(elapsed);
@@ -155,7 +157,7 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
       }
     }, 100);
     return () => window.clearInterval(interval);
-  }, [feedback, targetPaceSec, question]);
+  }, [feedback, targetPaceSec, question, isQuickReflexActive]);
 
   const stopListening = useCallback(() => {
     isListeningRef.current = false;
@@ -659,18 +661,19 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {/* Difficulty toggle */}
+              {/* Difficulty & Quick Reflex toggle */}
               <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
                 <button
                   type="button"
                   onClick={() => {
+                    setIsQuickReflexActive(false);
                     if (difficulty !== 'normal') {
                       setDifficulty('normal');
                       generateNewQuestion(selectedMode, 'normal', customOps);
                     }
                   }}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                    difficulty === 'normal'
+                    !isQuickReflexActive && difficulty === 'normal'
                       ? 'bg-yellow-400 text-slate-950 font-bold'
                       : 'text-slate-400 hover:text-white'
                   }`}
@@ -680,102 +683,127 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
                 <button
                   type="button"
                   onClick={() => {
+                    setIsQuickReflexActive(false);
                     if (difficulty !== 'hard') {
                       setDifficulty('hard');
                       generateNewQuestion(selectedMode, 'hard', customOps);
                     }
                   }}
                   className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                    difficulty === 'hard'
+                    !isQuickReflexActive && difficulty === 'hard'
                       ? 'bg-yellow-400 text-slate-950 font-bold'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   {isVi ? 'Nâng cao' : 'Hard'}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsQuickReflexActive(true);
+                    stopCurrentSpeech();
+                    stopListening();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    isQuickReflexActive
+                      ? 'bg-yellow-400 text-slate-950 font-bold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {isVi ? 'Phản xạ nhanh' : 'Quick Reflex'}
+                </button>
               </div>
 
               {/* Target Pace Selector */}
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
-                <span className="text-[11px] text-slate-400 px-1.5 flex items-center gap-1 whitespace-nowrap">
-                  <Timer className="w-3 h-3 text-yellow-400" />
-                  <span className="hidden sm:inline">
-                    {isVi ? 'Nhịp:' : 'Pace:'}
+              {!isQuickReflexActive && (
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs">
+                  <span className="text-[11px] text-slate-400 px-1.5 flex items-center gap-1 whitespace-nowrap">
+                    <Timer className="w-3 h-3 text-yellow-400" />
+                    <span className="hidden sm:inline">
+                      {isVi ? 'Nhịp:' : 'Pace:'}
+                    </span>
                   </span>
-                </span>
-                {PACE_OPTIONS.map((sec) => (
+                  {PACE_OPTIONS.map((sec) => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => {
+                        setTargetPaceSec(sec);
+                        setPaceExpired(false);
+                      }}
+                      className={`px-2 py-1 rounded-lg font-mono font-bold transition-all cursor-pointer whitespace-nowrap tabular-nums ${
+                        targetPaceSec === sec
+                          ? 'bg-yellow-400 text-slate-950'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {sec === 0 ? (isVi ? 'Tự do' : 'Free') : `${sec}s`}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!isQuickReflexActive && (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
+                {DAILY_REFLEX_MODES.map((modeItem) => (
                   <button
-                    key={sec}
+                    key={modeItem.id}
                     type="button"
                     onClick={() => {
-                      setTargetPaceSec(sec);
-                      setPaceExpired(false);
+                      setSelectedMode(modeItem.id);
+                      generateNewQuestion(modeItem.id, difficulty, customOps);
                     }}
-                    className={`px-2 py-1 rounded-lg font-mono font-bold transition-all cursor-pointer whitespace-nowrap tabular-nums ${
-                      targetPaceSec === sec
-                        ? 'bg-yellow-400 text-slate-950'
-                        : 'text-slate-400 hover:text-white'
+                    className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
+                      selectedMode === modeItem.id
+                        ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
+                        : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
                     }`}
                   >
-                    {sec === 0 ? (isVi ? 'Tự do' : 'Free') : `${sec}s`}
+                    <span className="text-base">{modeItem.icon}</span>
+                    <span className="truncate">
+                      {isVi ? modeItem.labelVi : modeItem.labelEn}
+                    </span>
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
-            {DAILY_REFLEX_MODES.map((modeItem) => (
-              <button
-                key={modeItem.id}
-                type="button"
-                onClick={() => {
-                  setSelectedMode(modeItem.id);
-                  generateNewQuestion(modeItem.id, difficulty, customOps);
-                }}
-                className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 ${
-                  selectedMode === modeItem.id
-                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-bold shadow-md shadow-yellow-500/25 ring-1 ring-yellow-400'
-                    : 'bg-slate-900/40 hover:bg-slate-800/80 text-slate-300 hover:text-white border border-slate-800/60'
-                }`}
-              >
-                <span className="text-base">{modeItem.icon}</span>
-                <span className="truncate">
-                  {isVi ? modeItem.labelVi : modeItem.labelEn}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Custom operation toggles when Custom mode is active */}
-          {selectedMode === 'custom' && (
-            <div className="p-2 bg-slate-950/75 rounded-2xl border border-yellow-500/25 flex flex-wrap items-center gap-1.5">
-              <span className="text-[11px] font-semibold text-slate-400 px-1.5">
-                {isVi ? 'Phép tính bật:' : 'Active ops:'}
-              </span>
-              {REFLEX_OPERATIONS.map((op) => {
-                const active = customOps.includes(op.id);
-                return (
-                  <button
-                    key={op.id}
-                    type="button"
-                    onClick={() => toggleCustomOperation(op.id)}
-                    className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                      active
-                        ? 'bg-yellow-400/20 text-yellow-300 border-yellow-400/60'
-                        : 'bg-slate-900/60 text-slate-500 border-slate-800 hover:text-slate-300'
-                    }`}
-                  >
-                    <span className="font-mono font-bold">{op.symbol}</span>
-                    <span>{isVi ? op.labelVi : op.labelEn}</span>
-                  </button>
-                );
-              })}
-            </div>
+              {/* Custom operation toggles when Custom mode is active */}
+              {selectedMode === 'custom' && (
+                <div className="p-2 bg-slate-950/75 rounded-2xl border border-yellow-500/25 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-400 px-1.5">
+                    {isVi ? 'Phép tính bật:' : 'Active ops:'}
+                  </span>
+                  {REFLEX_OPERATIONS.map((op) => {
+                    const active = customOps.includes(op.id);
+                    return (
+                      <button
+                        key={op.id}
+                        type="button"
+                        onClick={() => toggleCustomOperation(op.id)}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                          active
+                            ? 'bg-yellow-400/20 text-yellow-300 border-yellow-400/60'
+                            : 'bg-slate-900/60 text-slate-500 border-slate-800 hover:text-slate-300'
+                        }`}
+                      >
+                        <span className="font-mono font-bold">{op.symbol}</span>
+                        <span>{isVi ? op.labelVi : op.labelEn}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Side-by-Side Arena */}
+        {isQuickReflexActive ? (
+          <QuickReflexPanel isVi={isVi} isSpeakerEnabled={isSpeakerEnabled} />
+        ) : (
+        /* Side-by-Side Arena */
         <div className="landscape-math-grid grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 lg:gap-6 items-stretch pt-0.5">
           {/* Left: Question Display */}
           <div className="landscape-math-col md:col-span-6 rounded-3xl bg-slate-950/80 border border-slate-800 p-3.5 sm:p-6 text-center shadow-inner relative group flex flex-col items-center justify-center">
@@ -1065,6 +1093,7 @@ export const DailyReflexPage: React.FC<DailyReflexPageProps> = ({
             </div>
           </form>
         </div>
+        )}
       </div>
     </div>
   );

@@ -7,7 +7,6 @@ import {
   AlertCircle,
   Zap,
   Hash,
-  Timer,
   Mic,
   MicOff,
   Delete,
@@ -24,6 +23,7 @@ import {
   announceResultFemaleVoice,
   stopCurrentSpeech,
 } from '../../utils/speechUtils';
+import { DifficultyTimerInputs } from './DifficultyTimerInputs';
 
 export type QuickReflexDigitMode = 1 | 2 | 3;
 
@@ -50,7 +50,6 @@ const QUICK_REFLEX_OPS: QuickReflexOpItem[] = [
 ];
 
 const DIGIT_OPTIONS: QuickReflexDigitMode[] = [1, 2, 3];
-const TIME_LIMIT_OPTIONS = [30, 45, 60, 90, 120];
 
 const SQUARES_1D = [1, 4, 9];
 const SQUARES_2D = [16, 25, 36, 49, 64, 81];
@@ -188,7 +187,12 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
 
   const [startDraft, setStartDraft] = useState<string>('20');
   const [stepValue, setStepValue] = useState<number>(2);
+  const [stepDraft, setStepDraft] = useState<string>('2');
   const [percentageStyle, setPercentageStyle] = useState<'ofBase' | 'chain'>('ofBase');
+
+  useEffect(() => {
+    setStepDraft(String(stepValue));
+  }, [stepValue]);
 
   // 9 answer boxes (1..9)
   const [activeBoxIndex, setActiveBoxIndex] = useState<number>(1);
@@ -792,17 +796,27 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
           <input
             type="text"
             inputMode="numeric"
-            value={String(stepValue)}
+            value={stepDraft}
+            onFocus={(e) => e.currentTarget.select()}
+            onMouseUp={(e) => e.preventDefault()}
+            onClick={(e) => e.currentTarget.select()}
             onChange={(e) => {
               const cleaned = e.target.value.replace(/[^\d]/g, '').slice(0, 3);
+              setStepDraft(cleaned);
               const parsed = parseInt(cleaned, 10);
               if (!Number.isNaN(parsed) && parsed > 0) {
                 setStepValue(parsed);
                 resetProgressForCurrentGrid();
               }
             }}
+            onBlur={() => {
+              const parsed = parseInt(stepDraft, 10);
+              if (Number.isNaN(parsed) || parsed <= 0) {
+                setStepDraft(String(stepValue));
+              }
+            }}
             aria-label={isVi ? 'Hệ số tùy chỉnh' : 'Custom factor'}
-            className="w-12 h-7 px-1.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-yellow-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums"
+            className="w-12 h-7 px-1.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-yellow-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums selection:bg-yellow-400 selection:text-slate-950"
           />
         </div>
       );
@@ -848,17 +862,27 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
           <input
             type="text"
             inputMode="numeric"
-            value={String(stepValue)}
+            value={stepDraft}
+            onFocus={(e) => e.currentTarget.select()}
+            onMouseUp={(e) => e.preventDefault()}
+            onClick={(e) => e.currentTarget.select()}
             onChange={(e) => {
               const cleaned = e.target.value.replace(/[^\d]/g, '').slice(0, 4);
+              setStepDraft(cleaned);
               const parsed = parseInt(cleaned, 10);
               if (!Number.isNaN(parsed) && parsed > 0) {
                 setStepValue(parsed);
                 resetProgressForCurrentGrid();
               }
             }}
+            onBlur={() => {
+              const parsed = parseInt(stepDraft, 10);
+              if (Number.isNaN(parsed) || parsed <= 0) {
+                setStepDraft(String(stepValue));
+              }
+            }}
             aria-label={isVi ? 'Bước nhảy tùy chỉnh' : 'Custom step'}
-            className="w-14 h-7 px-1.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-yellow-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums"
+            className="w-14 h-7 px-1.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-yellow-400 focus:outline-none text-center text-xs font-mono font-bold text-white tabular-nums selection:bg-yellow-400 selection:text-slate-950"
           />
         </div>
       );
@@ -993,29 +1017,16 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
               ))}
             </div>
 
-            {/* 9-Box Time Limit Selector */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-              <span className="text-[11px] text-slate-400 px-1.5 flex items-center gap-1 whitespace-nowrap">
-                <Timer className="w-3 h-3 text-yellow-400" />
-                <span className="hidden sm:inline">
-                  {isVi ? 'Giới hạn:' : 'Limit:'}
-                </span>
-              </span>
-              {TIME_LIMIT_OPTIONS.map((sec) => (
-                <button
-                  key={sec}
-                  type="button"
-                  onClick={() => handleChangeTimeLimit(sec)}
-                  className={`px-2 py-1 rounded-lg font-mono font-bold transition-all cursor-pointer whitespace-nowrap tabular-nums ${
-                    timeLimitSec === sec
-                      ? 'bg-yellow-400 text-slate-950'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {sec}s
-                </button>
-              ))}
-            </div>
+            {/* 9-Box Time Limit Input */}
+            <DifficultyTimerInputs
+              timeLimit={timeLimitSec}
+              disabled={roundState === 'running'}
+              isVi={isVi}
+              showAnswer={false}
+              limitLabelVi="Giới hạn:"
+              limitLabelEn="Limit:"
+              onChangeTimeLimit={handleChangeTimeLimit}
+            />
 
             {selectedOp && (
               <>
@@ -1195,12 +1206,15 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
                   type="text"
                   inputMode="decimal"
                   value={startDraft}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onMouseUp={(e) => e.preventDefault()}
+                  onClick={(e) => e.currentTarget.select()}
                   onChange={(e) => {
                     const cleaned = e.target.value.replace(/[^\d.-]/g, '').slice(0, 8);
                     setStartDraft(cleaned);
                     resetProgressForCurrentGrid();
                   }}
-                  className="w-32 sm:w-40 h-10 px-3 rounded-xl bg-slate-950 border border-yellow-400/60 focus:border-yellow-300 focus:outline-none text-center text-xl sm:text-2xl font-black font-mono text-yellow-300 tabular-nums"
+                  className="w-32 sm:w-40 h-10 px-3 rounded-xl bg-slate-950 border border-yellow-400/60 focus:border-yellow-300 focus:outline-none text-center text-xl sm:text-2xl font-black font-mono text-yellow-300 tabular-nums selection:bg-yellow-400 selection:text-slate-950"
                 />
               </div>
 
@@ -1249,19 +1263,32 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
                           {isVi ? `Ô ${box.index}` : `Box ${box.index}`}
                         </span>
                         <span className="font-mono text-yellow-400/90 truncate tabular-nums">
-                          {roundState === 'idle' && !showAllAnswers
-                            ? isVi
-                              ? 'Sẵn sàng'
-                              : 'Ready'
-                            : box.maskedFormulaLabel &&
+                          {(() => {
+                            if (roundState === 'idle' && !showAllAnswers) {
+                              return isVi ? 'Sẵn sàng' : 'Ready';
+                            }
+                            const label =
+                              box.maskedFormulaLabel &&
                               box.index > 1 &&
                               !showAllAnswers &&
                               roundState === 'running' &&
                               boxStatuses[box.index - 1] !== 'correct'
-                            ? isVi
-                              ? box.maskedFormulaLabel
-                              : box.maskedFormulaLabel.replace('Ô ', 'Box ')
-                            : box.formulaLabel}
+                                ? isVi
+                                  ? box.maskedFormulaLabel
+                                  : box.maskedFormulaLabel.replace('Ô ', 'Box ')
+                                : box.formulaLabel;
+                            if (label.startsWith('√')) {
+                              return (
+                                <span className="inline-flex items-center">
+                                  <span className="text-yellow-400 mr-0.5 font-sans">√</span>
+                                  <span className="border-t border-yellow-300/80 pt-px px-0.5">
+                                    {label.slice(1)}
+                                  </span>
+                                </span>
+                              );
+                            }
+                            return label;
+                          })()}
                         </span>
                       </div>
 
@@ -1342,16 +1369,30 @@ export const QuickReflexPanel: React.FC<QuickReflexPanelProps> = ({
                       : `Answering: Box ${activeBoxIndex}/9`}
                   </span>
                   {activeBox && roundState === 'running' && (
-                    <span className="font-mono font-bold text-yellow-300 bg-yellow-500/10 border border-yellow-500/30 px-2.5 py-0.5 rounded-lg tabular-nums">
-                      {activeBox.maskedFormulaLabel &&
-                      activeBox.index > 1 &&
-                      !showAllAnswers &&
-                      boxStatuses[activeBox.index - 1] !== 'correct'
-                        ? isVi
-                          ? activeBox.maskedFormulaLabel
-                          : activeBox.maskedFormulaLabel.replace('Ô ', 'Box ')
-                        : activeBox.formulaLabel}{' '}
-                      = ?
+                    <span className="font-mono font-bold text-yellow-300 bg-yellow-500/10 border border-yellow-500/30 px-2.5 py-0.5 rounded-lg tabular-nums inline-flex items-center gap-1">
+                      {(() => {
+                        const label =
+                          activeBox.maskedFormulaLabel &&
+                          activeBox.index > 1 &&
+                          !showAllAnswers &&
+                          boxStatuses[activeBox.index - 1] !== 'correct'
+                            ? isVi
+                              ? activeBox.maskedFormulaLabel
+                              : activeBox.maskedFormulaLabel.replace('Ô ', 'Box ')
+                            : activeBox.formulaLabel;
+                        if (label.startsWith('√')) {
+                          return (
+                            <span className="inline-flex items-center">
+                              <span className="text-yellow-400 mr-0.5 font-sans">√</span>
+                              <span className="border-t border-yellow-300/80 pt-px px-0.5">
+                                {label.slice(1)}
+                              </span>
+                            </span>
+                          );
+                        }
+                        return <span>{label}</span>;
+                      })()}
+                      <span>= ?</span>
                     </span>
                   )}
                 </div>

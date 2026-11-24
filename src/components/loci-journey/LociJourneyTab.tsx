@@ -1,11 +1,60 @@
 import React from 'react';
-import { Compass, Clock } from 'lucide-react';
+import { Compass, Clock, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { setTabCardsVisibility, useCardVisibility } from '../../config/cardVisibility';
 
-export const LociJourneyTab: React.FC = () => {
+interface LociJourneyTabProps {
+  onOpenCardVisibility?: () => void;
+}
+
+export const LociJourneyTab: React.FC<LociJourneyTabProps> = ({
+  onOpenCardVisibility,
+}) => {
   const { language } = useLanguage();
+  const { isCardVisible } = useCardVisibility();
 
   const isVi = language === 'vi';
+
+  if (!isCardVisible('loci:memory-palace')) {
+    return (
+      <div className="min-h-[300px] flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/50 p-6 sm:p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 mx-auto">
+            <EyeOff className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-base sm:text-lg font-bold text-white">
+              {isVi ? 'Tất cả Card trong Tab này đang ẩn' : 'All Cards in this Tab are Hidden'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {isVi
+                ? 'Bạn có thể bật hiển thị lại card của Tab Hành trình ký ức Loci bất cứ lúc nào.'
+                : 'You can re-enable cards for the Memory Palace tab anytime.'}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setTabCardsVisibility('loci-journey', true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all cursor-pointer active:scale-95"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{isVi ? 'Hiện lại tất cả' : 'Show All'}</span>
+            </button>
+            {onOpenCardVisibility && (
+              <button
+                type="button"
+                onClick={onOpenCardVisibility}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition-all cursor-pointer active:scale-95"
+              >
+                <span>{isVi ? 'Tùy chỉnh chi tiết' : 'Customize Cards'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[340px] sm:min-h-[400px] flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">

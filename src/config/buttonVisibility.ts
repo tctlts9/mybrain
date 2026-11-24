@@ -1,3 +1,5 @@
+import { TabType } from '../types/tab';
+
 // ============================================================================
 // 1. CÔNG TẮC TỔNG TOÀN WEB APP (true = HIỆN | false = ẨN TẤT CẢ)
 // ============================================================================
@@ -22,6 +24,9 @@ export const SHOW_EDIT_TIMER_BUTTON: boolean = false;
 
 // Công tắc tổng nút Tùy chỉnh đổi câu / Auto-Next (đặt false sẽ ẩn ở TẤT CẢ các page)
 export const SHOW_AUTO_NEXT_BUTTON: boolean = false;
+
+// Công tắc tổng nút Ẩn/Hiện Card (Header) (đặt false sẽ ẩn ở TẤT CẢ các Tab)
+export const SHOW_CARD_VISIBILITY_BUTTON: boolean = false;
 
 // ============================================================================
 // 2. TÙY CHỈNH ẨN / HIỆN THEO TỪNG PAGE CỤ THỂ (true = HIỆN | false = ẨN)
@@ -229,3 +234,13 @@ export const isEditTimerButtonVisible = (page: EditTimerPageKey): boolean =>
 
 export const isAutoNextButtonVisible = (page: AutoNextButtonPageKey): boolean =>
   SHOW_AUTO_NEXT_BUTTON && PAGE_BUTTON_VISIBILITY[page].autoNext;
+
+// Tùy chỉnh ẩn/hiện nút "Ẩn/Hiện Card" theo từng Tab (true = HIỆN | false = ẨN)
+export const TAB_CARD_VISIBILITY_BUTTON: Record<TabType, boolean> = {
+  'mental-math': true,
+  'loci-journey': true,
+  'brain-training': true,
+};
+
+export const isCardVisibilityButtonVisible = (tab: TabType): boolean =>
+  SHOW_CARD_VISIBILITY_BUTTON && TAB_CARD_VISIBILITY_BUTTON[tab];

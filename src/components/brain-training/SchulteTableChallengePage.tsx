@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Play,
   ArrowRight,
-  Clock,
   Target,
   ArrowUpDown,
   Mic,
@@ -23,10 +22,11 @@ import { useLanguage } from '../../context/LanguageContext';
 import { playSpeakerChime } from '../../utils/speechUtils';
 import { parseSchulteVoiceActions } from '../../utils/schulteVoice';
 import { isDifficultLevelChallengeButtonVisible } from '../../config/buttonVisibility';
+import { DifficultyTimerInputs } from '../mental-math/DifficultyTimerInputs';
 
 export type SchulteGridSize = 3 | 4 | 5 | 6;
 type OrderMode = 'asc' | 'desc';
-type TimeLimit = 20 | 40 | 60 | 80 | 100 | 120;
+type TimeLimit = number;
 type ChallengeStatus = 'idle' | 'running' | 'round-ended' | 'completed';
 
 interface SchulteTableChallengePageProps {
@@ -47,7 +47,6 @@ interface RoundHistoryItem {
 
 const TOTAL_ROUNDS = 3;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
-const TIME_LIMITS: TimeLimit[] = [20, 40, 60, 80, 100, 120];
 const ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const generateShuffledNumbers = (size: SchulteGridSize): number[] => {
@@ -81,7 +80,7 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [numbers, setNumbers] = useState<number[]>(() => generateShuffledNumbers(initialGridSize));
   const [nextTarget, setNextTarget] = useState<number>(1);
-  const [timeLeft, setTimeLeft] = useState<number>(30);
+  const [timeLeft, setTimeLeft] = useState<number>(60);
   const [roundElapsedMs, setRoundElapsedMs] = useState<number>(0);
   const [mistakes, setMistakes] = useState<number>(0);
   const [wrongTile, setWrongTile] = useState<number | null>(null);
@@ -487,9 +486,8 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
 
   const handleSelectTimeLimit = (newLimit: TimeLimit) => {
     setTimeLimit(newLimit);
-    setTimeLeft(newLimit);
-    if (status === 'running' || status === 'round-ended') {
-      startChallengeSession(gridSize, newLimit, orderMode);
+    if (status === 'idle') {
+      setTimeLeft(newLimit);
     }
   };
 
@@ -644,27 +642,18 @@ export const SchulteTableChallengePage: React.FC<SchulteTableChallengePageProps>
             </div>
           </div>
 
-          {/* Time Limit Selector */}
-          <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 max-w-full">
-            <span className="text-[11px] font-semibold text-slate-400 px-1.5 sm:px-2 flex items-center gap-1">
-              <Clock className="w-3 h-3 text-amber-400" />
-              <span>{isVi ? 'Giới hạn:' : 'Limit:'}</span>
-            </span>
-            {TIME_LIMITS.map((limit) => (
-              <button
-                key={limit}
-                type="button"
-                onClick={() => handleSelectTimeLimit(limit)}
-                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
-                  timeLimit === limit
-                    ? 'bg-amber-500 text-slate-950 shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                {limit}s
-              </button>
-            ))}
-          </div>
+          {/* Time Limit Input */}
+          <DifficultyTimerInputs
+            timeLimit={timeLimit}
+            disabled={status === 'running'}
+            isVi={isVi}
+            clockIconClassName="text-amber-400"
+            limitFocusClassName="focus:border-amber-400"
+            showAnswer={false}
+            limitLabelVi="Giới hạn:"
+            limitLabelEn="Limit:"
+            onChangeTimeLimit={handleSelectTimeLimit}
+          />
         </div>
 
         {/* Grid Size & Options Row */}

@@ -3,9 +3,9 @@ import { Clock, Timer } from 'lucide-react';
 
 interface DifficultyTimerInputsProps {
   timeLimit: number;
-  answerTimeLimit: number;
+  answerTimeLimit?: number;
   onChangeTimeLimit: (seconds: number) => void;
-  onChangeAnswerTimeLimit: (seconds: number) => void;
+  onChangeAnswerTimeLimit?: (seconds: number) => void;
   disabled?: boolean;
   isVi: boolean;
   clockIconClassName?: string;
@@ -23,7 +23,7 @@ const clampSeconds = (val: number): number =>
 
 export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
   timeLimit,
-  answerTimeLimit,
+  answerTimeLimit = 10,
   onChangeTimeLimit,
   onChangeAnswerTimeLimit,
   disabled = false,
@@ -82,7 +82,7 @@ export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
     if (cleaned.length > 0) {
       const parsed = parseInt(cleaned, 10);
       if (!Number.isNaN(parsed) && parsed >= MIN_SECONDS) {
-        onChangeAnswerTimeLimit(clampSeconds(parsed));
+        onChangeAnswerTimeLimit?.(clampSeconds(parsed));
       }
     }
   };
@@ -93,12 +93,12 @@ export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
     if (Number.isNaN(parsed) || parsed < MIN_SECONDS) {
       const fallback = answerTimeLimit >= MIN_SECONDS ? clampSeconds(answerTimeLimit) : 10;
       setAnswerDraft(String(fallback));
-      onChangeAnswerTimeLimit(fallback);
+      onChangeAnswerTimeLimit?.(fallback);
       return;
     }
     const clamped = clampSeconds(parsed);
     setAnswerDraft(String(clamped));
-    onChangeAnswerTimeLimit(clamped);
+    onChangeAnswerTimeLimit?.(clamped);
   };
 
   return (
@@ -118,8 +118,10 @@ export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
             value={limitDraft}
             onFocus={(e) => {
               isEditingLimitRef.current = true;
-              e.target.select();
+              e.currentTarget.select();
             }}
+            onMouseUp={(e) => e.preventDefault()}
+            onClick={(e) => e.currentTarget.select()}
             onChange={handleLimitChange}
             onBlur={commitLimit}
             onKeyDown={(e) => {
@@ -128,8 +130,8 @@ export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
               }
             }}
             aria-label={isVi ? 'Thời gian giới hạn (giây)' : 'Limit (seconds)'}
-            title={isVi ? 'Nhập số giây giới hạn quan sát (mặc định 10s)' : 'Enter observation time limit in seconds (default 10s)'}
-            className={`w-14 px-2 py-0.5 rounded-lg bg-slate-900/90 border border-slate-700/80 ${limitFocusClassName} focus:outline-none text-center text-xs font-bold text-white tabular-nums transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={isVi ? 'Nhập số giây giới hạn (giây)' : 'Enter time limit in seconds'}
+            className={`w-14 px-2 py-0.5 rounded-lg bg-slate-900/90 border border-slate-700/80 ${limitFocusClassName} focus:outline-none text-center text-xs font-bold text-white tabular-nums selection:bg-yellow-400 selection:text-slate-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
           />
           <span className="text-[11px] font-bold text-slate-400">s</span>
         </div>
@@ -151,8 +153,10 @@ export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
               value={answerDraft}
               onFocus={(e) => {
                 isEditingAnswerRef.current = true;
-                e.target.select();
+                e.currentTarget.select();
               }}
+              onMouseUp={(e) => e.preventDefault()}
+              onClick={(e) => e.currentTarget.select()}
               onChange={handleAnswerChange}
               onBlur={commitAnswer}
               onKeyDown={(e) => {
@@ -162,7 +166,7 @@ export const DifficultyTimerInputs: React.FC<DifficultyTimerInputsProps> = ({
               }}
               aria-label={isVi ? 'Thời gian trả lời (giây)' : 'Answer time limit (seconds)'}
               title={isVi ? 'Nhập số giây trả lời (mặc định 10s)' : 'Enter answer time limit in seconds (default 10s)'}
-              className="w-14 px-2 py-0.5 rounded-lg bg-slate-900/90 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-center text-xs font-bold text-cyan-200 tabular-nums transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-14 px-2 py-0.5 rounded-lg bg-slate-900/90 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-center text-xs font-bold text-cyan-200 tabular-nums selection:bg-cyan-400 selection:text-slate-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <span className="text-[11px] font-bold text-cyan-300/80">s</span>
           </div>

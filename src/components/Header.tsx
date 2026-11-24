@@ -1,16 +1,19 @@
 import React from 'react';
 import { TabType } from '../types/tab';
-import { Brain, Compass, Zap } from 'lucide-react';
+import { Brain, Compass, Zap, Eye } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { isCardVisibilityButtonVisible } from '../config/buttonVisibility';
 
 interface HeaderProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  onOpenCardVisibility?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
+  onOpenCardVisibility,
 }) => {
   const { language, setLanguage, t } = useLanguage();
 
@@ -125,6 +128,26 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
             </div>
+
+            {/* Show / Hide Cards Button */}
+            {onOpenCardVisibility && isCardVisibilityButtonVisible(activeTab) && (
+              <button
+                type="button"
+                onClick={onOpenCardVisibility}
+                title={
+                  language === 'vi'
+                    ? 'Ẩn / Hiện Card theo Tab (chỉnh chi tiết và tất cả card)'
+                    : 'Show / Hide Cards by Tab (individual & all cards)'
+                }
+                aria-label={language === 'vi' ? 'Ẩn / Hiện Card' : 'Show / Hide Cards'}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 text-xs font-semibold text-slate-200 hover:text-amber-300 transition-all cursor-pointer shadow-sm active:scale-95 whitespace-nowrap shrink-0"
+              >
+                <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="hidden sm:inline">
+                  {language === 'vi' ? 'Ẩn/Hiện Card' : 'Cards'}
+                </span>
+              </button>
+            )}
 
             {/* Language Toggle (VI / EN) */}
             <button

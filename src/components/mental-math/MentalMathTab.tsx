@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowLeft, SlidersHorizontal, Clock, TimerReset } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, Clock, TimerReset, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { isEditTimerButtonVisible, isAutoNextButtonVisible } from '../../config/buttonVisibility';
+import {
+  CardVisibilityId,
+  setChildCardsVisibility,
+  setTabCardsVisibility,
+  useCardVisibility,
+} from '../../config/cardVisibility';
 import { MentalMathChallengeTimerModal } from './MentalMathChallengeTimerModal';
 import { MentalMathAutoNextModal } from './MentalMathAutoNextModal';
 import { TwoDigitMultiplicationPage, TrainingTopic } from './TwoDigitMultiplicationPage';
@@ -115,9 +121,16 @@ type MentalMathPage =
   | 'daily-reflex-challenge'
   | 'daily-reflex-difficulty-challenge';
 
-export const MentalMathTab: React.FC = () => {
+interface MentalMathTabProps {
+  onOpenCardVisibility?: () => void;
+}
+
+export const MentalMathTab: React.FC<MentalMathTabProps> = ({
+  onOpenCardVisibility,
+}) => {
   const { language, t } = useLanguage();
   const isVi = language === 'vi';
+  const { isCardVisible } = useCardVisibility();
   const [currentPage, setCurrentPage] = useState<MentalMathPage>('card');
   const [trainingTopic, setTrainingTopic] = useState<TrainingTopic>('twoDigit');
   const [challengeTopic, setChallengeTopic] = useState<TrainingTopic>('twoDigit');
@@ -685,123 +698,168 @@ export const MentalMathTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 w-full max-w-md sm:max-w-none mx-auto">
-          {/* Child Card 1: Phép nhân 2 chữ số */}
-          <div
-            onClick={() => {
-              setTrainingTopic('twoDigit');
-              setCurrentPage('two-digit-page');
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setTrainingTopic('twoDigit');
-                setCurrentPage('two-digit-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={cardBg}
-              alt={t.cardMultiply2Title}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
-              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardMultiply2Title}
-              </h2>
-            </div>
-          </div>
+        {(() => {
+          const multiplyChildren = [
+            isCardVisible('mm:multiply-2-digit') && (
+              <div
+                key="mm:multiply-2-digit"
+                onClick={() => {
+                  setTrainingTopic('twoDigit');
+                  setCurrentPage('two-digit-page');
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setTrainingTopic('twoDigit');
+                    setCurrentPage('two-digit-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={cardBg}
+                  alt={t.cardMultiply2Title}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+                  <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardMultiply2Title}
+                  </h2>
+                </div>
+              </div>
+            ),
+            isCardVisible('mm:multiply-11') && (
+              <div
+                key="mm:multiply-11"
+                onClick={() => setCurrentPage('multiply-11-page')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setCurrentPage('multiply-11-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={card11Bg}
+                  alt={t.cardMultiply11Title}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+                  <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardMultiply11Title}
+                  </h2>
+                </div>
+              </div>
+            ),
+            isCardVisible('mm:multiply-1-digit') && (
+              <div
+                key="mm:multiply-1-digit"
+                onClick={() => setCurrentPage('multiply-1-digit-page')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setCurrentPage('multiply-1-digit-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={card1DigitBg}
+                  alt={t.cardMultiply1DigitTitle}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+                  <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardMultiply1DigitTitle}
+                  </h2>
+                </div>
+              </div>
+            ),
+            isCardVisible('mm:multiply-99') && (
+              <div
+                key="mm:multiply-99"
+                onClick={() => setCurrentPage('multiply-99-page')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setCurrentPage('multiply-99-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={cardMultiplyBg}
+                  alt={t.cardMultiply99Title}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/55 via-slate-950/15 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
+                  <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardMultiply99Title}
+                  </h2>
+                </div>
+              </div>
+            ),
+          ].filter(Boolean);
 
-          {/* Child Card 2: Nhân với số 11 */}
-          <div
-            onClick={() => setCurrentPage('multiply-11-page')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setCurrentPage('multiply-11-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={card11Bg}
-              alt={t.cardMultiply11Title}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
-              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardMultiply11Title}
-              </h2>
-            </div>
-          </div>
+          if (multiplyChildren.length === 0) {
+            return (
+              <div className="min-h-[240px] flex items-center justify-center p-4">
+                <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/50 p-6 text-center space-y-4">
+                  <EyeOff className="w-8 h-8 text-slate-400 mx-auto" />
+                  <p className="text-sm font-bold text-white">
+                    {isVi ? 'Các card con của Phép nhân đang ẩn' : 'Multiplication sub-cards are hidden'}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setChildCardsVisibility('mm:multiply', true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{isVi ? 'Hiện lại card con' : 'Show Sub-cards'}</span>
+                    </button>
+                    {onOpenCardVisibility && (
+                      <button
+                        type="button"
+                        onClick={onOpenCardVisibility}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs cursor-pointer"
+                      >
+                        <span>{isVi ? 'Tùy chỉnh chi tiết' : 'Customize'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
-          {/* Child Card 3: Nhân với 1 chữ số */}
-          <div
-            onClick={() => setCurrentPage('multiply-1-digit-page')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setCurrentPage('multiply-1-digit-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={card1DigitBg}
-              alt={t.cardMultiply1DigitTitle}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/45 via-slate-950/10 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
-              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardMultiply1DigitTitle}
-              </h2>
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 w-full max-w-md sm:max-w-none mx-auto">
+              {multiplyChildren}
             </div>
-          </div>
-
-          {/* Child Card 4: Nhân với số 99 */}
-          <div
-            onClick={() => setCurrentPage('multiply-99-page')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setCurrentPage('multiply-99-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={cardMultiplyBg}
-              alt={t.cardMultiply99Title}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/55 via-slate-950/15 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
-              <h2 className="text-base sm:text-xl lg:text-lg xl:text-xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardMultiply99Title}
-              </h2>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {showEditTimerButton && (
           <MentalMathChallengeTimerModal
@@ -871,109 +929,153 @@ export const MentalMathTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 md:gap-7 w-full max-w-md md:max-w-none mx-auto">
-          {/* Child Card 1: Tính % của một số */}
-          <div
-            onClick={() => {
-              setPercentageMode('basic');
-              setPercentageChallengeTopic('general');
-              setCurrentPage('percentage-page');
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setPercentageMode('basic');
-                setPercentageChallengeTopic('general');
-                setCurrentPage('percentage-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={cardPercentBasicBg}
-              alt={t.cardPercentBasicTitle}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardPercentBasicTitle}
-              </h2>
-            </div>
-          </div>
+        {(() => {
+          const percentageChildren = [
+            isCardVisible('mm:percentage-basic') && (
+              <div
+                key="mm:percentage-basic"
+                onClick={() => {
+                  setPercentageMode('basic');
+                  setPercentageChallengeTopic('general');
+                  setCurrentPage('percentage-page');
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setPercentageMode('basic');
+                    setPercentageChallengeTopic('general');
+                    setCurrentPage('percentage-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={cardPercentBasicBg}
+                  alt={t.cardPercentBasicTitle}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                  <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardPercentBasicTitle}
+                  </h2>
+                </div>
+              </div>
+            ),
+            isCardVisible('mm:percentage-change') && (
+              <div
+                key="mm:percentage-change"
+                onClick={() => {
+                  setPercentageMode('change');
+                  setPercentageChallengeTopic('general');
+                  setCurrentPage('percentage-page');
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setPercentageMode('change');
+                    setPercentageChallengeTopic('general');
+                    setCurrentPage('percentage-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={cardPercentChangeBg}
+                  alt={t.cardPercentChangeTitle}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                  <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardPercentChangeTitle}
+                  </h2>
+                </div>
+              </div>
+            ),
+            isCardVisible('mm:percentage-reverse') && (
+              <div
+                key="mm:percentage-reverse"
+                onClick={() => {
+                  setPercentageMode('reverse');
+                  setPercentageChallengeTopic('general');
+                  setCurrentPage('percentage-page');
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setPercentageMode('reverse');
+                    setPercentageChallengeTopic('general');
+                    setCurrentPage('percentage-page');
+                  }
+                }}
+                className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+              >
+                <img
+                  src={cardPercentReverseBg}
+                  alt={t.cardPercentReverseTitle}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                  <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
+                    {t.cardPercentReverseTitle}
+                  </h2>
+                </div>
+              </div>
+            ),
+          ].filter(Boolean);
 
-          {/* Child Card 2: Tăng / Giảm % */}
-          <div
-            onClick={() => {
-              setPercentageMode('change');
-              setPercentageChallengeTopic('general');
-              setCurrentPage('percentage-page');
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setPercentageMode('change');
-                setPercentageChallengeTopic('general');
-                setCurrentPage('percentage-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={cardPercentChangeBg}
-              alt={t.cardPercentChangeTitle}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardPercentChangeTitle}
-              </h2>
-            </div>
-          </div>
+          if (percentageChildren.length === 0) {
+            return (
+              <div className="min-h-[240px] flex items-center justify-center p-4">
+                <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/50 p-6 text-center space-y-4">
+                  <EyeOff className="w-8 h-8 text-slate-400 mx-auto" />
+                  <p className="text-sm font-bold text-white">
+                    {isVi ? 'Các card con của Tỷ lệ % đang ẩn' : 'Percentage sub-cards are hidden'}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setChildCardsVisibility('mm:percentage', true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{isVi ? 'Hiện lại card con' : 'Show Sub-cards'}</span>
+                    </button>
+                    {onOpenCardVisibility && (
+                      <button
+                        type="button"
+                        onClick={onOpenCardVisibility}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs cursor-pointer"
+                      >
+                        <span>{isVi ? 'Tùy chỉnh chi tiết' : 'Customize'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
-          {/* Child Card 3: Tìm tỷ lệ & Số gốc */}
-          <div
-            onClick={() => {
-              setPercentageMode('reverse');
-              setPercentageChallengeTopic('general');
-              setCurrentPage('percentage-page');
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setPercentageMode('reverse');
-                setPercentageChallengeTopic('general');
-                setCurrentPage('percentage-page');
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={cardPercentReverseBg}
-              alt={t.cardPercentReverseTitle}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/65 via-slate-950/20 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-              <h2 className="text-base sm:text-xl md:text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 whitespace-nowrap">
-                {t.cardPercentReverseTitle}
-              </h2>
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 md:gap-7 w-full max-w-md md:max-w-none mx-auto">
+              {percentageChildren}
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {showEditTimerButton && (
           <MentalMathChallengeTimerModal
@@ -996,6 +1098,7 @@ export const MentalMathTab: React.FC = () => {
   // ==================== MÀN HÌNH CHÍNH: CÁC CARD TÍNH NHẨM ====================
   const mainCards: Array<{
     id: string;
+    visibilityId: CardVisibilityId;
     title: string;
     subtitle?: string;
     image: string;
@@ -1004,6 +1107,7 @@ export const MentalMathTab: React.FC = () => {
   }> = [
     {
       id: 'multiply',
+      visibilityId: 'mm:multiply',
       title: t.cardMultiplyTitle,
       subtitle: t.cardMultiplySub,
       image: cardMultiplyBg,
@@ -1011,36 +1115,42 @@ export const MentalMathTab: React.FC = () => {
     },
     {
       id: 'division',
+      visibilityId: 'mm:division',
       title: t.cardDivideTitle,
       image: cardDivideBg,
       onSelect: () => setCurrentPage('division-page'),
     },
     {
       id: 'addition',
+      visibilityId: 'mm:addition',
       title: t.cardAddTitle,
       image: cardAddBg,
       onSelect: () => setCurrentPage('addition-page'),
     },
     {
       id: 'subtraction',
+      visibilityId: 'mm:subtraction',
       title: t.cardSubtractTitle,
       image: cardSubtractBg,
       onSelect: () => setCurrentPage('subtraction-page'),
     },
     {
       id: 'square-root',
+      visibilityId: 'mm:square-root',
       title: t.cardSqrtTitle,
       image: cardSqrtBg,
       onSelect: () => setCurrentPage('square-root-page'),
     },
     {
       id: 'exponent',
+      visibilityId: 'mm:exponent',
       title: t.cardPowerTitle,
       image: cardPowerBg,
       onSelect: () => setCurrentPage('exponent-page'),
     },
     {
       id: 'percentage',
+      visibilityId: 'mm:percentage',
       title: t.cardPercentTitle,
       subtitle: t.cardPercentSub,
       image: cardPercentBg,
@@ -1048,6 +1158,7 @@ export const MentalMathTab: React.FC = () => {
     },
     {
       id: 'daily-reflex',
+      visibilityId: 'mm:daily-reflex',
       title: t.cardDailyReflexTitle,
       subtitle: t.cardDailyReflexSub,
       image: cardBg,
@@ -1055,6 +1166,10 @@ export const MentalMathTab: React.FC = () => {
       onSelect: () => setCurrentPage('daily-reflex-page'),
     },
   ];
+
+  const visibleMainCards = mainCards.filter((card) =>
+    isCardVisible(card.visibilityId)
+  );
 
   return (
     <div className="w-full max-w-7xl mx-auto py-2 sm:py-6 animate-in fade-in duration-300 px-2 sm:px-4 space-y-4">
@@ -1094,49 +1209,88 @@ export const MentalMathTab: React.FC = () => {
           )}
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 w-full max-w-md sm:max-w-none mx-auto">
-        {mainCards.map((card) => (
-          <div
-            key={card.id}
-            onClick={card.onSelect}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                card.onSelect();
-              }
-            }}
-            className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
-          >
-            <img
-              src={card.image}
-              alt={card.title}
-              referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
-            />
-            <div className="absolute inset-0 bg-radial from-slate-950/70 via-slate-950/30 to-transparent pointer-events-none" />
-            <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
-
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none gap-1.5">
-              <h2
-                className={`font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 ${
-                  card.wrapTitle
-                    ? 'text-sm sm:text-base lg:text-sm xl:text-base leading-snug text-balance max-w-[94%]'
-                    : 'text-lg sm:text-xl lg:text-lg xl:text-xl whitespace-nowrap'
-                }`}
-              >
-                {card.title}
+      {visibleMainCards.length === 0 ? (
+        <div className="min-h-[280px] flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/50 p-6 sm:p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 mx-auto">
+              <EyeOff className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-base sm:text-lg font-bold text-white">
+                {isVi ? 'Tất cả Card trong Tab này đang ẩn' : 'All Cards in this Tab are Hidden'}
               </h2>
-              {card.subtitle && (
-                <p className="text-[11px] sm:text-xs font-medium text-yellow-200/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.95)] max-w-[92%] truncate">
-                  {card.subtitle}
-                </p>
+              <p className="text-xs text-slate-400">
+                {isVi
+                  ? 'Bạn có thể bật hiển thị lại toàn bộ hoặc chọn từng card chi tiết cho Tab Tính nhẩm.'
+                  : 'You can re-enable all cards or customize individual cards for Mental Math.'}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setTabCardsVisibility('mental-math', true, true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition-all cursor-pointer active:scale-95"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>{isVi ? 'Hiện lại tất cả' : 'Show All'}</span>
+              </button>
+              {onOpenCardVisibility && (
+                <button
+                  type="button"
+                  onClick={onOpenCardVisibility}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition-all cursor-pointer active:scale-95"
+                >
+                  <span>{isVi ? 'Tùy chỉnh chi tiết' : 'Customize Cards'}</span>
+                </button>
               )}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 w-full max-w-md sm:max-w-none mx-auto">
+          {visibleMainCards.map((card) => (
+            <div
+              key={card.id}
+              onClick={card.onSelect}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  card.onSelect();
+                }
+              }}
+              className="group relative rounded-2xl sm:rounded-3xl border border-yellow-500/40 hover:border-yellow-400 aspect-[16/9] w-full flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:-translate-y-1 cursor-pointer overflow-hidden p-4 sm:p-6 bg-slate-900"
+            >
+              <img
+                src={card.image}
+                alt={card.title}
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105 pointer-events-none opacity-95"
+              />
+              <div className="absolute inset-0 bg-radial from-slate-950/70 via-slate-950/30 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 ring-1 ring-inset ring-yellow-400/20 group-hover:ring-yellow-400/50 transition-all rounded-2xl sm:rounded-3xl pointer-events-none" />
+
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-3 pointer-events-none gap-1.5">
+                <h2
+                  className={`font-extrabold text-white tracking-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] transition-colors group-hover:text-yellow-100 ${
+                    card.wrapTitle
+                      ? 'text-sm sm:text-base lg:text-sm xl:text-base leading-snug text-balance max-w-[94%]'
+                      : 'text-lg sm:text-xl lg:text-lg xl:text-xl whitespace-nowrap'
+                  }`}
+                >
+                  {card.title}
+                </h2>
+                {card.subtitle && (
+                  <p className="text-[11px] sm:text-xs font-medium text-yellow-200/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.95)] max-w-[92%] truncate">
+                    {card.subtitle}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {showEditTimerButton && (
         <MentalMathChallengeTimerModal

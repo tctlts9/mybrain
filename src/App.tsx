@@ -8,7 +8,12 @@ import { BrainTrainingTab } from './components/brain-training/BrainTrainingTab';
 import { MobileTabBar } from './components/common/MobileTabBar';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { EmailModal } from './components/common/EmailModal';
+import { CardVisibilityModal } from './components/common/CardVisibilityModal';
 import { LanguageProvider } from './context/LanguageContext';
+import {
+  SHOW_CARD_VISIBILITY_BUTTON,
+  isCardVisibilityButtonVisible,
+} from './config/buttonVisibility';
 
 function DashboardApp() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -23,6 +28,13 @@ function DashboardApp() {
   });
 
   const [isEmailModalOpen, setIsEmailModalOpen] = useState<boolean>(false);
+  const [isCardVisibilityModalOpen, setIsCardVisibilityModalOpen] = useState<boolean>(false);
+  const [cardVisibilityInitialTab, setCardVisibilityInitialTab] = useState<TabType | 'all'>('mental-math');
+
+  const openCardVisibilityModal = (tabOverride?: TabType | 'all') => {
+    setCardVisibilityInitialTab(tabOverride ?? activeTab);
+    setIsCardVisibilityModalOpen(true);
+  };
 
   return (
     <div className="min-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500/20 selection:text-amber-200 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
@@ -33,14 +45,43 @@ function DashboardApp() {
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onOpenCardVisibility={
+          isCardVisibilityButtonVisible(activeTab)
+            ? () => openCardVisibilityModal(activeTab)
+            : undefined
+        }
       />
 
       {/* Main Content Workspace */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col justify-center">
         <main className="pb-20 md:pb-4">
-          {activeTab === 'mental-math' && <MentalMathTab />}
-          {activeTab === 'loci-journey' && <LociJourneyTab />}
-          {activeTab === 'brain-training' && <BrainTrainingTab />}
+          {activeTab === 'mental-math' && (
+            <MentalMathTab
+              onOpenCardVisibility={
+                isCardVisibilityButtonVisible('mental-math')
+                  ? () => openCardVisibilityModal('mental-math')
+                  : undefined
+              }
+            />
+          )}
+          {activeTab === 'loci-journey' && (
+            <LociJourneyTab
+              onOpenCardVisibility={
+                isCardVisibilityButtonVisible('loci-journey')
+                  ? () => openCardVisibilityModal('loci-journey')
+                  : undefined
+              }
+            />
+          )}
+          {activeTab === 'brain-training' && (
+            <BrainTrainingTab
+              onOpenCardVisibility={
+                isCardVisibilityButtonVisible('brain-training')
+                  ? () => openCardVisibilityModal('brain-training')
+                  : undefined
+              }
+            />
+          )}
         </main>
       </div>
 
@@ -55,6 +96,15 @@ function DashboardApp() {
         isOpen={isEmailModalOpen}
         onClose={() => setIsEmailModalOpen(false)}
       />
+
+      {/* Card Visibility Manager Modal */}
+      {SHOW_CARD_VISIBILITY_BUTTON && (
+        <CardVisibilityModal
+          isOpen={isCardVisibilityModalOpen}
+          onClose={() => setIsCardVisibilityModalOpen(false)}
+          initialTab={cardVisibilityInitialTab}
+        />
+      )}
 
       {/* Compact Professional Footer */}
       <Footer

@@ -24,14 +24,16 @@ export const DailyReflexQuestionDisplay: React.FC<DailyReflexQuestionDisplayProp
       const aStr = question.a.toLocaleString();
       const sizeClass =
         aStr.length >= 6
-          ? 'text-2xl sm:text-3xl lg:text-4xl'
-          : 'text-3xl sm:text-5xl';
+          ? 'text-2xl sm:text-4xl lg:text-5xl'
+          : 'text-3xl sm:text-5xl lg:text-6xl';
       return (
         <div
-          className={`${sizeClass} font-black text-white tracking-normal font-mono flex items-center justify-center gap-1.5 leading-tight`}
+          className={`${sizeClass} font-black text-white tracking-tight font-mono flex items-center justify-center whitespace-nowrap leading-tight`}
         >
-          <span className="text-yellow-400 font-sans">√</span>
-          <span className="whitespace-nowrap tabular-nums">{aStr}</span>
+          <span className="text-yellow-400 mr-1.5 font-sans">√</span>
+          <span className="border-t-4 border-yellow-300/80 pt-1 px-1.5 whitespace-nowrap tabular-nums">
+            {aStr}
+          </span>
         </div>
       );
     }

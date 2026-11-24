@@ -40,9 +40,12 @@ import {
 } from '../../utils/speechUtils';
 import { AdditionTopic, ADDITION_TOPICS } from './AdditionPage';
 import { CustomTopicControlsRow } from './CustomTopicControlsRow';
+import { SequenceTopicControlsRow } from './SequenceTopicControlsRow';
 import {
   CustomOperandMode,
   DifficultyBigQuestion,
+  SequenceDigitProfile,
+  SequenceDisplayMode,
   MIN_CUSTOM_DIGITS,
   MAX_CUSTOM_DIGITS,
   MIN_CUSTOM_OPERAND,
@@ -52,9 +55,10 @@ import {
   splitFormattedIntoBalancedLines,
   getCustomFormulaFontSize,
   generateCustomArithmeticQuestion,
+  generateNumberSequenceQuestion,
 } from '../../utils/customDifficultyHelpers';
 
-type AdditionDifficultyTopic = AdditionTopic | 'custom';
+type AdditionDifficultyTopic = AdditionTopic | 'custom' | 'sequence';
 
 interface AdditionDifficultyChallengePageProps {
   initialTopic?: AdditionTopic;
@@ -108,6 +112,13 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
   const [exactOperand, setExactOperand] = useState<number>(99);
   const [operandDigits, setOperandDigits] = useState<number>(3);
 
+  // Sequence ("Siêu trí tuệ Phép cộng") option state
+  const [sequenceCount, setSequenceCount] = useState<number>(20);
+  const [sequenceDigitProfile, setSequenceDigitProfile] = useState<SequenceDigitProfile>('2D3D');
+  const [sequenceDisplayMode, setSequenceDisplayMode] = useState<SequenceDisplayMode>('flash');
+  const [sequenceIncludeSubtraction, setSequenceIncludeSubtraction] = useState<boolean>(false);
+  const [flashIndex, setFlashIndex] = useState<number>(0);
+
   const [timeLimit, setTimeLimit] = useState<TimeLimit>(10);
   const [answerTimeLimit, setAnswerTimeLimit] = useState<AnswerTimeLimit>(10);
   const [status, setStatus] = useState<GameStatus>('idle');
@@ -155,6 +166,10 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
   const operandModeRef = useRef<CustomOperandMode>(operandMode);
   const exactOperandRef = useRef<number>(exactOperand);
   const operandDigitsRef = useRef<number>(operandDigits);
+  const sequenceCountRef = useRef<number>(sequenceCount);
+  const sequenceDigitProfileRef = useRef<SequenceDigitProfile>(sequenceDigitProfile);
+  const sequenceDisplayModeRef = useRef<SequenceDisplayMode>(sequenceDisplayMode);
+  const sequenceIncludeSubtractionRef = useRef<boolean>(sequenceIncludeSubtraction);
   const timeLimitRef = useRef<TimeLimit>(timeLimit);
   const answerTimeLimitRef = useRef<AnswerTimeLimit>(answerTimeLimit);
   const challengePhaseRef = useRef<ChallengePhase>(challengePhase);
@@ -195,6 +210,22 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
   }, [operandDigits]);
 
   useEffect(() => {
+    sequenceCountRef.current = sequenceCount;
+  }, [sequenceCount]);
+
+  useEffect(() => {
+    sequenceDigitProfileRef.current = sequenceDigitProfile;
+  }, [sequenceDigitProfile]);
+
+  useEffect(() => {
+    sequenceDisplayModeRef.current = sequenceDisplayMode;
+  }, [sequenceDisplayMode]);
+
+  useEffect(() => {
+    sequenceIncludeSubtractionRef.current = sequenceIncludeSubtraction;
+  }, [sequenceIncludeSubtraction]);
+
+  useEffect(() => {
     timeLimitRef.current = timeLimit;
   }, [timeLimit]);
 
@@ -212,7 +243,10 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
       digitsOverride?: number,
       modeOverride?: CustomOperandMode,
       exactOverride?: number,
-      opDigitsOverride?: number
+      opDigitsOverride?: number,
+      seqCountOverride?: number,
+      seqProfileOverride?: SequenceDigitProfile,
+      seqIncludeSubOverride?: boolean
     ): DifficultyBigQuestion => {
       const activeTopic = topicOverride ?? selectedTopicRef.current;
       if (activeTopic === 'custom') {
@@ -222,6 +256,13 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
           modeOverride ?? operandModeRef.current,
           exactOverride ?? exactOperandRef.current,
           opDigitsOverride ?? operandDigitsRef.current
+        );
+      }
+      if (activeTopic === 'sequence') {
+        return generateNumberSequenceQuestion(
+          seqCountOverride ?? sequenceCountRef.current,
+          seqProfileOverride ?? sequenceDigitProfileRef.current,
+          seqIncludeSubOverride ?? sequenceIncludeSubtractionRef.current
         );
       }
       return toBigQuestion(generateOperationQuestion('addition', activeTopic, difficulty));
@@ -259,14 +300,38 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
     };
   }, [clearTimers, stopListening]);
 
-  const formatLabel = (q: DifficultyBigQuestion) =>
-    `${formatBigIntStr(q.a)} + ${formatBigIntStr(q.b ?? '0')}`;
+  const formatLabel = (q: DifficultyBigQuestion) => {
+    if (q.numbers && q.numbers.length > 0) {
+      const formatTerms = (limit?: number) => {
+        const list = limit !== undefined ? q.numbers!.slice(0, limit) : q.numbers!;
+        return list
+          .map((n, idx) => (idx === 0 ? String(n) : `${q.operations?.[idx] ?? '+'} ${n}`))
+          .join(' ');
+      };
+      return q.numbers.length > 4
+        ? `${formatTerms(4)} ... (${q.numbers.length} số)`
+        : formatTerms();
+    }
+    return `${formatBigIntStr(q.a)} + ${formatBigIntStr(q.b ?? '0')}`;
+  };
 
   const pronounceQuestion = useCallback(
     (overrideSpeed?: number) => {
       const activeSpeed = overrideSpeed ?? questionSpeed;
       const q = questionRef.current;
-      const text = isVi ? `${q.a} cộng ${q.b}` : `${q.a} plus ${q.b}`;
+      const text =
+        q.numbers && q.numbers.length > 0
+          ? q.numbers
+              .map((n, idx) => {
+                if (idx === 0) return String(n);
+                const op = q.operations?.[idx] ?? '+';
+                const opWord = op === '−' ? (isVi ? 'trừ' : 'minus') : isVi ? 'cộng' : 'plus';
+                return `${opWord} ${n}`;
+              })
+              .join(' ')
+          : isVi
+          ? `${q.a} cộng ${q.b}`
+          : `${q.a} plus ${q.b}`;
       setIsSpeakingQuestion(true);
       speakText(
         text,
@@ -380,6 +445,7 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
       questionIndexRef.current = nextIdx;
       setQuestion(nextQ);
       questionRef.current = nextQ;
+      setFlashIndex(0);
       setUserAnswer('');
       setFeedback('idle');
       setVoiceTranscript('');
@@ -391,16 +457,35 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
       statusRef.current = 'running';
 
       const activeAnsLimit = answerLimitOverride ?? answerTimeLimitRef.current;
-      const endTime = Date.now() + limit * 1000;
+      const startTime = Date.now();
+      const totalDurationMs = limit * 1000;
+      const endTime = startTime + totalDurationMs;
+      const seqNumbers = nextQ.numbers;
+      const shouldFlashSeq =
+        topicId === 'sequence' &&
+        Boolean(seqNumbers && seqNumbers.length > 0) &&
+        sequenceDisplayModeRef.current === 'flash';
+
       timerRef.current = window.setInterval(() => {
-        const remainingMs = endTime - Date.now();
+        const now = Date.now();
+        const elapsedMs = now - startTime;
+        const remainingMs = endTime - now;
         const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
         setTimeLeft(remainingSec);
+
+        if (shouldFlashSeq && seqNumbers && seqNumbers.length > 0) {
+          const stepMs = totalDurationMs / seqNumbers.length;
+          const nextFlashIdx = Math.min(
+            seqNumbers.length - 1,
+            Math.max(0, Math.floor(elapsedMs / stepMs))
+          );
+          setFlashIndex(nextFlashIdx);
+        }
 
         if (remainingMs <= 0) {
           beginAnsweringPhase(nextIdx, nextQ, topicId, limit, activeAnsLimit);
         }
-      }, 100);
+      }, 50);
     },
     [beginAnsweringPhase, clearTimers, generateProblem, stopListening]
   );
@@ -444,6 +529,7 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
     setFeedback('idle');
     setVoiceTranscript('');
     setVoiceError('');
+    setFlashIndex(0);
     setTimeLeft(timeLimit);
     const nextQ = generateProblem(selectedTopic);
     setQuestion(nextQ);
@@ -565,21 +651,29 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
         : isVi
         ? `${customDigits} chữ số + ${formatBigIntStr(exactOperand)}`
         : `${customDigits}-Digit + ${formatBigIntStr(exactOperand)}`
+      : selectedTopic === 'sequence'
+      ? isVi
+        ? `Dãy ${sequenceCount} số · ${sequenceDigitProfile}${sequenceIncludeSubtraction ? ' · +/-' : ''}`
+        : `${sequenceCount}-Num Seq · ${sequenceDigitProfile}${sequenceIncludeSubtraction ? ' · +/-' : ''}`
       : isVi
       ? currentTopicMeta.badgeVi
       : currentTopicMeta.badgeEn;
   const completedTopicLabel =
     selectedTopic === 'custom'
       ? dynamicBadge
+      : selectedTopic === 'sequence'
+      ? isVi
+        ? `Siêu trí tuệ Dãy ${sequenceCount} số (${sequenceDigitProfile}${sequenceIncludeSubtraction ? ', +/-' : ''})`
+        : `Sequence ${sequenceCount} numbers (${sequenceDigitProfile}${sequenceIncludeSubtraction ? ', +/-' : ''})`
       : isVi
       ? currentTopicMeta.labelVi
       : currentTopicMeta.labelEn;
 
-  const isCustomLayout = selectedTopic === 'custom';
+  const isCustomLayout = selectedTopic === 'custom' || selectedTopic === 'sequence';
   const formattedA = formatBigIntStr(question.a);
   const formattedB = formatBigIntStr(question.b ?? '0');
   const totalFormattedLen = formattedA.length + formattedB.length + 3;
-  const useStackedFormula = isCustomLayout ? totalFormattedLen > 56 : false;
+  const useStackedFormula = selectedTopic === 'custom' ? totalFormattedLen > 56 : false;
   const linesA = useStackedFormula ? splitFormattedIntoBalancedLines(question.a, 10) : [formattedA];
   const linesB = useStackedFormula ? splitFormattedIntoBalancedLines(question.b ?? '0', 10) : [formattedB];
   const formulaFontSize = getCustomFormulaFontSize(totalFormattedLen);
@@ -818,6 +912,89 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
                 setQuestion(nextQ);
                 questionRef.current = nextQ;
               }
+            }}
+          />
+
+          <SequenceTopicControlsRow
+            idPrefix="add"
+            isSelected={selectedTopic === 'sequence'}
+            disabled={status === 'running'}
+            isVi={isVi}
+            sequenceCount={sequenceCount}
+            sequenceDigitProfile={sequenceDigitProfile}
+            sequenceDisplayMode={sequenceDisplayMode}
+            sequenceIncludeSubtraction={sequenceIncludeSubtraction}
+            timeLimit={timeLimit}
+            onSelectSequence={() => {
+              setSelectedTopic('sequence');
+              selectedTopicRef.current = 'sequence';
+              if (status === 'idle' || status === 'completed') {
+                const nextQ = generateProblem('sequence');
+                setQuestion(nextQ);
+                questionRef.current = nextQ;
+              }
+            }}
+            onToggleMixedPlusMinus={() => {
+              const nextIncludeSub =
+                selectedTopic === 'sequence' ? !sequenceIncludeSubtraction : true;
+              setSelectedTopic('sequence');
+              selectedTopicRef.current = 'sequence';
+              setSequenceIncludeSubtraction(nextIncludeSub);
+              sequenceIncludeSubtractionRef.current = nextIncludeSub;
+              if (status === 'idle' || status === 'completed') {
+                const nextQ = generateProblem(
+                  'sequence',
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  sequenceCount,
+                  sequenceDigitProfile,
+                  nextIncludeSub
+                );
+                setQuestion(nextQ);
+                questionRef.current = nextQ;
+              }
+            }}
+            onChangeSequenceCount={(clamped) => {
+              setSequenceCount(clamped);
+              sequenceCountRef.current = clamped;
+              if (status === 'idle' || status === 'completed') {
+                const nextQ = generateProblem(
+                  'sequence',
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  clamped,
+                  sequenceDigitProfile,
+                  sequenceIncludeSubtraction
+                );
+                setQuestion(nextQ);
+                questionRef.current = nextQ;
+              }
+            }}
+            onChangeSequenceDigitProfile={(nextProfile) => {
+              setSequenceDigitProfile(nextProfile);
+              sequenceDigitProfileRef.current = nextProfile;
+              if (status === 'idle' || status === 'completed') {
+                const nextQ = generateProblem(
+                  'sequence',
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  sequenceCount,
+                  nextProfile,
+                  sequenceIncludeSubtraction
+                );
+                setQuestion(nextQ);
+                questionRef.current = nextQ;
+              }
+            }}
+            onChangeSequenceDisplayMode={(nextDisplay) => {
+              setSequenceDisplayMode(nextDisplay);
+              sequenceDisplayModeRef.current = nextDisplay;
             }}
           />
         </div>
@@ -1064,7 +1241,139 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
                     </div>
                   ) : (
                     <>
-                      {useStackedFormula ? (
+                      {selectedTopic === 'sequence' && question.numbers && question.numbers.length > 0 ? (
+                        sequenceDisplayMode === 'flash' && status === 'running' ? (
+                          <div className="w-full max-w-lg mx-auto py-2 space-y-3 select-none">
+                            <div className="flex items-center justify-between gap-2 text-xs font-mono text-slate-400 px-2">
+                              <span className="text-yellow-300 font-bold">
+                                {isVi
+                                  ? `Số #${flashIndex + 1} / ${question.numbers.length}`
+                                  : `Number #${flashIndex + 1} / ${question.numbers.length}`}
+                              </span>
+                              <span className="tabular-nums">
+                                {(timeLimit / Math.max(1, question.numbers.length)).toFixed(2)}s / {isVi ? 'số' : 'num'}
+                              </span>
+                            </div>
+
+                            <div className="py-6 sm:py-8 px-4 rounded-2xl bg-slate-900/80 border border-yellow-500/35 flex items-center justify-center gap-3 shadow-inner">
+                              {(() => {
+                                const hasMixedOps = question.operations?.includes('−') ?? false;
+                                const activeOp = question.operations?.[flashIndex] ?? '+';
+                                const showSign = flashIndex > 0;
+                                return (
+                                  <span
+                                    key={`flash-${questionIndex}-${flashIndex}`}
+                                    className="text-5xl sm:text-6xl font-black font-mono text-white tabular-nums tracking-tight animate-in zoom-in-95 fade-in duration-100 flex items-center gap-2.5"
+                                  >
+                                    {showSign && (
+                                      <span
+                                        className={`font-sans ${
+                                          activeOp === '−'
+                                            ? 'text-rose-400'
+                                            : hasMixedOps
+                                            ? 'text-emerald-400'
+                                            : 'text-yellow-400'
+                                        }`}
+                                      >
+                                        {activeOp}
+                                      </span>
+                                    )}
+                                    <span>{formatBigIntStr(question.numbers[flashIndex] ?? 0)}</span>
+                                  </span>
+                                );
+                              })()}
+                            </div>
+
+                            <div className="h-1.5 w-full rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+                              <div
+                                className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 transition-all duration-100"
+                                style={{
+                                  width: `${Math.round(
+                                    ((flashIndex + 1) / Math.max(1, question.numbers.length)) * 100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full space-y-2.5 py-1 select-none">
+                            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                              <span className="font-semibold text-yellow-300">
+                                {question.operations?.includes('−')
+                                  ? isVi
+                                    ? `Dãy phép tính (+/-) gồm ${question.numbers.length} số:`
+                                    : `Mixed (+/-) sequence of ${question.numbers.length} numbers:`
+                                  : isVi
+                                  ? `Dãy phép cộng gồm ${question.numbers.length} số:`
+                                  : `Addition sequence of ${question.numbers.length} numbers:`}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => pronounceQuestion()}
+                                className={`p-1.5 rounded-xl border transition-all cursor-pointer active:scale-95 flex items-center justify-center ${
+                                  isSpeakingQuestion
+                                    ? 'bg-yellow-400 text-slate-950 border-yellow-300 animate-pulse'
+                                    : 'bg-slate-900 hover:bg-slate-800 text-yellow-400 border-yellow-500/40'
+                                }`}
+                                title={isVi ? 'Phát âm câu hỏi' : 'Pronounce question'}
+                              >
+                                <Volume2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            {(() => {
+                              const hasMixedOps = question.operations?.includes('−') ?? false;
+                              const totalExprLen = question.numbers.reduce(
+                                (sum, n, idx) => sum + formatBigIntStr(n).length + (idx > 0 ? 3 : 0),
+                                0
+                              );
+                              const exprSizeClass =
+                                totalExprLen <= 35
+                                  ? 'text-3xl sm:text-5xl font-black'
+                                  : totalExprLen <= 70
+                                  ? 'text-xl sm:text-2xl font-black'
+                                  : totalExprLen <= 115
+                                  ? 'text-sm sm:text-base font-extrabold'
+                                  : 'text-xs sm:text-sm font-bold';
+                              return (
+                                <div className="w-full px-3 sm:px-4 py-4 sm:py-5 rounded-2xl bg-slate-900/75 border border-slate-800/90 flex items-center justify-center">
+                                  <div
+                                    className={`${exprSizeClass} font-mono text-white tabular-nums tracking-tight leading-relaxed text-center`}
+                                  >
+                                    {question.numbers.map((numVal, idx) => {
+                                      const op = question.operations?.[idx] ?? '+';
+                                      const isSub = idx > 0 && op === '−';
+                                      return (
+                                        <React.Fragment key={idx}>
+                                          {idx > 0 && (
+                                            <>
+                                              {' '}
+                                              <span
+                                                className={`font-sans font-black ${
+                                                  isSub
+                                                    ? 'text-rose-400'
+                                                    : hasMixedOps
+                                                    ? 'text-emerald-400'
+                                                    : 'text-yellow-400'
+                                                }`}
+                                              >
+                                                {isSub ? '−' : '+'}
+                                              </span>
+                                              {' '}
+                                            </>
+                                          )}
+                                          <span className="whitespace-nowrap">
+                                            {formatBigIntStr(numVal)}
+                                          </span>
+                                        </React.Fragment>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )
+                      ) : useStackedFormula ? (
                         <div className="w-full flex flex-col items-center justify-center gap-2.5 py-1 select-none">
                           <div
                             className={`font-black text-white font-mono tabular-nums flex flex-col items-center justify-center gap-1 tracking-wide leading-snug max-w-full ${formulaFontSize}`}

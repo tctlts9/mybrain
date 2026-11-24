@@ -120,7 +120,8 @@ const getSequenceDigitBounds = (digits: 2 | 3 | 4): [number, number] => {
 export function generateNumberSequenceQuestion(
   rawCount: number,
   profile: SequenceDigitProfile,
-  includeSubtraction: boolean = false
+  includeSubtraction: boolean = false,
+  baseOperation: 'addition' | 'subtraction' = 'addition'
 ): DifficultyBigQuestion {
   const count = Math.min(MAX_SEQUENCE_COUNT, Math.max(MIN_SEQUENCE_COUNT, rawCount));
   const digitLengths: (2 | 3 | 4)[] = [];
@@ -141,10 +142,58 @@ export function generateNumberSequenceQuestion(
       const j = Math.floor(Math.random() * (i + 1));
       [digitLengths[i], digitLengths[j]] = [digitLengths[j], digitLengths[i]];
     }
-    // Ensure a 2-number mixed +/- sequence starts with the larger digit count so subtraction is always possible
-    if (includeSubtraction && count === 2 && digitLengths[0] < digitLengths[1]) {
+    // Ensure a 2-number sequence involving subtraction starts with the larger digit count so subtraction stays within bounds
+    if ((includeSubtraction || baseOperation === 'subtraction') && count === 2 && digitLengths[0] < digitLengths[1]) {
       [digitLengths[0], digitLengths[1]] = [digitLengths[1], digitLengths[0]];
     }
+  }
+
+  const profileDescVi: Record<SequenceDigitProfile, string> = {
+    '2D': '2 chữ số',
+    '3D': '3 chữ số',
+    '2D3D': '2 & 3 chữ số',
+    '4D': '4 chữ số',
+    '3D4D': '3 & 4 chữ số',
+  };
+
+  // Pure subtraction sequence (e.g. Subtraction Difficulty Challenge -> Custom Number Sequence without +/-)
+  if (!includeSubtraction && baseOperation === 'subtraction') {
+    const [firstMin, firstMax] = getSequenceDigitBounds(digitLengths[0]);
+    const subtrahends: number[] = [];
+    let sumSub = 0;
+
+    for (let i = 1; i < count; i++) {
+      const [minVal, maxVal] = getSequenceDigitBounds(digitLengths[i]);
+      const maxAllowedForTwo =
+        count === 2 && firstMax > minVal ? Math.min(maxVal, firstMax - 1) : maxVal;
+      let val = randSeqInt(minVal, maxAllowedForTwo);
+      if (maxAllowedForTwo > minVal && subtrahends.length > 0) {
+        for (let attempt = 0; attempt < 5 && val === subtrahends[subtrahends.length - 1]; attempt++) {
+          val = randSeqInt(minVal, maxAllowedForTwo);
+        }
+      }
+      subtrahends.push(val);
+      sumSub += val;
+    }
+
+    const firstVal =
+      sumSub < firstMax
+        ? randSeqInt(Math.max(firstMin, sumSub + 1), firstMax)
+        : sumSub + randSeqInt(firstMin, firstMax);
+
+    const numbers = [firstVal, ...subtrahends];
+    const operations: ('+' | '−')[] = ['+', ...subtrahends.map(() => '−' as const)];
+    const answerVal = firstVal - sumSub;
+
+    return {
+      a: String(numbers[0] ?? 0),
+      b: String(numbers[1] ?? 0),
+      numbers,
+      operations,
+      answer: String(answerVal),
+      hintVi: `Trừ liên tiếp ${count} số (${profileDescVi[profile]}) từ trái sang phải.`,
+      hintEn: `Subtract all ${count} numbers (${profile}) sequentially from left to right.`,
+    };
   }
 
   const numbers: number[] = [];
@@ -154,14 +203,17 @@ export function generateNumberSequenceQuestion(
   let addAfterFirstCount = 0;
 
   for (let i = 0; i < count; i++) {
-    const [minVal, maxVal] = getSequenceDigitBounds(digitLengths[i]);
+    const [minVal, maxVal] = getDigitBoundsCompat(digitLengths[i]);
 
     if (i === 0) {
       let firstMin = minVal;
       if (includeSubtraction) {
         const nextMin = getSequenceDigitBounds(digitLengths[1])[0];
         // Leave enough room to allow an early valid subtraction when possible
-        firstMin = Math.max(minVal, Math.min(maxVal, nextMin + 1));
+        firstMin = Math.max(
+          minVal,
+          Math.min(maxVal, baseOperation === 'subtraction' ? Math.max(nextMin + 1, Math.floor((minVal + maxVal) / 2)) : nextMin + 1)
+        );
       }
       const firstVal = randSeqInt(firstMin, maxVal);
       numbers.push(firstVal);
@@ -184,7 +236,7 @@ export function generateNumberSequenceQuestion(
       } else if (shouldAddFirst) {
         op = '+';
       } else {
-        op = Math.random() < 0.42 ? '−' : '+';
+        op = Math.random() < (baseOperation === 'subtraction' ? 0.5 : 0.42) ? '−' : '+';
       }
     }
 
@@ -208,14 +260,6 @@ export function generateNumberSequenceQuestion(
     }
   }
 
-  const profileDescVi: Record<SequenceDigitProfile, string> = {
-    '2D': '2 chữ số',
-    '3D': '3 chữ số',
-    '2D3D': '2 & 3 chữ số',
-    '4D': '4 chữ số',
-    '3D4D': '3 & 4 chữ số',
-  };
-
   return {
     a: String(numbers[0] ?? 0),
     b: String(numbers[1] ?? 0),
@@ -229,6 +273,10 @@ export function generateNumberSequenceQuestion(
       ? `Calculate sequentially (+ / −) across all ${count} numbers (${profile}).`
       : `Accumulate the sum across all ${count} numbers (${profile}) sequentially.`,
   };
+}
+
+function getDigitBoundsCompat(digits: 2 | 3 | 4): [number, number] {
+  return getSequenceDigitBounds(digits);
 }
 
 export function generateCustomArithmeticQuestion(

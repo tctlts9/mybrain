@@ -9,6 +9,7 @@ import {
 
 interface SequenceTopicControlsRowProps {
   idPrefix: string;
+  baseOperation?: 'addition' | 'subtraction';
   isSelected: boolean;
   disabled?: boolean;
   isVi: boolean;
@@ -26,6 +27,7 @@ interface SequenceTopicControlsRowProps {
 
 export const SequenceTopicControlsRow: React.FC<SequenceTopicControlsRowProps> = ({
   idPrefix,
+  baseOperation = 'addition',
   isSelected,
   disabled = false,
   isVi,
@@ -54,8 +56,12 @@ export const SequenceTopicControlsRow: React.FC<SequenceTopicControlsRowProps> =
         onClick={onSelectSequence}
         title={
           isVi
-            ? 'Tùy chọn dãy số cộng liên tiếp giống các cuộc thi Siêu trí tuệ'
-            : 'Super-Brain number sequence challenge'
+            ? baseOperation === 'subtraction'
+              ? 'Tùy chọn dãy số trừ liên tiếp giống các cuộc thi Siêu trí tuệ'
+              : 'Tùy chọn dãy số cộng liên tiếp giống các cuộc thi Siêu trí tuệ'
+            : baseOperation === 'subtraction'
+            ? 'Super-Brain subtraction sequence challenge'
+            : 'Super-Brain addition sequence challenge'
         }
         className={`py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed ${
           isSelected

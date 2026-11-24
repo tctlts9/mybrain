@@ -1257,7 +1257,8 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
 
                             <div className="py-6 sm:py-8 px-4 rounded-2xl bg-slate-900/80 border border-yellow-500/35 flex items-center justify-center gap-3 shadow-inner">
                               {(() => {
-                                const hasMixedOps = question.operations?.includes('−') ?? false;
+                                const opsTail = question.operations?.slice(1) ?? [];
+                                const hasMixedOps = opsTail.includes('−') && opsTail.includes('+');
                                 const activeOp = question.operations?.[flashIndex] ?? '+';
                                 const showSign = flashIndex > 0;
                                 return (
@@ -1299,13 +1300,24 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
                           <div className="w-full space-y-2.5 py-1 select-none">
                             <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
                               <span className="font-semibold text-yellow-300">
-                                {question.operations?.includes('−')
-                                  ? isVi
-                                    ? `Dãy phép tính (+/-) gồm ${question.numbers.length} số:`
-                                    : `Mixed (+/-) sequence of ${question.numbers.length} numbers:`
-                                  : isVi
-                                  ? `Dãy phép cộng gồm ${question.numbers.length} số:`
-                                  : `Addition sequence of ${question.numbers.length} numbers:`}
+                                {(() => {
+                                  const opsTail = question.operations?.slice(1) ?? [];
+                                  const hasSub = opsTail.includes('−');
+                                  const hasAdd = opsTail.includes('+');
+                                  if (hasSub && hasAdd) {
+                                    return isVi
+                                      ? `Dãy phép tính (+/-) gồm ${question.numbers.length} số:`
+                                      : `Mixed (+/-) sequence of ${question.numbers.length} numbers:`;
+                                  }
+                                  if (hasSub) {
+                                    return isVi
+                                      ? `Dãy phép trừ gồm ${question.numbers.length} số:`
+                                      : `Subtraction sequence of ${question.numbers.length} numbers:`;
+                                  }
+                                  return isVi
+                                    ? `Dãy phép cộng gồm ${question.numbers.length} số:`
+                                    : `Addition sequence of ${question.numbers.length} numbers:`;
+                                })()}
                               </span>
                               <button
                                 type="button"
@@ -1321,7 +1333,8 @@ export const AdditionDifficultyChallengePage: React.FC<AdditionDifficultyChallen
                               </button>
                             </div>
                             {(() => {
-                              const hasMixedOps = question.operations?.includes('−') ?? false;
+                              const opsTail = question.operations?.slice(1) ?? [];
+                              const hasMixedOps = opsTail.includes('−') && opsTail.includes('+');
                               const totalExprLen = question.numbers.reduce(
                                 (sum, n, idx) => sum + formatBigIntStr(n).length + (idx > 0 ? 3 : 0),
                                 0

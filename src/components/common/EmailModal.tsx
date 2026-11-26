@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/Translations';
 import {
   Mail,
   X,
@@ -24,13 +24,11 @@ export const EmailModal: React.FC<EmailModalProps> = ({
   onClose,
   defaultRecipient = 'tctlts9@gmail.com',
 }) => {
-  const { language, t } = useLanguage();
+  const { language, t, tr } = useLanguage();
   const [recipient] = useState<string>(defaultRecipient);
   const [senderEmail, setSenderEmail] = useState<string>('');
   const [subject, setSubject] = useState<string>(() => {
-    return language === 'vi'
-      ? 'Phản hồi / Góp ý về MY BRAIN ACADEMY'
-      : 'Inquiry / Feedback regarding MY BRAIN ACADEMY';
+    return tr("Phản hồi / Góp ý về MY BRAIN ACADEMY");
   });
   const [content, setContent] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -179,7 +177,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <h4 className="font-bold text-white text-base">
-                {language === 'vi' ? 'Sẵn Sàng Gửi Qua Gmail!' : 'Gmail Composer Ready!'}
+                {tr("Sẵn Sàng Gửi Qua Gmail!")}
               </h4>
               <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                 {language === 'vi' ? (
@@ -212,7 +210,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
               </div>
               <div className="pt-2 border-t border-slate-800 text-slate-400">
                 <span className="block mb-1 font-semibold text-slate-300">
-                  {language === 'vi' ? 'Nội dung thư:' : 'Message Content:'}
+                  {tr("Nội dung thư:")}
                 </span>
                 <p className="font-sans text-slate-200 bg-slate-900/80 p-2 rounded border border-slate-800 whitespace-pre-wrap max-h-24 overflow-y-auto">
                   {content}
@@ -229,7 +227,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold rounded-xl bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/25 transition-all cursor-pointer active:scale-98"
               >
                 <Mail className="w-4 h-4" />
-                <span>{language === 'vi' ? 'Mở trong Gmail (Open in Gmail)' : 'Open in Gmail'}</span>
+                <span>{tr("Mở trong Gmail (Open in Gmail)")}</span>
                 <ExternalLink className="w-4 h-4 opacity-90" />
               </a>
 
@@ -240,7 +238,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
                 >
                   {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-                  <span>{isCopied ? (language === 'vi' ? 'Đã sao chép!' : 'Copied!') : (language === 'vi' ? 'Sao chép nội dung' : 'Copy Draft Text')}</span>
+                  <span>{isCopied ? (tr("Đã sao chép!")) : (tr("Sao chép nội dung"))}</span>
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -250,7 +248,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                     className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 cursor-pointer py-1 px-2"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>{language === 'vi' ? 'Soạn thư khác' : 'Send another'}</span>
+                    <span>{tr("Soạn thư khác")}</span>
                   </button>
 
                   <button
@@ -258,7 +256,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                     onClick={onClose}
                     className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs cursor-pointer transition-colors"
                   >
-                    {language === 'vi' ? 'Đóng' : 'Close'}
+                    {tr("Đóng")}
                   </button>
                 </div>
               </div>
@@ -278,10 +276,10 @@ export const EmailModal: React.FC<EmailModalProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-slate-300 font-medium">
-                  {language === 'vi' ? 'Email Người Nhận (To)' : 'Recipient Email (To)'}
+                  {tr("Email Người Nhận (To)")}
                 </label>
                 <span className="text-[10px] text-red-400 font-mono bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
-                  {language === 'vi' ? 'Liên Hệ Chính Thức' : 'Official Contact'}
+                  {tr("Liên Hệ Chính Thức")}
                 </span>
               </div>
               <input
@@ -295,7 +293,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
             {/* Sender Email */}
             <div>
               <label className="block text-slate-300 font-medium mb-1">
-                {language === 'vi' ? 'Email Của Bạn (From)' : 'Your Email (From)'} <span className="text-red-400">*</span>
+                {tr("Email Của Bạn (From)")} <span className="text-red-400">*</span>
               </label>
               <input
                 type="email"
@@ -310,14 +308,14 @@ export const EmailModal: React.FC<EmailModalProps> = ({
             {/* Subject */}
             <div>
               <label className="block text-slate-300 font-medium mb-1">
-                {language === 'vi' ? 'Chủ Đề (Subject)' : 'Subject'} <span className="text-red-400">*</span>
+                {tr("Chủ Đề (Subject)")} <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
                 required
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder={language === 'vi' ? 'Nhập chủ đề thư...' : 'Enter email subject...'}
+                placeholder={tr("Nhập chủ đề thư...")}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500/80 focus:ring-1 focus:ring-red-500/50 text-white placeholder-slate-600 text-xs transition-all outline-none"
               />
 
@@ -339,7 +337,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
             {/* Message Content */}
             <div>
               <label className="block text-slate-300 font-medium mb-1">
-                {language === 'vi' ? 'Nội Dung Thư' : 'Message Content'} <span className="text-red-400">*</span>
+                {tr("Nội Dung Thư")} <span className="text-red-400">*</span>
               </label>
               <textarea
                 required
@@ -347,9 +345,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={
-                  language === 'vi'
-                    ? 'Nhập nội dung câu hỏi, góp ý hoặc liên hệ của bạn tại đây...'
-                    : 'Type your message, questions, or comments here...'
+                  tr("Nhập nội dung câu hỏi, góp ý hoặc liên hệ của bạn tại đây...")
                 }
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-red-500/80 focus:ring-1 focus:ring-red-500/50 text-white placeholder-slate-600 text-xs transition-all outline-none resize-none"
               />
@@ -360,9 +356,7 @@ export const EmailModal: React.FC<EmailModalProps> = ({
               <span className="flex items-center gap-1.5 text-slate-300">
                 <Mail className="w-3.5 h-3.5 text-red-500" />
                 <span>
-                  {language === 'vi'
-                    ? 'Tự động mở trình soạn thư Gmail trực tiếp (Không dùng Outlook)'
-                    : 'Directly opens Gmail Web Composer (No Outlook)'}
+                  {tr("Tự động mở trình soạn thư Gmail trực tiếp (Không dùng Outlook)")}
                 </span>
               </span>
               <span className="text-red-400 font-bold font-mono">Gmail</span>
@@ -374,17 +368,17 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                 type="button"
                 onClick={handleCopy}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs"
-                title={language === 'vi' ? 'Sao chép toàn bộ bản nháp' : 'Copy entire email draft to clipboard'}
+                title={tr("Sao chép toàn bộ bản nháp")}
               >
                 {isCopied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">{language === 'vi' ? 'Đã chép!' : 'Copied!'}</span>
+                    <span className="text-emerald-400">{tr("Đã chép!")}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{language === 'vi' ? 'Sao chép nháp' : 'Copy Draft'}</span>
+                    <span>{tr("Sao chép nháp")}</span>
                   </>
                 )}
               </button>
@@ -399,12 +393,12 @@ export const EmailModal: React.FC<EmailModalProps> = ({
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>{language === 'vi' ? 'Đang mở Gmail...' : 'Opening Gmail...'}</span>
+                      <span>{tr("Đang mở Gmail...")}</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>{language === 'vi' ? 'Gửi qua Gmail' : 'Send via Gmail'}</span>
+                      <span>{tr("Gửi qua Gmail")}</span>
                     </>
                   )}
                 </button>

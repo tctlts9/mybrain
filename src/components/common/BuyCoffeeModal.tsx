@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Coffee, X, Copy, Check, Heart, ExternalLink, CreditCard, Edit2 } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/Translations';
 
 interface BuyCoffeeModalProps {
   isOpen: boolean;

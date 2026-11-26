@@ -1,4 +1,15 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+/**
+ * ============================================================================
+ * FILE: ExponentPage.tsx — TRANG LUYỆN TẬP LŨY THỪA (MENTAL MATH PRACTICE)
+ * ============================================================================
+ * Công việc của file:
+ * 1. Tích hợp cấu hình & Modal tùy chỉnh thời gian tự động chuyển câu (Auto-Next).
+ * 2. Quản lý luyện tập lũy thừa theo 4 chủ đề (Ngẫu nhiên, Bình phương tận cùng 5, Bình phương 2 chữ số, Lập phương & lũy thừa bậc 2).
+ * 3. Hỗ trợ đọc đề bằng giọng nói TTS (có chọn tốc độ 1.25x / 1.5x / 1.75x) và trả lời bằng Micro (Web Speech API).
+ * 4. Hiển thị bàn phím số ảo 2x6, ô nhập đáp án, gợi ý nhẩm nhanh và chuyển tiếp sang Hướng dẫn / Thử thách.
+ * ============================================================================
+ */
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   ArrowLeft,
   Volume2,
@@ -12,35 +23,1254 @@ import {
   AlertTriangle,
   Zap,
   Gauge,
-  BookOpen,
+  Download,
   Delete,
   Sparkles,
   Sliders,
+  TimerReset,
+  Globe,
+  SlidersHorizontal,
+  X,
+  Check,
+  Hand,
 } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
-import {
-  OPERATION_META,
-  OperationQuestion,
-  generateOperationQuestion,
-  getOperationSpokenText,
-} from '../../utils/arithmeticOperations';
+import { useLanguage, biLabel, translateText } from '../../context/Translations';
 import {
   playSpeakerChime,
   announceResultFemaleVoice,
   speakText,
   stopCurrentSpeech,
   parseVoiceNumber,
-} from '../../utils/speechUtils';
+} from '../../utils/MentalMathVoice';
 import {
   isChallengeButtonVisible,
   isDifficultLevelChallengeButtonVisible,
+  isAutoNextButtonVisible,
+  isVisualGuideButtonVisible,
 } from '../../config/buttonVisibility';
-import {
-  useMentalMathAutoNextConfig,
-  formatAutoNextDelay,
-} from '../../config/mentalMathAutoNext';
-import { AutoNextSettingButton } from './AutoNextSettingButton';
+import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 
+// ============================================================================
+// PHẦN 0: LOGIC LŨY THỪA NHẨM (CODE TRỰC TIẾP TRONG PAGE)
+// ============================================================================
+type ArithmeticOperation =
+  | 'division'
+  | 'addition'
+  | 'subtraction'
+  | 'square-root'
+  | 'exponent';
+
+interface OperationQuestion {
+  a: number;
+  b?: number;
+  answer: number;
+  hintVi: string;
+  hintEn: string;
+}
+
+interface OperationTopic {
+  id: string;
+  labelVi: string;
+  labelEn: string;
+  badgeVi: string;
+  badgeEn: string;
+}
+
+interface OperationMeta {
+  id: ArithmeticOperation;
+  titleVi: string;
+  titleEn: string;
+  subtitleVi: string;
+  subtitleEn: string;
+  symbol: string;
+  topics: OperationTopic[];
+}
+
+type OperationDifficulty = 'normal' | 'hard';
+
+const OPERATION_META: { exponent: OperationMeta } = {
+  exponent: {
+    id: 'exponent',
+    titleVi: 'Tính Nhẩm Lũy Thừa',
+    titleEn: 'Mental Exponents & Powers',
+    subtitleVi: 'Bình phương tận cùng là 5, bình phương 2 chữ số, lập phương & lũy thừa 2',
+    subtitleEn: 'Squaring numbers ending in 5, 2-digit squares, cubes & powers of 2',
+    symbol: 'xⁿ',
+    topics: [
+      {
+        id: 'general',
+        labelVi: 'Tổng quát',
+        labelEn: 'General',
+        badgeVi: 'Tổng quát: Bình phương & Lũy thừa',
+        badgeEn: 'General: Squares & Powers',
+      },
+      {
+        id: 'powEnd5',
+        labelVi: 'Tận cùng 5 (n5²)',
+        labelEn: 'Ending in 5 (n5²)',
+        badgeVi: 'Chuyên đề: Bình phương số tận cùng là 5 (n5²)',
+        badgeEn: 'Topic: Squaring Numbers Ending in 5 (n5²)',
+      },
+      {
+        id: 'powSquare2D',
+        labelVi: 'Bình phương 2CS',
+        labelEn: '2-Digit Squares',
+        badgeVi: 'Chuyên đề: Bình phương số 2 chữ số (11² – 99²)',
+        badgeEn: 'Topic: 2-Digit Squares (11² – 99²)',
+      },
+      {
+        id: 'powCubesAnd2',
+        labelVi: 'Lập phương & 2ⁿ',
+        labelEn: 'Cubes & 2ⁿ',
+        badgeVi: 'Chuyên đề: Lũy thừa bậc 3 (2³–15³) và 2ⁿ, 3ⁿ',
+        badgeEn: 'Topic: Cubes (2³–15³) & Powers of 2, 3',
+      },
+    ],
+  },
+};
+
+const opRandInt = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+function generateOperationQuestion(
+  _operation: ArithmeticOperation,
+  topicId: string,
+  difficulty: OperationDifficulty = 'normal'
+): OperationQuestion {
+  const isHard = difficulty === 'hard';
+  let mode = topicId;
+  if (mode === 'general') {
+    const pool = ['powEnd5', 'powSquare2D', 'powCubesAnd2'];
+    mode = pool[opRandInt(0, pool.length - 1)];
+  }
+
+  if (mode === 'powEnd5') {
+    const tens = isHard ? opRandInt(6, 15) : opRandInt(1, 11);
+    const base = tens * 10 + 5;
+    const ans = base * base;
+    return {
+      a: base,
+      b: 2,
+      answer: ans,
+      hintVi: `Mẹo số tận cùng 5: ${tens} × (${tens} + 1) = ${tens * (tens + 1)}, ghép thêm 25 ⇒ ${ans.toLocaleString()}`,
+      hintEn: `Ending-in-5 trick: ${tens} × (${tens} + 1) = ${tens * (tens + 1)}, append 25 ⇒ ${ans.toLocaleString()}`,
+    };
+  }
+
+  if (mode === 'powSquare2D') {
+    let base = isHard ? opRandInt(51, 99) : opRandInt(11, 99);
+    if (isHard && base % 10 === 0) base += opRandInt(1, 9);
+    const ans = base * base;
+    if (base >= 40 && base <= 60) {
+      const d = base - 50;
+      return {
+        a: base,
+        b: 2,
+        answer: ans,
+        hintVi: `Mốc 50: (25 ${d >= 0 ? `+ ${d}` : `− ${Math.abs(d)}`}) = ${25 + d}, ghép ${String(d * d).padStart(2, '0')} ⇒ ${ans.toLocaleString()}`,
+        hintEn: `Near-50 trick: (25 ${d >= 0 ? `+ ${d}` : `− ${Math.abs(d)}`}) = ${25 + d}, append ${String(d * d).padStart(2, '0')} ⇒ ${ans.toLocaleString()}`,
+      };
+    }
+    if (base >= 85 && base <= 99) {
+      const d = 100 - base;
+      return {
+        a: base,
+        b: 2,
+        answer: ans,
+        hintVi: `Mốc 100: (${base} − ${d}) = ${base - d}, ghép ${String(d * d).padStart(2, '0')} ⇒ ${ans.toLocaleString()}`,
+        hintEn: `Near-100 trick: (${base} − ${d}) = ${base - d}, append ${String(d * d).padStart(2, '0')} ⇒ ${ans.toLocaleString()}`,
+      };
+    }
+    const aTen = Math.floor(base / 10) * 10;
+    const aUnit = base % 10;
+    return {
+      a: base,
+      b: 2,
+      answer: ans,
+      hintVi: `Hằng đẳng thức: ${aTen}² + 2×${aTen}×${aUnit} + ${aUnit}² = ${aTen * aTen} + ${2 * aTen * aUnit} + ${aUnit * aUnit} = ${ans.toLocaleString()}`,
+      hintEn: `Identity: ${aTen}² + 2×${aTen}×${aUnit} + ${aUnit}² = ${aTen * aTen} + ${2 * aTen * aUnit} + ${aUnit * aUnit} = ${ans.toLocaleString()}`,
+    };
+  }
+
+  // powCubesAnd2
+  const choices: Array<[number, number]> = isHard
+    ? [
+        [2, 10], [2, 11], [2, 12], [2, 13], [2, 14],
+        [3, 5], [3, 6], [3, 7],
+        [4, 5], [4, 6],
+        [5, 4], [5, 5],
+        [7, 3], [8, 3], [9, 3], [11, 3], [12, 3], [13, 3], [14, 3], [15, 3], [16, 3], [18, 3],
+      ]
+    : [
+        [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [2, 11], [2, 12],
+        [3, 3], [3, 4], [3, 5], [3, 6],
+        [4, 3], [4, 4], [4, 5],
+        [5, 3], [5, 4],
+        [6, 3], [7, 3], [8, 3], [9, 3], [11, 3], [12, 3], [15, 3],
+      ];
+  const [base, exp] = choices[opRandInt(0, choices.length - 1)];
+  const ans = Math.pow(base, exp);
+  return {
+    a: base,
+    b: exp,
+    answer: ans,
+    hintVi: `${base}^${exp} = ${Array(exp).fill(base).join(' × ')} = ${ans.toLocaleString()}`,
+    hintEn: `${base}^${exp} = ${Array(exp).fill(base).join(' × ')} = ${ans.toLocaleString()}`,
+  };
+}
+
+function getOperationSpokenText(
+  _operation: ArithmeticOperation,
+  question: OperationQuestion,
+  isVi: boolean
+): string {
+  if (question.b === 2) {
+    return isVi ? `${question.a} bình phương` : `${question.a} squared`;
+  }
+  if (question.b === 3) {
+    return isVi ? `${question.a} lập phương` : `${question.a} cubed`;
+  }
+  return isVi
+    ? `${question.a} mũ ${question.b}`
+    : `${question.a} to the power of ${question.b}`;
+}
+
+// ============================================================================
+// PHẦN A: CẤU HÌNH & HOOK AUTO-NEXT (TỰ ĐỘNG CHUYỂN CÂU KHI TRẢ LỜI ĐÚNG)
+// ============================================================================
+// --- Inline MentalMathAutoNext config & hook (coded directly in Page) ---
+type MentalMathAutoNextGroup = 'practice' | 'challenge' | 'difficulty';
+
+interface MentalMathAutoNextPageMeta {
+  key: MentalMathAutoNextPageKey;
+  group: MentalMathAutoNextGroup;
+  defaultDelaySec: number;
+  labelVi: string;
+  labelEn: string;
+}
+
+const MENTAL_MATH_AUTO_NEXT_PAGE_META = [
+  // --- Challenge pages (12) ---
+  {
+    key: 'TwoDigitMentalMathChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân 2 chữ số — Thử thách"),
+  },
+  {
+    key: 'MultiplyBy11ChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân với 11 — Thử thách"),
+  },
+  {
+    key: 'MultiplyBy99ChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân với 99 — Thử thách"),
+  },
+  {
+    key: 'MultiplyWith1DigitChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân với 1 chữ số — Thử thách"),
+  },
+  {
+    key: 'DivisionChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Phép chia — Thử thách"),
+  },
+  {
+    key: 'AdditionChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Phép cộng — Thử thách"),
+  },
+  {
+    key: 'SubtractionChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Phép trừ — Thử thách"),
+  },
+  {
+    key: 'ExponentChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Lũy thừa — Thử thách"),
+  },
+  {
+    key: 'SquareRootChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Căn bậc 2 — Thử thách"),
+  },
+  {
+    key: 'PercentageChallengePage_basic',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Tỷ lệ % (Tính % của số) — Thử thách"),
+  },
+  {
+    key: 'PercentageChallengePage_change',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Tỷ lệ % (Tăng / Giảm %) — Thử thách"),
+  },
+  {
+    key: 'PercentageChallengePage_reverse',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Thử thách"),
+  },
+  {
+    key: 'DailyReflexChallengePage',
+    group: 'challenge',
+    defaultDelaySec: 2,
+    ...biLabel("Phản xạ hàng ngày — Thử thách"),
+  },
+
+  // --- Difficult Level Challenge pages (12) ---
+  {
+    key: 'TwoDigitMentalMathDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân 2 chữ số — Thử thách khó"),
+  },
+  {
+    key: 'MultiplyBy11DifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân với 11 — Thử thách khó"),
+  },
+  {
+    key: 'MultiplyBy99DifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân với 99 — Thử thách khó"),
+  },
+  {
+    key: 'MultiplyWith1DigitDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 3,
+    ...biLabel("Nhân với 1 chữ số — Thử thách khó"),
+  },
+  {
+    key: 'DivisionDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Phép chia — Thử thách khó"),
+  },
+  {
+    key: 'AdditionDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Phép cộng — Thử thách khó"),
+  },
+  {
+    key: 'SubtractionDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Phép trừ — Thử thách khó"),
+  },
+  {
+    key: 'ExponentDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Lũy thừa — Thử thách khó"),
+  },
+  {
+    key: 'SquareRootDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Căn bậc 2 — Thử thách khó"),
+  },
+  {
+    key: 'PercentageDifficultyChallengePage_basic',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Tỷ lệ % (Tính % của số) — Thử thách khó"),
+  },
+  {
+    key: 'PercentageDifficultyChallengePage_change',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Tỷ lệ % (Tăng / Giảm %) — Thử thách khó"),
+  },
+  {
+    key: 'PercentageDifficultyChallengePage_reverse',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Thử thách khó"),
+  },
+  {
+    key: 'DailyReflexDifficultyChallengePage',
+    group: 'difficulty',
+    defaultDelaySec: 2,
+    ...biLabel("Phản xạ hàng ngày — Thử thách khó"),
+  },
+
+  // --- Practice pages (12) ---
+  {
+    key: 'TwoDigitMultiplicationPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Nhân 2 chữ số — Luyện tập"),
+  },
+  {
+    key: 'MultiplyBy11Page',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Nhân với 11 — Luyện tập"),
+  },
+  {
+    key: 'MultiplyBy99Page',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Nhân với 99 — Luyện tập"),
+  },
+  {
+    key: 'MultiplyWith1DigitPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Nhân với 1 chữ số — Luyện tập"),
+  },
+  {
+    key: 'DivisionPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Phép chia — Luyện tập"),
+  },
+  {
+    key: 'AdditionPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Phép cộng — Luyện tập"),
+  },
+  {
+    key: 'SubtractionPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Phép trừ — Luyện tập"),
+  },
+  {
+    key: 'ExponentPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Lũy thừa — Luyện tập"),
+  },
+  {
+    key: 'SquareRootPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Căn bậc 2 — Luyện tập"),
+  },
+  {
+    key: 'PercentagePage_basic',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Tỷ lệ % (Tính % của số) — Luyện tập"),
+  },
+  {
+    key: 'PercentagePage_change',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Tỷ lệ % (Tăng / Giảm %) — Luyện tập"),
+  },
+  {
+    key: 'PercentagePage_reverse',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Tỷ lệ % (Tìm tỷ lệ & Số gốc) — Luyện tập"),
+  },
+  {
+    key: 'DailyReflexPage',
+    group: 'practice',
+    defaultDelaySec: 0,
+    ...biLabel("Phản xạ hàng ngày — Luyện tập"),
+  },
+] as const;
+
+type MentalMathAutoNextPageKey =
+  (typeof MENTAL_MATH_AUTO_NEXT_PAGE_META)[number]['key'];
+
+const AUTO_NEXT_STORAGE_KEY = 'mental_math_auto_next_v1';
+const AUTO_NEXT_UPDATE_EVENT = 'mental-math-auto-next-updated';
+
+type AutoNextGlobalTarget = 'all' | 'challenges' | 'practice';
+
+interface StoredMentalMathAutoNext {
+  globalChallenge?: number;
+  globalPractice?: number;
+  pages: Partial<Record<MentalMathAutoNextPageKey, number>>;
+}
+
+interface EffectiveAutoNextConfig {
+  delaySec: number;
+  defaultDelaySec: number;
+  source: 'page' | 'global' | 'default';
+  group: MentalMathAutoNextGroup;
+}
+
+const sanitizeAutoNextDelay = (val: unknown, fallback = 3): number => {
+  const num = Number(val);
+  if (!Number.isFinite(num)) return fallback;
+  if (num <= 0) return 0;
+  const clamped = Math.min(60, Math.max(0.5, num));
+  return Math.round(clamped * 10) / 10;
+};
+
+const formatAutoNextDelay = (delaySec: number, isVi: boolean): string => {
+  if (delaySec <= 0) {
+    return translateText(isVi ? 'vi' : 'en', "Thủ công");
+  }
+  const clean = Number.isInteger(delaySec) ? String(delaySec) : String(Math.round(delaySec * 10) / 10);
+  return `${clean}s`;
+};
+
+const getAutoNextPageMeta = (pageKey: MentalMathAutoNextPageKey) => {
+  return (
+    MENTAL_MATH_AUTO_NEXT_PAGE_META.find((m) => m.key === pageKey) ||
+    MENTAL_MATH_AUTO_NEXT_PAGE_META[0]
+  );
+};
+
+const getStoredAutoNextOverrides = (): StoredMentalMathAutoNext => {
+  if (typeof window === 'undefined') {
+    return { pages: {} };
+  }
+  try {
+    const raw = localStorage.getItem(AUTO_NEXT_STORAGE_KEY);
+    if (!raw) return { pages: {} };
+    const parsed = JSON.parse(raw) as StoredMentalMathAutoNext;
+    return {
+      globalChallenge:
+        typeof parsed.globalChallenge === 'number'
+          ? sanitizeAutoNextDelay(parsed.globalChallenge, 3)
+          : undefined,
+      globalPractice:
+        typeof parsed.globalPractice === 'number'
+          ? sanitizeAutoNextDelay(parsed.globalPractice, 0)
+          : undefined,
+      pages: parsed.pages || {},
+    };
+  } catch {
+    return { pages: {} };
+  }
+};
+
+const writeStoredAutoNextOverrides = (next: StoredMentalMathAutoNext): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(AUTO_NEXT_STORAGE_KEY, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent(AUTO_NEXT_UPDATE_EVENT));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+const getEffectiveAutoNextConfig = (
+  pageKey: MentalMathAutoNextPageKey
+): EffectiveAutoNextConfig => {
+  const meta = getAutoNextPageMeta(pageKey);
+  const stored = getStoredAutoNextOverrides();
+
+  const pageOverride = stored.pages?.[pageKey];
+  if (typeof pageOverride === 'number' && Number.isFinite(pageOverride)) {
+    return {
+      delaySec: sanitizeAutoNextDelay(pageOverride, meta.defaultDelaySec),
+      defaultDelaySec: meta.defaultDelaySec,
+      source: 'page',
+      group: meta.group,
+    };
+  }
+
+  if (meta.group === 'practice' && typeof stored.globalPractice === 'number') {
+    return {
+      delaySec: sanitizeAutoNextDelay(stored.globalPractice, meta.defaultDelaySec),
+      defaultDelaySec: meta.defaultDelaySec,
+      source: 'global',
+      group: meta.group,
+    };
+  }
+
+  if (meta.group !== 'practice' && typeof stored.globalChallenge === 'number') {
+    return {
+      delaySec: sanitizeAutoNextDelay(stored.globalChallenge, meta.defaultDelaySec),
+      defaultDelaySec: meta.defaultDelaySec,
+      source: 'global',
+      group: meta.group,
+    };
+  }
+
+  return {
+    delaySec: meta.defaultDelaySec,
+    defaultDelaySec: meta.defaultDelaySec,
+    source: 'default',
+    group: meta.group,
+  };
+};
+
+const savePageAutoNextOverride = (
+  pageKey: MentalMathAutoNextPageKey,
+  delaySec: number
+): void => {
+  const meta = getAutoNextPageMeta(pageKey);
+  const current = getStoredAutoNextOverrides();
+  const clean = sanitizeAutoNextDelay(delaySec, meta.defaultDelaySec);
+  writeStoredAutoNextOverrides({
+    ...current,
+    pages: {
+      ...current.pages,
+      [pageKey]: clean,
+    },
+  });
+};
+
+const saveGlobalAutoNextOverride = (
+  target: AutoNextGlobalTarget,
+  delaySec: number,
+  clearPerPageOverrides = true
+): void => {
+  const current = getStoredAutoNextOverrides();
+  const clean = sanitizeAutoNextDelay(delaySec, 3);
+  const nextPages = { ...current.pages };
+
+  if (clearPerPageOverrides) {
+    for (const meta of MENTAL_MATH_AUTO_NEXT_PAGE_META) {
+      const matches =
+        target === 'all' ||
+        (target === 'challenges' && meta.group !== 'practice') ||
+        (target === 'practice' && meta.group === 'practice');
+      if (matches) {
+        delete nextPages[meta.key];
+      }
+    }
+  }
+
+  writeStoredAutoNextOverrides({
+    globalChallenge:
+      target === 'all' || target === 'challenges' ? clean : current.globalChallenge,
+    globalPractice:
+      target === 'all' || target === 'practice' ? clean : current.globalPractice,
+    pages: nextPages,
+  });
+};
+
+const resetPageAutoNextOverride = (pageKey: MentalMathAutoNextPageKey): void => {
+  const current = getStoredAutoNextOverrides();
+  const nextPages = { ...current.pages };
+  delete nextPages[pageKey];
+  writeStoredAutoNextOverrides({
+    ...current,
+    pages: nextPages,
+  });
+};
+
+const resetGlobalAutoNextOverride = (
+  target: AutoNextGlobalTarget,
+  clearPerPageOverrides = true
+): void => {
+  const current = getStoredAutoNextOverrides();
+  const nextPages = { ...current.pages };
+  if (clearPerPageOverrides) {
+    for (const meta of MENTAL_MATH_AUTO_NEXT_PAGE_META) {
+      const matches =
+        target === 'all' ||
+        (target === 'challenges' && meta.group !== 'practice') ||
+        (target === 'practice' && meta.group === 'practice');
+      if (matches) {
+        delete nextPages[meta.key];
+      }
+    }
+  }
+
+  writeStoredAutoNextOverrides({
+    globalChallenge:
+      target === 'all' || target === 'challenges' ? undefined : current.globalChallenge,
+    globalPractice:
+      target === 'all' || target === 'practice' ? undefined : current.globalPractice,
+    pages: nextPages,
+  });
+};
+
+const useMentalMathAutoNextConfig = (
+  pageKey: MentalMathAutoNextPageKey
+): EffectiveAutoNextConfig => {
+  const [config, setConfig] = useState<EffectiveAutoNextConfig>(() =>
+    getEffectiveAutoNextConfig(pageKey)
+  );
+
+  const refresh = useCallback(() => {
+    setConfig(getEffectiveAutoNextConfig(pageKey));
+  }, [pageKey]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onUpdate = () => refresh();
+    window.addEventListener(AUTO_NEXT_UPDATE_EVENT, onUpdate);
+    window.addEventListener('storage', onUpdate);
+    return () => {
+      window.removeEventListener(AUTO_NEXT_UPDATE_EVENT, onUpdate);
+      window.removeEventListener('storage', onUpdate);
+    };
+  }, [refresh]);
+
+  return config;
+};
+
+// ============================================================================
+// PHẦN B: MODAL TÙY CHỈNH THỜI GIAN ĐỔI CÂU HỎI (0.5s - 60s HOẶC THỦ CÔNG)
+// ============================================================================
+// --- Inline MentalMathAutoNextModal (coded directly in Page) ---
+interface MentalMathAutoNextModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialScope?: 'global' | 'page';
+  initialPageKey?: MentalMathAutoNextPageKey;
+}
+
+const DELAY_PRESETS: number[] = [0.5, 1, 1.5, 2, 3, 4, 5, 8, 10];
+
+const CHALLENGE_GROUP = MENTAL_MATH_AUTO_NEXT_PAGE_META.filter((m) => m.group === 'challenge');
+const DIFFICULTY_GROUP = MENTAL_MATH_AUTO_NEXT_PAGE_META.filter((m) => m.group === 'difficulty');
+const PRACTICE_GROUP = MENTAL_MATH_AUTO_NEXT_PAGE_META.filter((m) => m.group === 'practice');
+
+const MentalMathAutoNextModal: React.FC<MentalMathAutoNextModalProps> = ({
+  isOpen,
+  onClose,
+  initialScope = 'global',
+  initialPageKey = 'TwoDigitMentalMathChallengePage',
+}) => {
+  const { language, tr } = useLanguage();
+  const isVi = language === 'vi';
+
+  const validInitialPageKey = useMemo<MentalMathAutoNextPageKey>(() => {
+    const found = MENTAL_MATH_AUTO_NEXT_PAGE_META.find((p) => p.key === initialPageKey);
+    return found ? found.key : MENTAL_MATH_AUTO_NEXT_PAGE_META[0].key;
+  }, [initialPageKey]);
+
+  const [scope, setScope] = useState<'global' | 'page'>(initialScope);
+  const [globalTarget, setGlobalTarget] = useState<AutoNextGlobalTarget>('all');
+  const [selectedPageKey, setSelectedPageKey] =
+    useState<MentalMathAutoNextPageKey>(validInitialPageKey);
+  const [delaySec, setDelaySec] = useState<number>(3);
+  const [customDraft, setCustomDraft] = useState<string>('3');
+  const [overrideExistingPages, setOverrideExistingPages] = useState<boolean>(true);
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setScope(initialScope);
+    setSelectedPageKey(validInitialPageKey);
+    setSavedNotice(null);
+  }, [isOpen, initialScope, validInitialPageKey]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (scope === 'global') {
+      const stored = getStoredAutoNextOverrides();
+      const base =
+        globalTarget === 'practice'
+          ? stored.globalPractice ?? 3
+          : stored.globalChallenge ?? stored.globalPractice ?? 3;
+      const clean = sanitizeAutoNextDelay(base, 3);
+      setDelaySec(clean);
+      setCustomDraft(clean > 0 ? String(clean) : '');
+    } else {
+      const effective = getEffectiveAutoNextConfig(selectedPageKey);
+      setDelaySec(effective.delaySec);
+      setCustomDraft(effective.delaySec > 0 ? String(effective.delaySec) : '');
+    }
+  }, [isOpen, scope, globalTarget, selectedPageKey]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const stored = getStoredAutoNextOverrides();
+  const matchingPerPageOverrides = MENTAL_MATH_AUTO_NEXT_PAGE_META.filter((p) => {
+    if (stored.pages?.[p.key] === undefined) return false;
+    if (globalTarget === 'all') return true;
+    if (globalTarget === 'challenges') return p.group !== 'practice';
+    return p.group === 'practice';
+  });
+
+  const currentPageEffective = getEffectiveAutoNextConfig(selectedPageKey);
+  const selectedPageMeta = getAutoNextPageMeta(selectedPageKey);
+
+  const handleSelectPreset = (sec: number) => {
+    setDelaySec(sec);
+    setCustomDraft(sec > 0 ? String(sec) : '');
+    setSavedNotice(null);
+  };
+
+  const handleCustomInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+    const parts = raw.split('.');
+    const formatted = parts.length > 2 ? `${parts[0]}.${parts.slice(1).join('')}` : raw;
+    setCustomDraft(formatted);
+    setSavedNotice(null);
+    if (formatted !== '' && formatted !== '.') {
+      const num = parseFloat(formatted);
+      if (Number.isFinite(num)) {
+        if (num <= 0) {
+          setDelaySec(0);
+        } else {
+          setDelaySec(sanitizeAutoNextDelay(num, 3));
+        }
+      }
+    }
+  };
+
+  const commitCustomInput = () => {
+    if (customDraft === '' || customDraft === '.') {
+      if (delaySec > 0) {
+        setCustomDraft(String(delaySec));
+      }
+      return;
+    }
+    const num = parseFloat(customDraft);
+    if (!Number.isFinite(num) || num <= 0) {
+      setDelaySec(0);
+      setCustomDraft('');
+      return;
+    }
+    const clean = sanitizeAutoNextDelay(num, 3);
+    setDelaySec(clean);
+    setCustomDraft(String(clean));
+  };
+
+  const handleSave = () => {
+    const finalDelay =
+      customDraft !== '' && customDraft !== '.'
+        ? sanitizeAutoNextDelay(parseFloat(customDraft), delaySec)
+        : delaySec;
+
+    if (scope === 'global') {
+      saveGlobalAutoNextOverride(globalTarget, finalDelay, overrideExistingPages);
+      const labelDelay = formatAutoNextDelay(finalDelay, isVi);
+      setSavedNotice(
+        isVi
+          ? `Đã áp dụng thời gian đổi câu (${labelDelay}) cho toàn bộ mục đã chọn!`
+          : `Saved auto-switch delay (${labelDelay}) globally!`
+      );
+    } else {
+      savePageAutoNextOverride(selectedPageKey, finalDelay);
+      const label = isVi ? selectedPageMeta.labelVi : selectedPageMeta.labelEn;
+      const labelDelay = formatAutoNextDelay(finalDelay, isVi);
+      setSavedNotice(
+        isVi
+          ? `Đã lưu thời gian đổi câu (${labelDelay}) cho "${label}"!`
+          : `Saved auto-switch delay (${labelDelay}) for "${label}"!`
+      );
+    }
+    window.setTimeout(() => {
+      onClose();
+    }, 350);
+  };
+
+  const handleReset = () => {
+    if (scope === 'global') {
+      resetGlobalAutoNextOverride(globalTarget, overrideExistingPages);
+      const fallback = globalTarget === 'practice' ? 0 : 2;
+      setDelaySec(fallback);
+      setCustomDraft(fallback > 0 ? String(fallback) : '');
+      setSavedNotice(
+        tr("Đã khôi phục mặc định hệ thống!")
+      );
+    } else {
+      resetPageAutoNextOverride(selectedPageKey);
+      const effective = getEffectiveAutoNextConfig(selectedPageKey);
+      setDelaySec(effective.delaySec);
+      setCustomDraft(effective.delaySec > 0 ? String(effective.delaySec) : '');
+      setSavedNotice(
+        tr("Đã khôi phục cấu hình trang này!")
+      );
+    }
+  };
+
+  const sourceLabel =
+    currentPageEffective.source === 'page'
+      ? tr("Cấu hình riêng trang này")
+      : currentPageEffective.source === 'global'
+      ? tr("Theo cấu hình toàn bộ")
+      : tr("Mặc định hệ thống");
+
+  const sourceClass =
+    currentPageEffective.source === 'page'
+      ? 'text-amber-300'
+      : currentPageEffective.source === 'global'
+      ? 'text-cyan-300'
+      : 'text-slate-400';
+
+  const effectiveTargetGroup =
+    scope === 'page'
+      ? selectedPageMeta.group
+      : globalTarget === 'practice'
+      ? 'practice'
+      : 'challenge';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mental-math-autonext-modal-title"
+        className="w-full max-w-xl rounded-2xl bg-slate-900 border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-slate-800 bg-slate-950/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/35 flex items-center justify-center shrink-0">
+              <TimerReset className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div>
+              <h3
+                id="mental-math-autonext-modal-title"
+                className="text-sm sm:text-base font-extrabold text-white"
+              >
+                {tr("Tùy chỉnh đổi câu hỏi — Mental Math")}
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                {tr("Chọn sau bao nhiêu giây sẽ chuyển qua câu hỏi khác (Toàn bộ hoặc từng Page)")}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={tr("Đóng")}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
+          {/* Scope Switcher */}
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950/80 border border-slate-800">
+            <button
+              type="button"
+              onClick={() => {
+                setScope('global');
+                setSavedNotice(null);
+              }}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                scope === 'global'
+                  ? 'bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+              }`}
+            >
+              <Globe className="w-4 h-4 shrink-0" />
+              <span>{tr("Chỉnh toàn bộ")}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setScope('page');
+                setSavedNotice(null);
+              }}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                scope === 'page'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4 shrink-0" />
+              <span>{tr("Chỉnh theo Page")}</span>
+            </button>
+          </div>
+
+          {/* Global Scope Target Selector */}
+          {scope === 'global' && (
+            <div className="space-y-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+              <span className="text-xs font-bold text-slate-300 block">
+                {tr("Phạm vi áp dụng toàn bộ:")}
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                {(
+                  [
+                    {
+                      id: 'all',
+                      vi: 'Tất cả Mental Math (36)',
+                      en: 'All Mental Math (36)',
+                    },
+                    {
+                      id: 'challenges',
+                      vi: 'Thử thách & Khó (24)',
+                      en: 'Challenge & Hard (24)',
+                    },
+                    {
+                      id: 'practice',
+                      vi: 'Chỉ Luyện tập (12)',
+                      en: 'Practice Only (12)',
+                    },
+                  ] as const
+                ).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setGlobalTarget(item.id);
+                      setSavedNotice(null);
+                    }}
+                    className={`px-2.5 py-2 rounded-lg text-[11px] font-bold border transition-all cursor-pointer whitespace-nowrap ${
+                      globalTarget === item.id
+                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                    }`}
+                  >
+                    {isVi ? item.vi : item.en}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Page Selector */}
+          {scope === 'page' && (
+            <div className="space-y-1.5 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label
+                  htmlFor="autonext-page-selector"
+                  className="text-xs font-bold text-slate-300"
+                >
+                  {tr("Chọn Page cần tùy chỉnh:")}
+                </label>
+                <span className={`text-[11px] font-semibold ${sourceClass}`}>
+                  {sourceLabel}
+                  {' · '}
+                  {isVi
+                    ? `Mặc định: ${formatAutoNextDelay(selectedPageMeta.defaultDelaySec, true)}`
+                    : `Default: ${formatAutoNextDelay(selectedPageMeta.defaultDelaySec, false)}`}
+                </span>
+              </div>
+              <select
+                id="autonext-page-selector"
+                value={selectedPageKey}
+                onChange={(e) => {
+                  setSelectedPageKey(e.target.value as MentalMathAutoNextPageKey);
+                  setSavedNotice(null);
+                }}
+                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs sm:text-sm font-semibold text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+              >
+                <optgroup label={tr("Thử thách (Challenge)")}>
+                  {CHALLENGE_GROUP.map((page) => {
+                    const hasCustom = stored.pages?.[page.key] !== undefined;
+                    const label = isVi ? page.labelVi : page.labelEn;
+                    return (
+                      <option key={page.key} value={page.key}>
+                        {hasCustom ? `★ ${label}` : label}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+                <optgroup
+                  label={tr("Thử thách cấp độ khó (Difficult Challenge)")}
+                >
+                  {DIFFICULTY_GROUP.map((page) => {
+                    const hasCustom = stored.pages?.[page.key] !== undefined;
+                    const label = isVi ? page.labelVi : page.labelEn;
+                    return (
+                      <option key={page.key} value={page.key}>
+                        {hasCustom ? `★ ${label}` : label}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+                <optgroup label={tr("Luyện tập (Practice)")}>
+                  {PRACTICE_GROUP.map((page) => {
+                    const hasCustom = stored.pages?.[page.key] !== undefined;
+                    const label = isVi ? page.labelVi : page.labelEn;
+                    return (
+                      <option key={page.key} value={page.key}>
+                        {hasCustom ? `★ ${label}` : label}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+              </select>
+            </div>
+          )}
+
+          {/* Seconds Picker */}
+          <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-200">
+                {tr("Sau bao nhiêu giây đổi qua câu hỏi khác:")}
+              </span>
+              <span className="text-sm font-extrabold font-mono tabular-nums text-cyan-300">
+                {formatAutoNextDelay(delaySec, isVi)}
+              </span>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="flex flex-wrap gap-1.5">
+              {DELAY_PRESETS.map((sec) => {
+                const isActive = delaySec === sec;
+                return (
+                  <button
+                    key={sec}
+                    type="button"
+                    onClick={() => handleSelectPreset(sec)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono tabular-nums border transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-sm'
+                        : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white'
+                    }`}
+                  >
+                    {sec}s
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => handleSelectPreset(0)}
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
+                  delaySec === 0
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white'
+                }`}
+              >
+                <Hand className="w-3.5 h-3.5" />
+                <span>{tr("Thủ công (Không tự chuyển)")}</span>
+              </button>
+            </div>
+
+            {/* Custom numeric input */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800/80">
+              <label
+                htmlFor="autonext-custom-seconds"
+                className="text-xs font-semibold text-slate-300 whitespace-nowrap"
+              >
+                {tr("Nhập số giây tùy ý (0.5 – 60):")}
+              </label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  id="autonext-custom-seconds"
+                  type="text"
+                  inputMode="decimal"
+                  value={customDraft}
+                  onChange={handleCustomInputChange}
+                  onBlur={commitCustomInput}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      commitCustomInput();
+                    }
+                  }}
+                  placeholder="3"
+                  className="w-20 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 focus:border-cyan-400 focus:outline-none text-center text-xs sm:text-sm font-bold font-mono tabular-nums text-white"
+                />
+                <span className="text-xs font-semibold text-slate-400">
+                  {tr("giây")}
+                </span>
+              </div>
+            </div>
+
+            {/* Contextual description */}
+            <p className="text-[11px] text-slate-400 flex items-center gap-1.5 leading-relaxed">
+              <ArrowRight className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span>
+                {delaySec === 0
+                  ? tr("Chế độ thủ công: Sau khi có kết quả, giữ nguyên màn hình để bạn bấm \"Câu tiếp theo\" khi sẵn sàng.")
+                  : effectiveTargetGroup === 'practice'
+                  ? isVi
+                    ? `Trong Luyện tập: Khi trả lời đúng sẽ tự động đổi câu hỏi mới sau ${formatAutoNextDelay(delaySec, true)}.`
+                    : `In Practice: Advances automatically ${formatAutoNextDelay(delaySec, false)} after a correct answer.`
+                  : isVi
+                  ? `Sau khi trả lời (hoặc hết giờ), tự động chuyển qua câu hỏi mới sau ${formatAutoNextDelay(delaySec, true)}.`
+                  : `Automatically moves to the next question ${formatAutoNextDelay(delaySec, false)} after answering or timeout.`}
+              </span>
+            </p>
+          </div>
+
+          {/* Global scope override option */}
+          {scope === 'global' && matchingPerPageOverrides.length > 0 && (
+            <label className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 cursor-pointer text-xs">
+              <input
+                type="checkbox"
+                checked={overrideExistingPages}
+                onChange={(e) => setOverrideExistingPages(e.target.checked)}
+                className="mt-0.5 accent-amber-500 w-4 h-4 cursor-pointer"
+              />
+              <span className="text-amber-100 leading-relaxed">
+                {isVi
+                  ? `Ghi đè đồng bộ cả ${matchingPerPageOverrides.length} trang đang có cấu hình riêng lẻ.`
+                  : `Also overwrite ${matchingPerPageOverrides.length} page(s) currently using per-page overrides.`}
+              </span>
+            </label>
+          )}
+
+          {savedNotice && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>{savedNotice}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-3.5 border-t border-slate-800 bg-slate-950/60">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>{tr("Đặt lại mặc định")}</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+            >
+              {tr("Đóng [Hủy]")}
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 text-xs sm:text-sm font-extrabold shadow-lg shadow-cyan-500/25 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+            >
+              <Check className="w-4 h-4" />
+              <span>
+                {scope === 'global'
+                  ? tr("Áp dụng toàn bộ")
+                  : tr("Lưu trang này")}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Danh sách chủ đề luyện tập Lũy thừa & Icon tương ứng
 export type ExponentTopic = 'general' | 'powEnd5' | 'powSquare2D' | 'powCubesAnd2';
 
 interface ExponentPageProps {
@@ -64,15 +1294,20 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
   onBack,
   onOpenChallenge,
   onOpenHardChallenge,
-  onOpenVisualGuide,
+  onOpenVisualGuide: _onOpenVisualGuide,
   initialTopic,
 }) => {
-  const { language } = useLanguage();
+  const { language, tr } = useLanguage();
   const isVi = language === 'vi';
   const meta = OPERATION_META.exponent;
+
+  // Cấu hình Auto-Next riêng cho trang ExponentPage
   const autoNextConfig = useMentalMathAutoNextConfig('ExponentPage');
+  const [isAutoNextModalOpen, setIsAutoNextModalOpen] = useState(false);
+  const showAutoNextButton = isAutoNextButtonVisible('ExponentPage');
   const autoNextTimerRef = useRef<number | null>(null);
 
+  // State chủ đề, câu hỏi lũy thừa hiện tại, đáp án nhập & phản hồi
   const [selectedTopic, setSelectedTopic] = useState<ExponentTopic>(initialTopic || 'general');
   const [question, setQuestion] = useState<OperationQuestion>(() =>
     generateOperationQuestion('exponent', initialTopic || 'general')
@@ -80,6 +1315,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
 
+  // State loa thông báo kết quả & đọc câu hỏi TTS
   const [isSpeakerEnabled, setIsSpeakerEnabled] = useState<boolean>(true);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState<boolean>(false);
@@ -91,15 +1327,18 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
     return 1.25;
   });
 
+  // State Micro nhận diện giọng nói
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string>('');
   const [voiceError, setVoiceError] = useState<string>('');
 
+  // Các ref tham chiếu DOM input, đối tượng SpeechRecognition & câu hỏi mới nhất
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef<boolean>(false);
   const questionRef = useRef<OperationQuestion>(question);
 
+  // Đồng bộ questionRef để callback bất đồng bộ luôn đọc đúng câu hỏi hiện tại
   useEffect(() => {
     questionRef.current = question;
   }, [question]);
@@ -160,6 +1399,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
     [selectedTopic]
   );
 
+  // Effect: Khi trả lời đúng và bật Auto-Next -> đếm giờ tự động sang câu mới
   useEffect(() => {
     if (feedback === 'correct' && autoNextConfig.delaySec > 0) {
       if (autoNextTimerRef.current !== null) {
@@ -181,6 +1421,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
     };
   }, [feedback, autoNextConfig.delaySec, generateNewQuestion]);
 
+  // Phát chuông + đọc đáp án đúng/sai bằng giọng nữ
   const triggerAnnouncement = useCallback(
     (isCorrect: boolean, answerVal: number) => {
       setIsSpeaking(true);
@@ -191,6 +1432,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
     [isVi]
   );
 
+  // Kiểm tra đáp án người dùng nhập / đọc qua mic
   const verifyAnswer = useCallback(
     (rawVal: string) => {
       const cleaned = rawVal.replace(/[^\d]/g, '');
@@ -228,9 +1470,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setVoiceError(
-        isVi
-          ? 'Trình duyệt chưa hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome/Edge.'
-          : 'Voice recognition is not supported in this browser.'
+        tr("Trình duyệt chưa hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome/Edge.")
       );
       return;
     }
@@ -303,7 +1543,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
-      {/* Top Navigation Bar */}
+      {/* Thanh điều hướng trên cùng: Quay lại + Hướng dẫn + Thử thách + Thử thách khó */}
       <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           type="button"
@@ -315,23 +1555,19 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <ArrowLeft className="w-4 h-4 text-yellow-400" />
-          <span>{isVi ? 'Quay lại' : 'Back'}</span>
+          <span>{tr("Quay lại")}</span>
         </button>
 
         <div className="flex items-center gap-2">
-          {onOpenVisualGuide && (
+          {isVisualGuideButtonVisible('ExponentPage') && (
             <button
               type="button"
-              onClick={() => {
-                stopCurrentSpeech();
-                stopListening();
-                onOpenVisualGuide();
-              }}
+              onClick={() => downloadGuidePdf('Guide.pdf')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title={isVi ? 'Xem hướng dẫn trực quan' : 'Visual Guide'}
+              title={tr("Tải hướng dẫn định dạng PDF")}
             >
-              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{isVi ? 'Hướng dẫn' : 'Guide'}</span>
+              <Download className="w-3.5 h-3.5 text-cyan-400" />
+              <span>{tr("Download PDF")}</span>
             </button>
           )}
 
@@ -344,10 +1580,10 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 onOpenChallenge(selectedTopic);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
-              title={isVi ? 'Thử thách tính nhẩm tốc độ cao' : 'Mental Math Challenge'}
+              title={tr("Thử thách tính nhẩm tốc độ cao")}
             >
               <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+              <span>{tr("Thử thách")}</span>
             </button>
           )}
 
@@ -360,15 +1596,15 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 onOpenHardChallenge(selectedTopic);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
-              title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
+              title={tr("Thử thách cấp độ khó")}
             >
               <Gauge className="w-3.5 h-3.5 text-white" />
-              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+              <span>{tr("Thử thách")}</span>
             </button>
           )}
 
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
-            <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
+            <span>{tr("Tính Nhẩm")}</span>
             <span className="text-slate-600">/</span>
             <span className="text-yellow-400 font-semibold">
               {isVi ? meta.titleVi : meta.titleEn}
@@ -386,23 +1622,20 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-yellow-400" />
             <h2 className="font-bold text-white text-base sm:text-lg">
-              {isVi ? 'Luyện tập' : 'Training'}
+              {tr("Luyện tập")}
             </h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {onOpenVisualGuide && (
+            {isVisualGuideButtonVisible('ExponentPage') && (
               <button
                 type="button"
-                onClick={() => {
-                  stopCurrentSpeech();
-                  stopListening();
-                  onOpenVisualGuide();
-                }}
+                onClick={() => downloadGuidePdf('Guide.pdf')}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer active:scale-95 text-xs"
+                title={tr("Tải hướng dẫn định dạng PDF")}
               >
-                <BookOpen className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Hướng dẫn' : 'Guide'}</span>
+                <Download className="w-3.5 h-3.5 text-slate-950" />
+                <span>{tr("Download PDF")}</span>
               </button>
             )}
 
@@ -417,7 +1650,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
               >
                 <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+                <span>{tr("Thử thách")}</span>
               </button>
             )}
 
@@ -430,14 +1663,49 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   onOpenHardChallenge(selectedTopic);
                 }}
                 className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-violet-500/25 transition-all cursor-pointer active:scale-95 text-xs"
-                title={isVi ? 'Thử thách cấp độ khó' : 'Difficult Level Challenge'}
+                title={tr("Thử thách cấp độ khó")}
               >
                 <Gauge className="w-3.5 h-3.5 text-white" />
-                <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+                <span>{tr("Thử thách")}</span>
               </button>
             )}
 
-            <AutoNextSettingButton pageKey="ExponentPage" />
+            {showAutoNextButton && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsAutoNextModalOpen(true)}
+                  title={
+                    isVi
+                      ? `Tùy chỉnh sau bao nhiêu giây đổi qua câu hỏi khác (Hiện tại: ${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                      : `Customize auto-switch delay to next question (Current: ${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                  }
+                  aria-label={
+                    isVi
+                      ? `Tùy chỉnh đổi câu (${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                      : `Auto-switch delay (${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                  }
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0 ${
+                    autoNextConfig.source !== 'default'
+                      ? 'bg-cyan-500/15 border-cyan-500/45 text-cyan-200 hover:bg-cyan-500/25'
+                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 hover:bg-slate-900'
+                  }`}
+                >
+                  <TimerReset className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span className="hidden sm:inline">{tr("Đổi câu:")}</span>
+                  <span className="font-mono tabular-nums text-cyan-300">
+                    {formatAutoNextDelay(autoNextConfig.delaySec, isVi)}
+                  </span>
+                </button>
+
+                <MentalMathAutoNextModal
+                  isOpen={isAutoNextModalOpen}
+                  onClose={() => setIsAutoNextModalOpen(false)}
+                  initialScope="page"
+                  initialPageKey={"ExponentPage"}
+                />
+              </>
+            )}
 
             <button
               type="button"
@@ -453,12 +1721,8 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               }`}
               title={
                 isSpeakerEnabled
-                  ? isVi
-                    ? 'Đang bật thông báo kết quả (Bấm để tắt)'
-                    : 'Voice result announcement ON (Click to mute)'
-                  : isVi
-                  ? 'Đang tắt thông báo kết quả (Bấm để bật)'
-                  : 'Voice result announcement OFF (Click to enable)'
+                  ? tr("Đang bật thông báo kết quả (Bấm để tắt)")
+                  : tr("Đang tắt thông báo kết quả (Bấm để bật)")
               }
             >
               {isSpeakerEnabled ? (
@@ -468,22 +1732,18 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               )}
               <span className="font-semibold">
                 {isSpeakerEnabled
-                  ? isVi
-                    ? 'Kết quả: Bật'
-                    : 'Result:ON'
-                  : isVi
-                  ? 'Kết quả: Tắt'
-                  : 'Result:OFF'}
+                  ? tr("Kết quả: Bật")
+                  : tr("Kết quả: Tắt")}
               </span>
             </button>
           </div>
         </div>
 
-        {/* Topic Selector */}
+        {/* Thanh chọn chủ đề luyện tập Lũy thừa */}
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 px-1">
             <Sliders className="w-3.5 h-3.5 text-yellow-400" />
-            <span>{isVi ? 'Chọn bài luyện tập theo yêu cầu:' : 'Select training topic:'}</span>
+            <span>{tr("Chọn bài luyện tập theo yêu cầu:")}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
@@ -546,7 +1806,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800/90 text-slate-400 shadow-sm">
                 <span className="text-[11px] sm:text-xs font-medium text-slate-400 flex items-center gap-1.5">
                   <Gauge className="w-3.5 h-3.5 text-yellow-400" />
-                  <span>{isVi ? 'Tốc độ:' : 'Speed:'}</span>
+                  <span>{tr("Tốc độ:")}</span>
                 </span>
                 <div className="flex items-center gap-1 ml-0.5">
                   {[1.25, 1.5, 1.75].map((s) => (
@@ -569,7 +1829,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
 
             {feedback !== 'idle' && (
               <div className="mt-3 w-full rounded-2xl bg-slate-900/80 border border-slate-800 px-3.5 py-2.5 text-xs text-slate-300 leading-relaxed text-left">
-                <span className="font-bold text-yellow-400 mr-1.5">{isVi ? 'Gợi ý:' : 'Method:'}</span>
+                <span className="font-bold text-yellow-400 mr-1.5">{tr("Gợi ý:")}</span>
                 {isVi ? question.hintVi : question.hintEn}
               </div>
             )}
@@ -586,7 +1846,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   type="button"
                   onClick={replayAnnouncement}
                   className="p-1 hover:text-white transition-colors cursor-pointer rounded-lg bg-emerald-900/40 hover:bg-emerald-900/60"
-                  title={isVi ? 'Nghe lại thông báo kết quả' : 'Replay voice announcement'}
+                  title={tr("Nghe lại thông báo kết quả")}
                 >
                   <Volume2 className="w-3.5 h-3.5" />
                 </button>
@@ -605,7 +1865,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   type="button"
                   onClick={replayAnnouncement}
                   className="p-1 hover:text-white transition-colors cursor-pointer rounded-lg bg-rose-900/40 hover:bg-rose-900/60"
-                  title={isVi ? 'Nghe lại thông báo kết quả' : 'Replay voice announcement'}
+                  title={tr("Nghe lại thông báo kết quả")}
                 >
                   <Volume2 className="w-3.5 h-3.5" />
                 </button>
@@ -613,7 +1873,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
             )}
           </div>
 
-          {/* Right: Input & Keypad */}
+          {/* Cột phải: Ô nhập đáp án, bàn phím số ảo 2x6, trạng thái Mic & nút Kết quả/Tiếp theo */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -631,12 +1891,8 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 onChange={(e) => setUserAnswer(e.target.value.replace(/[^\d]/g, ''))}
                 placeholder={
                   isListening
-                    ? isVi
-                      ? '🎙️ Đang nghe... Hãy đọc to đáp án của bạn'
-                      : '🎙️ Listening... Speak your answer aloud'
-                    : isVi
-                    ? 'Nhập kết quả hoặc bấm phím số bên dưới...'
-                    : 'Type answer or tap numeric keys below...'
+                    ? tr("🎙️ Đang nghe... Hãy đọc to đáp án của bạn [Đọc to]")
+                    : tr("Nhập kết quả hoặc bấm phím số bên dưới...")
                 }
                 disabled={feedback === 'correct'}
                 className={`w-full h-13 sm:h-14 px-5 text-center text-2xl sm:text-3xl font-bold font-mono rounded-2xl bg-slate-950 border text-white placeholder-slate-600 placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans placeholder:tracking-normal focus:outline-none transition-all shadow-inner ${
@@ -650,7 +1906,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   type="button"
                   onClick={handleKeypadClear}
                   className="absolute right-3.5 p-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
-                  title={isVi ? 'Xóa ô nhập' : 'Clear'}
+                  title={tr("Xóa ô nhập")}
                 >
                   <Delete className="w-4 h-4" />
                 </button>
@@ -690,9 +1946,9 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   onClick={handleKeypadClear}
                   disabled={feedback === 'correct' || !userAnswer}
                   className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-rose-500/20 active:bg-rose-500 active:text-white text-slate-400 hover:text-rose-300 font-semibold text-xs sm:text-sm border border-slate-800 hover:border-rose-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
-                  title={isVi ? 'Xóa toàn bộ' : 'Clear all'}
+                  title={tr("Xóa toàn bộ")}
                 >
-                  {isVi ? 'Xóa' : 'Clear'}
+                  {tr("Xóa")}
                 </button>
 
                 <button
@@ -700,7 +1956,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   onClick={handleKeypadBackspace}
                   disabled={feedback === 'correct' || !userAnswer}
                   className="h-9 sm:h-10 rounded-xl bg-slate-900/60 hover:bg-yellow-500/20 active:bg-yellow-400 active:text-slate-950 text-slate-400 hover:text-yellow-300 border border-slate-800 hover:border-yellow-500/40 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex items-center justify-center"
-                  title={isVi ? 'Xóa 1 số' : 'Backspace'}
+                  title={tr("Xóa 1 số")}
                   aria-label="Backspace"
                 >
                   <Delete className="w-4 h-4" />
@@ -713,10 +1969,8 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
                 <span className="truncate">
                   {voiceTranscript
-                    ? `${isVi ? 'Đang nhận diện:' : 'Detected:'} "${voiceTranscript}"`
-                    : isVi
-                    ? '🎙️ Đang lắng nghe: Hãy đọc to đáp án của bạn'
-                    : '🎙️ Listening: Speak your answer aloud'}
+                    ? `${tr("Đang nhận diện:")} "${voiceTranscript}"`
+                    : tr("🎙️ Đang lắng nghe: Hãy đọc to đáp án của bạn")}
                 </span>
               </div>
             )}
@@ -740,9 +1994,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                       ? isVi
                         ? `Câu tiếp theo - tự chuyển sau ${formatAutoNextDelay(autoNextConfig.delaySec, true)}`
                         : `Next Problem - auto in ${formatAutoNextDelay(autoNextConfig.delaySec, false)}`
-                      : isVi
-                      ? 'Câu tiếp theo'
-                      : 'Next Problem'}
+                      : tr("Câu tiếp theo")}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -751,7 +2003,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                   type="submit"
                   className="flex-1 h-12 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-yellow-500/20 active:scale-95 text-xs sm:text-sm"
                 >
-                  <span>{isVi ? 'Kết quả' : 'Answer'}</span>
+                  <span>{tr("Kết quả [Đáp án]")}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
@@ -762,12 +2014,8 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 disabled={feedback === 'correct'}
                 title={
                   isListening
-                    ? isVi
-                      ? 'Đang nghe... Bấm để dừng'
-                      : 'Listening... Click to stop'
-                    : isVi
-                    ? 'Bấm để trả lời bằng giọng nói'
-                    : 'Answer by voice'
+                    ? tr("Đang nghe... Bấm để dừng")
+                    : tr("Bấm để trả lời bằng giọng nói")
                 }
                 className={`h-12 px-4 rounded-xl border flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer active:scale-95 shrink-0 ${
                   isListening
@@ -778,12 +2026,12 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 {isListening ? (
                   <>
                     <MicOff className="w-4 h-4 text-white" />
-                    <span>{isVi ? 'Đang nghe...' : 'Listening...'}</span>
+                    <span>{tr("Đang nghe...")}</span>
                   </>
                 ) : (
                   <>
                     <Mic className="w-4 h-4 text-yellow-400" />
-                    <span>{isVi ? 'Trả lời' : 'Voice'}</span>
+                    <span>{tr("Trả lời [Giọng nói]")}</span>
                   </>
                 )}
               </button>
@@ -791,7 +2039,7 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
               <button
                 type="button"
                 onClick={() => generateNewQuestion()}
-                title={isVi ? 'Đổi đề bài khác' : 'Skip problem'}
+                title={tr("Đổi đề bài khác")}
                 className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
               >
                 <RotateCcw className="w-4 h-4" />

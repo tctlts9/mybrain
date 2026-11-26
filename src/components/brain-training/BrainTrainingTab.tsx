@@ -1,7 +1,26 @@
+/**
+ * ============================================================================
+ * FILE: BrainTrainingTab.tsx — TAB RÈN LUYỆN NÃO BỘ (BRAIN TRAINING)
+ * ============================================================================
+ * Công việc của file:
+ * 1. Quản lý điều hướng giữa màn hình danh sách Card và 3 trang con của Bảng Schulte:
+ *    - SchulteTablePage (Luyện tập tự do)
+ *    - SchulteTableChallengePage (Thử thách tốc độ 3 vòng)
+ *    - SchulteTableDifficultyChallengePage (Thử thách cấp độ khó: Hard / Pro / Pro+)
+ * 2. Áp dụng kiểm tra hiển thị Page từ pageVisibility.ts và hiển thị Card từ cardVisibility.ts.
+ * 3. Lưu kích thước lưới (3x3..6x6) đang chọn để truyền đồng bộ khi chuyển giữa các trang con.
+ * ============================================================================
+ */
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
-import { setTabCardsVisibility, useCardVisibility } from '../../config/cardVisibility';
+import { useLanguage } from '../../context/Translations';
+import {
+  ENABLE_BROWSER_CARD_OVERRIDES,
+  isTabMasterCardVisible,
+  setTabCardsVisibility,
+  useCardVisibility,
+} from '../../config/cardVisibility';
+import { isPageVisible } from '../../config/pageVisibility';
 import { SchulteTablePage } from './SchulteTablePage';
 import {
   SchulteTableChallengePage,
@@ -10,6 +29,7 @@ import {
 import { SchulteTableDifficultyChallengePage } from './SchulteTableDifficultyChallengePage';
 import schulteTableBg from '../../assets/images/Brain Training/SchulteTable.jpg';
 
+// Định danh các màn hình con bên trong Tab Brain Training
 type BrainTrainingPage =
   | 'card'
   | 'schulte-table'
@@ -23,54 +43,88 @@ interface BrainTrainingTabProps {
 export const BrainTrainingTab: React.FC<BrainTrainingTabProps> = ({
   onOpenCardVisibility,
 }) => {
-  const { language } = useLanguage();
-  const isVi = language === 'vi';
+  const { tr } = useLanguage();
   const { isCardVisible } = useCardVisibility();
   const [currentPage, setCurrentPage] = useState<BrainTrainingPage>('card');
   const [challengeGridSize, setChallengeGridSize] = useState<SchulteGridSize>(5);
 
-  if (currentPage === 'schulte-challenge') {
+  const canRestoreInUi =
+    ENABLE_BROWSER_CARD_OVERRIDES && isTabMasterCardVisible('brain-training');
+
+  // --- Luồng 1: Trang Thử thách Bảng Schulte (chỉ mở nếu Page được bật) ---
+  if (
+    currentPage === 'schulte-challenge' &&
+    isPageVisible('SchulteTableChallengePage')
+  ) {
     return (
       <SchulteTableChallengePage
         initialGridSize={challengeGridSize}
-        onBack={() => setCurrentPage('schulte-table')}
-        onOpenDifficultyChallenge={(size) => {
-          setChallengeGridSize(size);
-          setCurrentPage('schulte-difficulty-challenge');
-        }}
+        onBack={() =>
+          setCurrentPage(
+            isPageVisible('SchulteTablePage') ? 'schulte-table' : 'card'
+          )
+        }
+        onOpenDifficultyChallenge={
+          isPageVisible('SchulteTableDifficultyChallengePage')
+            ? (size) => {
+                setChallengeGridSize(size);
+                setCurrentPage('schulte-difficulty-challenge');
+              }
+            : undefined
+        }
       />
     );
   }
 
-  if (currentPage === 'schulte-difficulty-challenge') {
+  // --- Luồng 2: Trang Thử thách Cấp độ khó Bảng Schulte ---
+  if (
+    currentPage === 'schulte-difficulty-challenge' &&
+    isPageVisible('SchulteTableDifficultyChallengePage')
+  ) {
     return (
       <SchulteTableDifficultyChallengePage
         initialGridSize={challengeGridSize}
-        onBack={() => setCurrentPage('schulte-table')}
+        onBack={() =>
+          setCurrentPage(
+            isPageVisible('SchulteTablePage') ? 'schulte-table' : 'card'
+          )
+        }
       />
     );
   }
 
-  if (currentPage === 'schulte-table') {
+  // --- Luồng 3: Trang Luyện tập Bảng Schulte ---
+  if (currentPage === 'schulte-table' && isPageVisible('SchulteTablePage')) {
     return (
       <SchulteTablePage
         onBack={() => setCurrentPage('card')}
-        onOpenChallenge={(size) => {
-          setChallengeGridSize(size);
-          setCurrentPage('schulte-challenge');
-        }}
-        onOpenDifficultyChallenge={(size) => {
-          setChallengeGridSize(size);
-          setCurrentPage('schulte-difficulty-challenge');
-        }}
+        onOpenChallenge={
+          isPageVisible('SchulteTableChallengePage')
+            ? (size) => {
+                setChallengeGridSize(size);
+                setCurrentPage('schulte-challenge');
+              }
+            : undefined
+        }
+        onOpenDifficultyChallenge={
+          isPageVisible('SchulteTableDifficultyChallengePage')
+            ? (size) => {
+                setChallengeGridSize(size);
+                setCurrentPage('schulte-difficulty-challenge');
+              }
+            : undefined
+        }
       />
     );
   }
 
-  const showSchulteCard = isCardVisible('bt:schulte-table');
+  // Kiểm tra trạng thái hiển thị của Card Bảng Schulte (cả Card lẫn Page chính đều phải bật)
+  const showSchulteCard =
+    isCardVisible('bt:schulte-table') && isPageVisible('SchulteTablePage');
 
   return (
     <div className="w-full max-w-6xl mx-auto py-2 sm:py-6 animate-in fade-in duration-300 px-2 sm:px-4">
+      {/* Trạng thái khi toàn bộ Card trong Tab đang bị ẩn */}
       {!showSchulteCard ? (
         <div className="min-h-[280px] flex items-center justify-center p-4">
           <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/50 p-6 sm:p-8 text-center space-y-4">
@@ -79,33 +133,35 @@ export const BrainTrainingTab: React.FC<BrainTrainingTabProps> = ({
             </div>
             <div className="space-y-1">
               <h2 className="text-base sm:text-lg font-bold text-white">
-                {isVi ? 'Tất cả Card trong Tab này đang ẩn' : 'All Cards in this Tab are Hidden'}
+                {tr("Tất cả Card trong Tab này đang ẩn")}
               </h2>
               <p className="text-xs text-slate-400">
-                {isVi
-                  ? 'Bạn có thể bật hiển thị lại card của Tab Rèn luyện não bộ bất cứ lúc nào.'
-                  : 'You can re-enable cards for Brain Training anytime.'}
+                {tr("Bạn có thể bật hiển thị lại card của Tab Rèn luyện não bộ bất cứ lúc nào.")}
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => setTabCardsVisibility('brain-training', true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs transition-all cursor-pointer active:scale-95"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>{isVi ? 'Hiện lại tất cả' : 'Show All'}</span>
-              </button>
-              {onOpenCardVisibility && (
-                <button
-                  type="button"
-                  onClick={onOpenCardVisibility}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition-all cursor-pointer active:scale-95"
-                >
-                  <span>{isVi ? 'Tùy chỉnh chi tiết' : 'Customize Cards'}</span>
-                </button>
-              )}
-            </div>
+            {(canRestoreInUi || onOpenCardVisibility) && (
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                {canRestoreInUi && (
+                  <button
+                    type="button"
+                    onClick={() => setTabCardsVisibility('brain-training', true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs transition-all cursor-pointer active:scale-95"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>{tr("Hiện lại tất cả")}</span>
+                  </button>
+                )}
+                {onOpenCardVisibility && (
+                  <button
+                    type="button"
+                    onClick={onOpenCardVisibility}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs transition-all cursor-pointer active:scale-95"
+                  >
+                    <span>{tr("Tùy chỉnh chi tiết")}</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -115,7 +171,7 @@ export const BrainTrainingTab: React.FC<BrainTrainingTabProps> = ({
             onClick={() => setCurrentPage('schulte-table')}
             role="button"
             tabIndex={0}
-            aria-label={isVi ? 'Bảng Schulte 5x5 - Luyện tập ngay' : '5x5 Schulte Table - Start training'}
+            aria-label={tr("Bảng Schulte 5x5 - Luyện tập ngay")}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -140,7 +196,7 @@ export const BrainTrainingTab: React.FC<BrainTrainingTabProps> = ({
             {/* Hover CTA Pill */}
             <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
               <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/90 text-slate-950 shadow-md">
-                {isVi ? 'Luyện tập ngay →' : 'Start Training →'}
+                {tr("Luyện tập ngay →")}
               </span>
             </div>
           </div>

@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Layers,
 } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage, translateText } from '../../context/Translations';
 import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 
 interface SlideMeta {
@@ -50,16 +50,16 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-300/35 text-yellow-300 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
               <Zap className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-              <span>{isVi ? 'Quy tắc 1 • Số 2 chữ số × 99' : 'Rule 1 • 2-Digit Number × 99'}</span>
+              <span>{translateText(isVi ? 'vi' : 'en', "Quy tắc 1 • Số 2 chữ số × 99")}</span>
             </div>
             <h3 className="text-lg sm:text-2xl md:text-3xl font-black tracking-tight text-white">
-              {isVi ? 'Tuyệt Chiêu Ghép Cặp: (N − 1) | (100 − N)' : 'Split-Pair Formula: (N − 1) | (100 − N)'}
+              {translateText(isVi ? 'vi' : 'en', "Tuyệt Chiêu Ghép Cặp: (N − 1) | (100 − N)")}
             </h3>
           </div>
 
           <div className="px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-cyan-500/35 text-center shadow-lg">
             <div className="text-[10px] sm:text-xs text-cyan-300 font-semibold uppercase tracking-wider">
-              {isVi ? 'Công thức nhẩm nhanh' : 'Mental Formula'}
+              {translateText(isVi ? 'vi' : 'en', "Công thức nhẩm nhanh")}
             </div>
             <div className="text-sm sm:text-lg font-black font-mono text-yellow-300">
               N × 99 = [N − 1][100 − N]
@@ -71,7 +71,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
         <div className="my-3 sm:my-5 rounded-2xl sm:rounded-3xl bg-slate-950/75 border border-yellow-500/30 p-4 sm:p-6 shadow-2xl space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs sm:text-sm font-bold text-yellow-300 uppercase tracking-wider">
-              {isVi ? 'Ví dụ kinh điển: 68 × 99' : 'Classic Example: 68 × 99'}
+              {translateText(isVi ? 'vi' : 'en', "Ví dụ kinh điển: 68 × 99")}
             </span>
             <span className="text-xs sm:text-sm font-mono font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-2.5 py-0.5 rounded-full">
               68 × 99 = 6,732
@@ -82,7 +82,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
             {/* Step A: Left 2 digits */}
             <div className="p-3.5 sm:p-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/35 text-center space-y-1.5">
               <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-yellow-300">
-                {isVi ? 'Bước 1 • 2 số đầu (Trái)' : 'Step 1 • Left 2 Digits'}
+                {translateText(isVi ? 'vi' : 'en', "Bước 1 • 2 số đầu (Trái)")}
               </div>
               <div className="text-sm sm:text-base font-mono text-slate-300">
                 68 − 1
@@ -91,14 +91,14 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
                 67
               </div>
               <p className="text-[11px] text-slate-400">
-                {isVi ? 'Lấy số ban đầu trừ đi 1' : 'Subtract 1 from the number'}
+                {translateText(isVi ? 'vi' : 'en', "Lấy số ban đầu trừ đi 1")}
               </p>
             </div>
 
             {/* Step B: Right 2 digits */}
             <div className="p-3.5 sm:p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/35 text-center space-y-1.5">
               <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-cyan-300">
-                {isVi ? 'Bước 2 • 2 số cuối (Phải)' : 'Step 2 • Right 2 Digits'}
+                {translateText(isVi ? 'vi' : 'en', "Bước 2 • 2 số cuối (Phải)")}
               </div>
               <div className="text-sm sm:text-base font-mono text-slate-300">
                 100 − 68
@@ -107,14 +107,14 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
                 32
               </div>
               <p className="text-[11px] text-slate-400">
-                {isVi ? 'Mẹo: (9 − 6) = 3, (10 − 8) = 2' : 'Tip: (9 − 6) = 3, (10 − 8) = 2'}
+                {translateText(isVi ? 'vi' : 'en', "Mẹo: (9 − 6) = 3, (10 − 8) = 2")}
               </p>
             </div>
 
             {/* Step C: Combined Result */}
             <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/35 text-center space-y-1.5">
               <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300">
-                {isVi ? 'Bước 3 • Ghép kết quả' : 'Step 3 • Combine'}
+                {translateText(isVi ? 'vi' : 'en', "Bước 3 • Ghép kết quả")}
               </div>
               <div className="text-sm sm:text-base font-mono text-slate-300 flex items-center justify-center gap-1">
                 <span className="text-yellow-400 font-bold">67</span>
@@ -125,7 +125,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
                 6,732
               </div>
               <p className="text-[11px] text-slate-400">
-                {isVi ? 'Đọc thẳng từ trái sang phải!' : 'Read straight left to right!'}
+                {translateText(isVi ? 'vi' : 'en', "Đọc thẳng từ trái sang phải!")}
               </p>
             </div>
           </div>
@@ -135,7 +135,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
             <div>
-              <div className="text-xs font-bold text-slate-400">{isVi ? 'Mẫu nhanh 1' : 'Quick Case 1'}</div>
+              <div className="text-xs font-bold text-slate-400">{translateText(isVi ? 'vi' : 'en', "Mẫu nhanh 1")}</div>
               <div className="text-sm sm:text-base font-mono font-bold text-white">43 × 99</div>
             </div>
             <div className="text-right font-mono">
@@ -146,7 +146,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
 
           <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
             <div>
-              <div className="text-xs font-bold text-slate-400">{isVi ? 'Mẫu có số 0 đầu' : 'Leading-Zero Tail'}</div>
+              <div className="text-xs font-bold text-slate-400">{translateText(isVi ? 'vi' : 'en', "Mẫu có số 0 đầu")}</div>
               <div className="text-sm sm:text-base font-mono font-bold text-white">94 × 99</div>
             </div>
             <div className="text-right font-mono">
@@ -157,7 +157,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
 
           <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
             <div>
-              <div className="text-xs font-bold text-slate-400">{isVi ? 'Số tròn chục' : 'Round Tens'}</div>
+              <div className="text-xs font-bold text-slate-400">{translateText(isVi ? 'vi' : 'en', "Số tròn chục")}</div>
               <div className="text-sm sm:text-base font-mono font-bold text-white">30 × 99</div>
             </div>
             <div className="text-right font-mono">
@@ -181,16 +181,16 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/35 text-cyan-300 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
             <Layers className="w-3.5 h-3.5 text-cyan-300" />
-            <span>{isVi ? 'Quy tắc 2 • Số 3 đến 10 chữ số × 99' : 'Rule 2 • 3 to 10-Digit × 99'}</span>
+            <span>{translateText(isVi ? 'vi' : 'en', "Quy tắc 2 • Số 3 đến 10 chữ số × 99")}</span>
           </div>
           <h3 className="text-lg sm:text-2xl md:text-3xl font-black tracking-tight text-white">
-            {isVi ? 'Mở Rộng Siêu Tốc: N × 100 − N' : 'Multi-Digit Extension: N × 100 − N'}
+            {translateText(isVi ? 'vi' : 'en', "Mở Rộng Siêu Tốc: N × 100 − N")}
           </h3>
         </div>
 
         <div className="px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-yellow-500/35 text-center shadow-lg">
           <div className="text-[10px] sm:text-xs text-yellow-300 font-semibold uppercase tracking-wider">
-            {isVi ? 'Bản chất đại số' : 'Core Identity'}
+            {translateText(isVi ? 'vi' : 'en', "Bản chất đại số")}
           </div>
           <div className="text-sm sm:text-lg font-black font-mono text-cyan-300">
             N × 99 = N00 − N
@@ -204,7 +204,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
         <div className="rounded-2xl sm:rounded-3xl bg-slate-950/75 border border-yellow-500/30 p-4 sm:p-5 space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold text-yellow-300 uppercase tracking-wider">
-              {isVi ? 'Cách A • Nhân 100 rồi trừ N' : 'Method A • Append 00 & Subtract N'}
+              {translateText(isVi ? 'vi' : 'en', "Cách A • Nhân 100 rồi trừ N")}
             </span>
             <span className="text-xs font-mono font-bold text-yellow-200 bg-yellow-500/15 px-2 py-0.5 rounded-full">
               345 × 99
@@ -213,15 +213,15 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
 
           <div className="space-y-2 text-xs sm:text-sm font-mono">
             <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-400">{isVi ? '1. Thêm "00" vào sau N:' : '1. Append "00" to N:'}</span>
+              <span className="text-slate-400">{translateText(isVi ? 'vi' : 'en', "1. Thêm \"00\" vào sau N:")}</span>
               <span className="font-bold text-yellow-300">34,500</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-400">{isVi ? '2. Trừ đi chính số N:' : '2. Subtract N itself:'}</span>
+              <span className="text-slate-400">{translateText(isVi ? 'vi' : 'en', "2. Trừ đi chính số N:")}</span>
               <span className="font-bold text-rose-300">− 345</span>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-between">
-              <span className="font-sans font-bold text-emerald-300">{isVi ? 'Kết quả:' : 'Result:'}</span>
+              <span className="font-sans font-bold text-emerald-300">{translateText(isVi ? 'vi' : 'en', "Kết quả:")}</span>
               <span className="text-lg sm:text-xl font-black text-emerald-300">34,155</span>
             </div>
           </div>
@@ -231,7 +231,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
         <div className="rounded-2xl sm:rounded-3xl bg-slate-950/75 border border-cyan-500/30 p-4 sm:p-5 space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold text-cyan-300 uppercase tracking-wider">
-              {isVi ? 'Cách B • Tách đầu & 2 số cuối' : 'Method B • Split Head & Last 2 Digits'}
+              {translateText(isVi ? 'vi' : 'en', "Cách B • Tách đầu & 2 số cuối")}
             </span>
             <span className="text-xs font-mono font-bold text-cyan-200 bg-cyan-500/15 px-2 py-0.5 rounded-full">
               2,468 × 99
@@ -240,15 +240,15 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
 
           <div className="space-y-2 text-xs sm:text-sm font-mono">
             <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-400">{isVi ? '1. Phần đầu (24 + 1 = 25):' : '1. Head (24 + 1 = 25):'}</span>
+              <span className="text-slate-400">{translateText(isVi ? 'vi' : 'en', "1. Phần đầu (24 + 1 = 25):")}</span>
               <span className="font-bold text-yellow-300">2,468 − 25 = 2,443</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-              <span className="text-slate-400">{isVi ? '2. Phần bù 2 số cuối:' : '2. Complement of 68:'}</span>
+              <span className="text-slate-400">{translateText(isVi ? 'vi' : 'en', "2. Phần bù 2 số cuối:")}</span>
               <span className="font-bold text-cyan-300">100 − 68 = 32</span>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-between">
-              <span className="font-sans font-bold text-emerald-300">{isVi ? 'Ghép kết quả:' : 'Combine:'}</span>
+              <span className="font-sans font-bold text-emerald-300">{translateText(isVi ? 'vi' : 'en', "Ghép kết quả:")}</span>
               <span className="text-lg sm:text-xl font-black text-emerald-300">244,332</span>
             </div>
           </div>
@@ -258,9 +258,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
       {/* Bottom Tip Banner */}
       <div className="p-3 sm:p-3.5 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
         <span className="font-semibold text-yellow-200">
-          {isVi
-            ? '💡 Mở rộng cho 999, 9999, 99999, 999999: Luôn lấy N thêm đúng k số 0 (N × 10ᵏ) rồi trừ chính số N!'
-            : '💡 Extends to 999, 9999, 99999, 999999: Append k zeros (N × 10ᵏ) and subtract N itself!'}
+          {translateText(isVi ? 'vi' : 'en', "💡 Mở rộng cho 999, 9999, 99999, 999999: Luôn lấy N thêm đúng k số 0 (N × 10ᵏ) rồi trừ chính số N!")}
         </span>
         <span className="font-mono font-bold text-cyan-300">
           345 × 999 = 345,000 − 345 = 344,655
@@ -271,7 +269,7 @@ const SlideContent: React.FC<{ slideId: number; isVi: boolean; compact?: boolean
 };
 
 export const MultiplyBy99GuideCarousel: React.FC = () => {
-  const { language } = useLanguage();
+  const { language, tr } = useLanguage();
   const isVi = language === 'vi';
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [fullscreenSlideId, setFullscreenSlideId] = useState<number | null>(null);
@@ -350,11 +348,11 @@ export const MultiplyBy99GuideCarousel: React.FC = () => {
           </div>
           <div>
             <h2 className="font-bold text-white text-xs sm:text-sm md:text-base flex items-center gap-1.5 sm:gap-2">
-              <span>{isVi ? 'Hướng Dẫn Nhân Với 99' : 'Multiply by 99 Visual Guide'}</span>
+              <span>{tr("Hướng Dẫn Nhân Với 99")}</span>
               <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" />
             </h2>
             <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">
-              {isVi ? 'Vuốt ngang hoặc bấm mũi tên để chuyển bước' : 'Swipe or click arrows to switch steps'}
+              {tr("Vuốt ngang hoặc bấm mũi tên để chuyển bước")}
             </p>
           </div>
         </div>
@@ -365,11 +363,11 @@ export const MultiplyBy99GuideCarousel: React.FC = () => {
             type="button"
             onClick={() => downloadGuidePdf('Guide.pdf')}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 hover:text-white text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
-            title={isVi ? 'Tải hướng dẫn định dạng PDF' : 'Download Guide (PDF)'}
+            title={tr("Tải hướng dẫn định dạng PDF")}
           >
             <Download className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">{isVi ? 'Tải Guide' : 'Download Guide'}</span>
-            <span className="sm:hidden">{isVi ? 'Tải PDF' : 'PDF'}</span>
+            <span className="hidden sm:inline">{tr("Tải Guide")}</span>
+            <span className="sm:hidden">{tr("Tải PDF")}</span>
           </button>
 
           <span className="px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-slate-950 border border-slate-800 text-[11px] sm:text-xs font-mono font-bold text-yellow-400 shadow-xs">
@@ -380,7 +378,7 @@ export const MultiplyBy99GuideCarousel: React.FC = () => {
             onClick={() => scrollToSlide(activeIndex - 1)}
             disabled={activeIndex === 0}
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-yellow-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
-            title={isVi ? 'Bước trước' : 'Previous'}
+            title={tr("Bước trước")}
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -390,7 +388,7 @@ export const MultiplyBy99GuideCarousel: React.FC = () => {
             onClick={() => scrollToSlide(activeIndex + 1)}
             disabled={activeIndex === SLIDES.length - 1}
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-950 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed border border-slate-800 hover:border-yellow-500/40 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
-            title={isVi ? 'Bước sau' : 'Next'}
+            title={tr("Bước sau")}
             aria-label="Next slide"
           >
             <ChevronRight className="w-4 h-4" />
@@ -421,7 +419,7 @@ export const MultiplyBy99GuideCarousel: React.FC = () => {
                   type="button"
                   onClick={() => setFullscreenSlideId(slide.id)}
                   className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-yellow-400 transition-all cursor-pointer backdrop-blur-md opacity-85 hover:opacity-100 shadow-md active:scale-90 z-10"
-                  title={isVi ? 'Phóng to toàn màn hình' : 'Fullscreen view'}
+                  title={tr("Phóng to toàn màn hình")}
                   aria-label="Fullscreen guide"
                 >
                   <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -489,7 +487,7 @@ export const MultiplyBy99GuideCarousel: React.FC = () => {
               type="button"
               onClick={() => setFullscreenSlideId(null)}
               className="w-9 h-9 rounded-full bg-slate-900 hover:bg-rose-950 text-slate-200 hover:text-rose-300 border border-slate-700 hover:border-rose-500/50 flex items-center justify-center transition-all cursor-pointer"
-              title={isVi ? 'Đóng (Esc)' : 'Close (Esc)'}
+              title={tr("Đóng (Esc)")}
               aria-label="Close fullscreen guide"
             >
               <X className="w-5 h-5" />

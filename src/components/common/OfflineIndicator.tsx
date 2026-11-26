@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { WifiOff, Wifi } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/Translations';
 
 export const OfflineIndicator: React.FC = () => {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
   const [showReconnected, setShowReconnected] = useState(false);
-  const { language, t } = useLanguage();
+  const { language, t, tr } = useLanguage();
 
   useEffect(() => {
     const handleOnline = () => {
@@ -46,7 +46,7 @@ export const OfflineIndicator: React.FC = () => {
         <div className="flex items-center gap-2 rounded-xl bg-emerald-600/95 backdrop-blur-md px-3.5 py-2 text-xs font-semibold text-white shadow-xl border border-emerald-400/40">
           <Wifi className="w-4 h-4 text-white shrink-0" />
           <span>
-            {language === 'vi' ? 'Đã kết nối lại Internet thành công.' : 'Back Online — Internet connection restored.'}
+            {tr("Đã kết nối lại Internet thành công.")}
           </span>
         </div>
       )}

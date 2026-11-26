@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Youtube, Mail, Coffee } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/Translations';
 import { BuyCoffeeModal } from './common/BuyCoffeeModal';
 import {
   SHOW_BUY_COFFEE_BUTTON,

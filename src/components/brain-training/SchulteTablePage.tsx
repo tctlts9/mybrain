@@ -1,3 +1,15 @@
+/**
+ * ============================================================================
+ * FILE: SchulteTablePage.tsx — TRANG LUYỆN TẬP BẢNG SCHULTE (BRAIN TRAINING)
+ * ============================================================================
+ * Công việc của file:
+ * 1. Hiển thị bảng Schulte kích thước tùy chọn (3x3, 4x4, 5x5, 6x6) theo thứ tự Tăng dần hoặc Giảm dần.
+ * 2. Bấm giờ chính xác bằng performance.now() kể từ lúc người dùng bấm ô đầu tiên, lưu kỷ lục cá nhân vào localStorage.
+ * 3. Hỗ trợ tùy chọn Tâm điểm (chấm định vị mắt), Đánh dấu ô đã tìm, Âm thanh phản hồi & Đọc số cần tìm (TTS).
+ * 4. Hỗ trợ trả lời bằng Giọng nói (Web Speech API): nhận diện cả số lẫn tọa độ ô (VD: "A1", "B3") và lệnh đặt lại.
+ * 5. Quản lý nút chuyển sang Thử thách / Thử thách khó qua src/config/buttonVisibility.ts.
+ * ============================================================================
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft,
@@ -16,18 +28,21 @@ import {
   MicOff,
   AlertTriangle,
   Gauge,
+  Download,
 } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/Translations';
 import {
   playSpeakerChime,
   speakSchulteNumber,
   stopCurrentSpeech,
-} from '../../utils/speechUtils';
-import { parseSchulteVoiceActions } from '../../utils/schulteVoice';
+} from '../../utils/MentalMathVoice';
+import { parseSchulteVoiceActions } from '../../utils/BrainTrainingVoice';
 import {
   isChallengeButtonVisible,
   isDifficultLevelChallengeButtonVisible,
+  isVisualGuideButtonVisible,
 } from '../../config/buttonVisibility';
+import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 
 type GridSize = 3 | 4 | 5 | 6;
 type OrderMode = 'asc' | 'desc';
@@ -38,9 +53,11 @@ interface SchulteTablePageProps {
   onOpenDifficultyChallenge?: (gridSize: GridSize) => void;
 }
 
+// Danh sách kích thước lưới và ký hiệu hàng A..F phục vụ đọc tọa độ bằng giọng nói
 const GRID_SIZES: GridSize[] = [3, 4, 5, 6];
 const ROW_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
+// Trộn ngẫu nhiên mảng số 1..N^2 theo thuật toán Fisher-Yates
 const generateShuffledNumbers = (size: GridSize): number[] => {
   const total = size * size;
   const arr = Array.from({ length: total }, (_, i) => i + 1);
@@ -51,11 +68,13 @@ const generateShuffledNumbers = (size: GridSize): number[] => {
   return arr;
 };
 
+// Định dạng thời gian mili-giây sang chuỗi giây có 2 chữ số thập phân (VD: 12.34s)
 const formatTime = (ms: number): string => {
   const totalSeconds = ms / 1000;
   return `${totalSeconds.toFixed(2)}s`;
 };
 
+// Key lưu kỷ lục thời gian tốt nhất vào localStorage theo từng kích thước và chế độ
 const getRecordKey = (size: GridSize, mode: OrderMode) =>
   `schulte_best_${size}x${size}_${mode}`;
 
@@ -64,9 +83,10 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
   onOpenChallenge,
   onOpenDifficultyChallenge,
 }) => {
-  const { language } = useLanguage();
+  const { language, tr } = useLanguage();
   const isVi = language === 'vi';
 
+  // --- State cấu hình & trạng thái bàn chơi Schulte ---
   const [gridSize, setGridSize] = useState<GridSize>(5);
   const [orderMode, setOrderMode] = useState<OrderMode>('asc');
   const [numbers, setNumbers] = useState<number[]>(() => generateShuffledNumbers(5));
@@ -80,13 +100,14 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
 
-  // Target Speaker & Mic Voice Input State
+  // --- State đọc số cần tìm (TTS) & nhận diện giọng nói (Microphone) ---
   const [isSpeakingTarget, setIsSpeakingTarget] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [voiceTranscript, setVoiceTranscript] = useState<string>('');
   const [voiceError, setVoiceError] = useState<string>('');
   const [lastMarkedByVoice, setLastMarkedByVoice] = useState<number | null>(null);
 
+  // Kỷ lục thời gian nhanh nhất đọc từ localStorage
   const [bestTimeMs, setBestTimeMs] = useState<number | null>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(getRecordKey(5, 'asc'));
@@ -95,6 +116,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
     return null;
   });
 
+  // Ref giữ timer và phiên SpeechRecognition để tránh stale closure trong callback
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
   const wrongTimeoutRef = useRef<number | null>(null);
@@ -133,6 +155,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
     [isVi]
   );
 
+  // Khởi tạo / trộn lại bảng Schulte mới và nạp lại kỷ lục theo kích thước & chiều đếm
   const resetBoard = useCallback(
     (targetSize: GridSize = gridSize, targetMode: OrderMode = orderMode) => {
       stopTimer();
@@ -181,6 +204,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
     };
   }, [stopTimer, stopListening]);
 
+  // Bắt đầu bộ đếm thời gian chính xác cao (cập nhật mỗi 30ms)
   const startTimer = useCallback(() => {
     stopTimer();
     const now = performance.now();
@@ -192,6 +216,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
     }, 30);
   }, [stopTimer]);
 
+  // Xử lý khi người dùng bấm chọn ô (hoặc trả lời qua giọng nói): kiểm tra đúng số tiếp theo, cập nhật kỷ lục khi xong
   const handleTileClick = useCallback(
     (num: number, fromVoice: boolean = false) => {
       if (status === 'completed') return;
@@ -280,6 +305,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
   const orderModeRef = useRef(orderMode);
   orderModeRef.current = orderMode;
 
+  // Bật Web Speech API lắng nghe liên tục để nhận số, tọa độ (A1..F6) hoặc lệnh ("đặt lại", "đánh dấu")
   const startListening = useCallback(async () => {
     setVoiceError('');
     setVoiceTranscript('');
@@ -290,9 +316,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
 
     if (!SpeechRecognition) {
       setVoiceError(
-        isVi
-          ? 'Trình duyệt chưa hỗ trợ Web Speech API. Vui lòng dùng Chrome hoặc Edge.'
-          : 'Browser does not support Web Speech API. Please use Chrome or Edge.'
+        tr("Trình duyệt chưa hỗ trợ Web Speech API. Vui lòng dùng Chrome hoặc Edge.")
       );
       return;
     }
@@ -304,9 +328,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
       }
     } catch {
       setVoiceError(
-        isVi
-          ? 'Chưa cấp quyền Micro. Vui lòng cho phép truy cập Micro trên trình duyệt.'
-          : 'Microphone permission denied. Please allow microphone access.'
+        tr("Chưa cấp quyền Micro. Vui lòng cho phép truy cập Micro trên trình duyệt.")
       );
       return;
     }
@@ -394,9 +416,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
           isListeningRef.current = false;
           setIsListening(false);
           setVoiceError(
-            isVi
-              ? 'Quyền Micro bị chặn. Vui lòng cấp quyền để trả lời bằng giọng nói.'
-              : 'Microphone blocked. Please allow access.'
+            tr("Quyền Micro bị chặn. Vui lòng cấp quyền để trả lời bằng giọng nói.")
           );
         }
       };
@@ -494,10 +514,22 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-sky-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <ArrowLeft className="w-4 h-4 text-sky-400" />
-          <span>{isVi ? 'Quay lại Brain Training' : 'Back to Brain Training'}</span>
+          <span>{tr("Quay lại")}</span>
         </button>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {isVisualGuideButtonVisible('SchulteTablePage') && (
+            <button
+              type="button"
+              onClick={() => downloadGuidePdf('Guide.pdf')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+              title={tr("Tải hướng dẫn định dạng PDF")}
+            >
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+              <span>{tr("Download PDF")}</span>
+            </button>
+          )}
+
           {isChallengeButtonVisible('SchulteTablePage') && onOpenChallenge && (
             <button
               type="button"
@@ -507,10 +539,10 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                 onOpenChallenge(gridSize);
               }}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
-              title={isVi ? 'Thử thách tốc độ Bảng Schulte' : 'Schulte Table Speed Challenge'}
+              title={tr("Thử thách tốc độ Bảng Schulte")}
             >
               <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950 text-slate-950" />
-              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+              <span>{tr("Thử thách")}</span>
             </button>
           )}
 
@@ -524,13 +556,11 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               }}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
               title={
-                isVi
-                  ? 'Thử thách cấp độ khó Bảng Schulte'
-                  : 'Schulte Table Difficulty Level Challenge'
+                tr("Thử thách cấp độ khó Bảng Schulte")
               }
             >
               <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-              <span>{isVi ? 'Thử thách' : 'Challenge'}</span>
+              <span>{tr("Thử thách")}</span>
             </button>
           )}
 
@@ -549,7 +579,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               <VolumeX className="w-3.5 h-3.5 text-slate-500" />
             )}
             <span className="font-semibold">
-              {isSoundOn ? (isVi ? 'Âm thanh: Bật' : 'Sound: ON') : isVi ? 'Âm thanh: Tắt' : 'Sound: OFF'}
+              {isSoundOn ? (tr("Âm thanh: Bật")) : tr("Âm thanh: Tắt")}
             </span>
           </button>
         </div>
@@ -567,12 +597,10 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             </div>
             <div>
               <h2 className="font-bold text-white text-base sm:text-xl flex items-center gap-2">
-                <span>{isVi ? 'Bảng Schulte — Luyện Tập Trung & Thị Giác (Siêu trí tuệ)' : 'Schulte Table-Focus&Peripheral Vision(Super Intelligence)'}</span>
+                <span>{tr("Bảng Schulte — Luyện Tập Trung & Thị Giác (Siêu trí tuệ)")}</span>
               </h2>
               <p className="text-[11px] sm:text-xs text-slate-400">
-                {isVi
-                  ? 'Nhìn vào tâm bảng và bấm hoặc dùng giọng nói đọc số tìm được'
-                  : 'Fixate on the center and tap or use Voice to answer found numbers'}
+                {tr("Nhìn vào tâm bảng và bấm hoặc dùng giọng nói đọc số tìm được")}
               </p>
             </div>
           </div>
@@ -627,7 +655,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               }`}
             >
               <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span>{isVi ? 'Tâm điểm' : 'Center Dot'}</span>
+              <span>{tr("Tâm điểm")}</span>
             </button>
 
             {/* Mark Found / No Mark Found Toggle */}
@@ -659,9 +687,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               type="button"
               onClick={toggleListening}
               title={
-                isVi
-                  ? 'Trả lời kết quả số tìm được bằng giọng nói'
-                  : 'Answer the found number by voice'
+                tr("Trả lời kết quả số tìm được bằng giọng nói")
               }
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 ${
                 isListening
@@ -672,12 +698,12 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               {isListening ? (
                 <>
                   <MicOff className="w-3.5 h-3.5 text-white" />
-                  <span>{isVi ? 'Đang nghe...' : 'Listening...'}</span>
+                  <span>{tr("Đang nghe...")}</span>
                 </>
               ) : (
                 <>
                   <Mic className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{isVi ? 'Trả lời ' : 'Voice'}</span>
+                  <span>{tr("Trả lời ")}</span>
                 </>
               )}
             </button>
@@ -687,7 +713,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
             className="sm:ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-semibold transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>{isVi ? 'Đặt lại' : 'Reset'}</span>
+            <span>{tr("Đặt lại")}</span>
           </button>
         </div>
 
@@ -698,7 +724,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                 <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
                   <Timer className="w-3 h-3 text-sky-400" />
-                  <span>{isVi ? 'Thời gian' : 'Time'}</span>
+                  <span>{tr("Thời gian")}</span>
                 </span>
                 <span className="text-base sm:text-2xl font-black text-sky-400 font-mono">
                   {formatTime(elapsedMs)}
@@ -706,13 +732,13 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               </div>
               <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                 <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
-                  {isVi ? 'Số cần tìm' : 'Target'}
+                  {tr("Số cần tìm")}
                 </span>
                 <span className="text-base sm:text-2xl font-black text-amber-400 font-mono">✓</span>
               </div>
               <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                 <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
-                  {isVi ? 'Tiến độ / Lỗi' : 'Progress / Err'}
+                  {tr("Tiến độ / Lỗi")}
                 </span>
                 <span className="text-base sm:text-2xl font-black font-mono">
                   <span className="text-emerald-400">{completedCount}</span>
@@ -723,7 +749,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                 <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
                   <Trophy className="w-3 h-3 text-yellow-400" />
-                  <span>{isVi ? 'Kỷ lục' : 'Best'}</span>
+                  <span>{tr("Kỷ lục")}</span>
                 </span>
                 <span className="text-base sm:text-2xl font-black text-yellow-400 font-mono">
                   {bestTimeMs !== null ? formatTime(bestTimeMs) : '--'}
@@ -739,13 +765,13 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
               {isNewRecord && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{isVi ? 'Kỷ lục cá nhân mới!' : 'New Personal Best!'}</span>
+                  <span>{tr("Kỷ lục cá nhân mới!")}</span>
                 </div>
               )}
 
               <div className="space-y-1.5">
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-                  {isVi ? 'Hoàn Thành Bảng Schulte!' : 'Schulte Table Completed!'}
+                  {tr("Hoàn Thành Bảng Schulte!")}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300">
                   {isVi
@@ -761,7 +787,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                   className="px-6 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-sky-500/25 active:scale-95 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>{isVi ? 'Chơi Lại' : 'Play Again'}</span>
+                  <span>{tr("Chơi Lại")}</span>
                 </button>
 
                 <button
@@ -773,7 +799,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                   }}
                   className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm border border-slate-700 active:scale-95 transition-all cursor-pointer"
                 >
-                  <span>{isVi ? 'Về Brain Training' : 'Brain Training'}</span>
+                  <span>{tr("Về Brain Training")}</span>
                 </button>
               </div>
             </div>
@@ -787,7 +813,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping shrink-0" />
                   <span className="truncate">
                     {voiceTranscript
-                      ? `${isVi ? 'Đang nghe:' : 'Heard:'} "${voiceTranscript}"`
+                      ? `${tr("Đang nghe:")} "${voiceTranscript}"`
                       : isVi
                       ? `🎙️ Đang nghe (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Đọc số tìm được hoặc tọa độ ("A1", "B3")`
                       : `🎙️ Listening (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Speak found number or coordinate ("A1", "B3")`}
@@ -819,7 +845,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                     onClick={startListening}
                     className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold shrink-0 cursor-pointer"
                   >
-                    {isVi ? 'Thử lại' : 'Retry'}
+                    {tr("Thử lại")}
                   </button>
                 </div>
               )}
@@ -829,7 +855,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                 <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                   <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
                     <Timer className="w-3 h-3 text-sky-400" />
-                    <span>{isVi ? 'Thời gian' : 'Time'}</span>
+                    <span>{tr("Thời gian")}</span>
                   </span>
                   <span className="text-base sm:text-2xl font-black text-sky-400 font-mono">
                     {formatTime(elapsedMs)}
@@ -838,7 +864,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
 
                 <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center relative">
                   <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
-                    {isVi ? 'Số cần tìm' : 'Target'}
+                    {tr("Số cần tìm")}
                   </span>
                   <div className="flex items-center justify-center gap-1.5">
                     <span className="text-base sm:text-2xl font-black text-amber-400 font-mono">
@@ -848,7 +874,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                       type="button"
                       onClick={() => speakTargetAloud(nextTarget)}
                       className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-400 hover:text-amber-300 transition-all cursor-pointer active:scale-90"
-                      title={isVi ? 'Đọc số cần tìm' : 'Speak target number'}
+                      title={tr("Đọc số cần tìm")}
                     >
                       <Volume2 className={`w-3.5 h-3.5 ${isSpeakingTarget ? 'animate-bounce' : ''}`} />
                     </button>
@@ -857,7 +883,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
 
                 <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                   <span className="text-[10px] sm:text-xs text-slate-400 font-semibold block">
-                    {isVi ? 'Tiến độ / Lỗi' : 'Progress / Err'}
+                    {tr("Tiến độ / Lỗi")}
                   </span>
                   <span className="text-base sm:text-2xl font-black font-mono">
                     <span className="text-emerald-400">{completedCount}</span>
@@ -869,7 +895,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                 <div className="p-2 sm:p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center">
                   <span className="text-[10px] sm:text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
                     <Trophy className="w-3 h-3 text-yellow-400" />
-                    <span>{isVi ? 'Kỷ lục' : 'Best'}</span>
+                    <span>{tr("Kỷ lục")}</span>
                   </span>
                   <span className="text-base sm:text-2xl font-black text-yellow-400 font-mono">
                     {bestTimeMs !== null ? formatTime(bestTimeMs) : '--'}
@@ -946,9 +972,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                     <>
                       <MicOff className="w-4 h-4 text-white shrink-0" />
                       <span className="truncate">
-                        {isVi
-                          ? 'Đang nghe giọng nói... (Bấm để dừng)'
-                          : 'Listening Voice... (Click to stop)'}
+                        {tr("Đang nghe giọng nói... (Bấm để dừng)")}
                       </span>
                     </>
                   ) : (
@@ -966,7 +990,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
                 <button
                   type="button"
                   onClick={() => resetBoard()}
-                  title={isVi ? 'Đặt lại' : 'Reset'}
+                  title={tr("Đặt lại")}
                   className="w-12 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
                 >
                   <RotateCcw className="w-4 h-4" />

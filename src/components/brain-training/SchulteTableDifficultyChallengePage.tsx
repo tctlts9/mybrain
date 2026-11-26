@@ -1,3 +1,19 @@
+/**
+ * ============================================================================
+ * FILE: SchulteTableDifficultyChallengePage.tsx — THỬ THÁCH CẤP ĐỘ KHÓ BẢNG SCHULTE
+ * ============================================================================
+ * Công việc của file:
+ * 1. Hỗ trợ 3 cấp độ khó chuyên sâu của Bảng Schulte:
+ *    - 'hard' (Khó): Chữ 4 màu ngẫu nhiên + tọa độ góc gây nhiễu trên từng ô.
+ *    - 'pro' (Rất Khó): Ô có màu nền phải trả lời MÀU (Xanh/Vàng/Tím), ô không nền trả lời SỐ.
+ *    - 'pro-plus' (Siêu Khó): 3 vòng tròn đồng tâm tự quay (2 xuôi chiều, 1 ngược chiều).
+ *      + Phase 'observing': Người chơi quan sát và ghi nhớ số trên từng vòng trong timeLimit giây.
+ *      + Phase 'answering': Nhập hoặc chọn nhanh (hoặc đọc giọng nói) các số thuộc từng vòng trong answerTimeLimit giây.
+ *      + Phase 'result': Chấm điểm chi tiết số đúng / sai / bỏ sót của cả 3 vòng.
+ * 2. Hỗ trợ Web Speech API nhận diện số, tọa độ (A1..F6) và màu sắc (ở chế độ Pro).
+ * 3. Hỗ trợ tùy chỉnh dãy số nguồn (From..To) cho chế độ Siêu Khó Pro(+).
+ * ============================================================================
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowLeft,
@@ -20,12 +36,12 @@ import {
   Grid3x3,
   Eye,
   Send,
+  Clock,
 } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
-import { playSpeakerChime } from '../../utils/speechUtils';
-import { parseSchulteVoiceActions, SchulteColorAnswer } from '../../utils/schulteVoice';
+import { useLanguage } from '../../context/Translations';
+import { playSpeakerChime } from '../../utils/MentalMathVoice';
+import { parseSchulteVoiceActions, SchulteColorAnswer } from '../../utils/BrainTrainingVoice';
 import type { SchulteGridSize } from './SchulteTableChallengePage';
-import { DifficultyTimerInputs } from '../mental-math/DifficultyTimerInputs';
 
 type OrderMode = 'asc' | 'desc';
 type TimeLimit = number;
@@ -67,6 +83,7 @@ interface ProPlusResult {
   timedOut: boolean;
 }
 
+// Danh sách cấu hình 3 cấp độ khó và mô tả hiển thị trên thanh chọn
 const TOTAL_ROUNDS = 3;
 const GRID_SIZES: SchulteGridSize[] = [3, 4, 5, 6];
 const DIFFICULTY_LEVELS: {
@@ -161,6 +178,7 @@ const PRO_PLUS_HEX_COLORS = [
   '#3b82f6',
 ] as const;
 
+// Cấu hình số lượng ô và bán kính / tốc độ xoay cho 3 vòng tròn đồng tâm ở chế độ Pro(+)
 const PRO_PLUS_RING_COUNTS: Record<SchulteGridSize, [number, number, number]> = {
   3: [2, 3, 4],
   4: [3, 5, 8],
@@ -201,6 +219,7 @@ const PRO_PLUS_RINGS = [
   },
 ] as const;
 
+// Hàm hình học vẽ cung tròn SVG cho từng lát cắt trên 3 vòng Pro(+)
 const polarToCartesian = (cx: number, cy: number, r: number, angleDeg: number) => {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
   return {
@@ -241,6 +260,7 @@ const describeAnnularSector = (
   ].join(' ');
 };
 
+// Chia mảng số ngẫu nhiên thành 3 tập đáp án cho Vòng trong / Vòng giữa / Vòng ngoài
 const getProPlusRingTargets = (
   nums: number[],
   size: SchulteGridSize
@@ -253,6 +273,7 @@ const getProPlusRingTargets = (
   ];
 };
 
+// Tách chuỗi số người dùng nhập (loại bỏ trùng lặp) thành danh sách số hợp lệ
 const parseRingNumbersInput = (raw: string): number[] => {
   const matches = raw.match(/\d+/g);
   if (!matches) return [];
@@ -309,7 +330,7 @@ const generateRandomBgMask = (total: number): boolean[] => {
 export const SchulteTableDifficultyChallengePage: React.FC<
   SchulteTableDifficultyChallengePageProps
 > = ({ onBack, initialGridSize = 5 }) => {
-  const { language } = useLanguage();
+  const { language, tr } = useLanguage();
   const isVi = language === 'vi';
 
   // Challenge Config
@@ -318,6 +339,22 @@ export const SchulteTableDifficultyChallengePage: React.FC<
   const [orderMode, setOrderMode] = useState<OrderMode>('desc');
   const [timeLimit, setTimeLimit] = useState<TimeLimit>(30);
   const [answerTimeLimit, setAnswerTimeLimit] = useState<AnswerTimeLimit>(30);
+  const [limitDraft, setLimitDraft] = useState<string>('30');
+  const [answerDraft, setAnswerDraft] = useState<string>('30');
+  const isEditingLimitRef = useRef<boolean>(false);
+  const isEditingAnswerRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!isEditingLimitRef.current) {
+      setLimitDraft(String(timeLimit));
+    }
+  }, [timeLimit]);
+
+  useEffect(() => {
+    if (!isEditingAnswerRef.current) {
+      setAnswerDraft(String(answerTimeLimit));
+    }
+  }, [answerTimeLimit]);
   const [showCenterDot, setShowCenterDot] = useState<boolean>(true);
   const [showCoordinates, setShowCoordinates] = useState<boolean>(true);
   const [highlightFound, setHighlightFound] = useState<boolean>(false);
@@ -562,6 +599,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     []
   );
 
+  // Chấm điểm kết quả chế độ Siêu Khó Pro(+): so khớp các số người chơi ghi nhớ trên 3 vòng
   const submitProPlusAnswers = useCallback((timedOut: boolean = false) => {
     if (countdownRef.current !== null) {
       window.clearInterval(countdownRef.current);
@@ -782,6 +820,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     ]
   );
 
+  // Xử lý bấm chọn số (cấp Hard / Pro): nếu ở Pro và ô có màu nền thì bắt buộc trả lời bằng nút/giọng nói MÀU
   const handleTileClick = useCallback(
     (num: number, fromVoice: boolean = false) => {
       if (status !== 'running') return;
@@ -838,6 +877,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
     ]
   );
 
+  // Xử lý trả lời MÀU ở chế độ Pro (chỉ hợp lệ khi số mục tiêu hiện tại có nền màu)
   const handleColorAnswer = useCallback(
     (color: SchulteColorAnswer, fromVoice: boolean = false) => {
       if (status !== 'running' || difficulty !== 'pro') return;
@@ -910,9 +950,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
 
     if (!SpeechRecognition) {
       setVoiceError(
-        isVi
-          ? 'Trình duyệt chưa hỗ trợ Web Speech API. Vui lòng dùng Chrome hoặc Edge.'
-          : 'Browser does not support Web Speech API. Please use Chrome or Edge.'
+        tr("Trình duyệt chưa hỗ trợ Web Speech API. Vui lòng dùng Chrome hoặc Edge.")
       );
       return;
     }
@@ -924,9 +962,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
       }
     } catch {
       setVoiceError(
-        isVi
-          ? 'Chưa cấp quyền Micro. Vui lòng cho phép truy cập Micro trên trình duyệt.'
-          : 'Microphone permission denied. Please allow microphone access.'
+        tr("Chưa cấp quyền Micro. Vui lòng cho phép truy cập Micro trên trình duyệt.")
       );
       return;
     }
@@ -1070,9 +1106,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           isListeningRef.current = false;
           setIsListening(false);
           setVoiceError(
-            isVi
-              ? 'Quyền Micro bị chặn. Vui lòng cấp quyền để trả lời bằng giọng nói.'
-              : 'Microphone blocked. Please allow access.'
+            tr("Quyền Micro bị chặn. Vui lòng cấp quyền để trả lời bằng giọng nói.")
           );
         }
       };
@@ -1450,7 +1484,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-violet-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <ArrowLeft className="w-4 h-4 text-violet-400" />
-          <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Practice'}</span>
+          <span>{tr("Quay lại Luyện tập")}</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -1469,16 +1503,16 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               <VolumeX className="w-3.5 h-3.5 text-slate-500" />
             )}
             <span className="font-semibold">
-              {isSoundOn ? (isVi ? 'Âm thanh: Bật' : 'Sound: ON') : isVi ? 'Âm thanh: Tắt' : 'Sound: OFF'}
+              {isSoundOn ? (tr("Âm thanh: Bật")) : tr("Âm thanh: Tắt")}
             </span>
           </button>
 
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
-            <span>{isVi ? 'Bảng Schulte' : 'Schulte Table'}</span>
+            <span>{tr("Bảng Schulte")}</span>
             <span className="text-slate-600">/</span>
             <span className="text-violet-400 font-semibold flex items-center gap-1">
               <Gauge className="w-3.5 h-3.5 text-violet-400" />
-              <span>{isVi ? 'Thử Thách Cấp Độ Khó' : 'Difficulty Level Challenge'}</span>
+              <span>{tr("Thử Thách Cấp Độ Khó [Schulte]")}</span>
             </span>
           </div>
         </div>
@@ -1496,7 +1530,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             </div>
             <div>
               <h2 className="font-bold text-white text-base sm:text-lg">
-                {isVi ? 'Thử Thách Cấp Độ Khó — Bảng Schulte' : 'Schulte Table — Difficulty Level Challenge'}
+                {tr("Thử Thách Cấp Độ Khó — Bảng Schulte")}
               </h2>
               <p className="text-[11px] text-slate-400">
                 {difficulty === 'pro-plus'
@@ -1511,19 +1545,113 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           </div>
 
           {/* Time Limit & Answer Time Textbox Inputs */}
-          <DifficultyTimerInputs
-            timeLimit={timeLimit}
-            answerTimeLimit={answerTimeLimit}
-            disabled={status === 'running'}
-            isVi={isVi}
-            clockIconClassName="text-violet-400"
-            limitFocusClassName="focus:border-violet-400"
-            showAnswer={difficulty === 'pro-plus'}
-            limitLabelVi="Giới hạn:"
-            limitLabelEn="Limit:"
-            onChangeTimeLimit={(sec) => handleSelectTimeLimit(sec)}
-            onChangeAnswerTimeLimit={(sec) => handleSelectAnswerTimeLimit(sec)}
-          />
+          <div className="flex flex-col items-start sm:items-end gap-1.5 max-w-full">
+            {/* Limit / Thời gian quan sát */}
+            <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-xl border border-slate-800 max-w-full">
+              <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 whitespace-nowrap">
+                <Clock className="w-3.5 h-3.5 text-violet-400" />
+                <span>{tr("Giới hạn:")}</span>
+              </span>
+              <div className="flex items-center gap-1">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={3}
+                  disabled={status === 'running'}
+                  value={limitDraft}
+                  onFocus={(e) => {
+                    isEditingLimitRef.current = true;
+                    e.currentTarget.select();
+                  }}
+                  onMouseUp={(e) => e.preventDefault()}
+                  onClick={(e) => e.currentTarget.select()}
+                  onChange={(e) => {
+                    const cleaned = e.target.value.replace(/[^\d]/g, '').slice(0, 3);
+                    setLimitDraft(cleaned);
+                    if (cleaned.length > 0) {
+                      const parsed = parseInt(cleaned, 10);
+                      if (!Number.isNaN(parsed) && parsed >= 1) {
+                        handleSelectTimeLimit(Math.min(999, Math.max(1, Math.round(parsed))));
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    isEditingLimitRef.current = false;
+                    const parsed = parseInt(limitDraft, 10);
+                    const resolved =
+                      Number.isNaN(parsed) || parsed < 1
+                        ? Math.min(999, Math.max(1, timeLimit >= 1 ? Math.round(timeLimit) : 30))
+                        : Math.min(999, Math.max(1, Math.round(parsed)));
+                    setLimitDraft(String(resolved));
+                    handleSelectTimeLimit(resolved);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  aria-label={tr("Thời gian giới hạn (giây)")}
+                  title={tr("Nhập số giây giới hạn (giây)")}
+                  className="w-14 px-2 py-0.5 rounded-lg bg-slate-900/90 border border-slate-700/80 focus:border-violet-400 focus:outline-none text-center text-xs font-bold text-white tabular-nums selection:bg-yellow-400 selection:text-slate-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <span className="text-[11px] font-bold text-slate-400">s</span>
+              </div>
+            </div>
+
+            {/* Answer / Thời gian trả lời */}
+            {difficulty === 'pro-plus' && (
+              <div className="flex items-center gap-1.5 bg-slate-950/80 px-2.5 py-1 rounded-xl border border-cyan-500/30 max-w-full">
+                <span className="text-[11px] font-semibold text-cyan-300 flex items-center gap-1 whitespace-nowrap">
+                  <Timer className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{tr("Trả lời:")}</span>
+                </span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    disabled={status === 'running'}
+                    value={answerDraft}
+                    onFocus={(e) => {
+                      isEditingAnswerRef.current = true;
+                      e.currentTarget.select();
+                    }}
+                    onMouseUp={(e) => e.preventDefault()}
+                    onClick={(e) => e.currentTarget.select()}
+                    onChange={(e) => {
+                      const cleaned = e.target.value.replace(/[^\d]/g, '').slice(0, 3);
+                      setAnswerDraft(cleaned);
+                      if (cleaned.length > 0) {
+                        const parsed = parseInt(cleaned, 10);
+                        if (!Number.isNaN(parsed) && parsed >= 1) {
+                          handleSelectAnswerTimeLimit(Math.min(999, Math.max(1, Math.round(parsed))));
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      isEditingAnswerRef.current = false;
+                      const parsed = parseInt(answerDraft, 10);
+                      const resolved =
+                        Number.isNaN(parsed) || parsed < 1
+                          ? Math.min(999, Math.max(1, answerTimeLimit >= 1 ? Math.round(answerTimeLimit) : 30))
+                          : Math.min(999, Math.max(1, Math.round(parsed)));
+                      setAnswerDraft(String(resolved));
+                      handleSelectAnswerTimeLimit(resolved);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    aria-label={tr("Thời gian trả lời (giây)")}
+                    title={tr("Nhập số giây trả lời (mặc định 10s)")}
+                    className="w-14 px-2 py-0.5 rounded-lg bg-slate-900/90 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-center text-xs font-bold text-cyan-200 tabular-nums selection:bg-cyan-400 selection:text-slate-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <span className="text-[11px] font-bold text-cyan-300/80">s</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Grid Size & Options Row */}
@@ -1553,7 +1681,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   htmlFor="pro-plus-range-from"
                   className="text-[11px] font-semibold text-cyan-300 whitespace-nowrap select-none"
                 >
-                  {isVi ? 'Từ số' : 'From'}
+                  {tr("Từ số")}
                 </label>
                 <input
                   id="pro-plus-range-from"
@@ -1587,7 +1715,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   htmlFor="pro-plus-range-to"
                   className="text-[11px] font-semibold text-cyan-300 whitespace-nowrap select-none"
                 >
-                  {isVi ? 'Đến số' : 'To'}
+                  {tr("Đến số")}
                 </label>
                 <input
                   id="pro-plus-range-to"
@@ -1647,7 +1775,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               }`}
             >
               <Target className="w-3.5 h-3.5 text-sky-400" />
-              <span>{isVi ? 'Tâm điểm' : 'Center Dot'}</span>
+              <span>{tr("Tâm điểm")}</span>
             </button>
 
             {/* Coordinates Toggle */}
@@ -1661,7 +1789,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               }`}
             >
               <Grid3x3 className="w-3.5 h-3.5 text-violet-400" />
-              <span>{isVi ? 'Tọa độ' : 'Coordinates'}</span>
+              <span>{tr("Tọa độ")}</span>
             </button>
 
             {/* Mark Found / No Mark Found Toggle (hidden in Pro+ recall mode) */}
@@ -1705,18 +1833,18 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               ) : (
                 <Mic className="w-3.5 h-3.5 text-amber-400" />
               )}
-              <span>{isListening ? (isVi ? 'Đang nghe' : 'Listening') : isVi ? 'Trả lời' : 'Voice'}</span>
+              <span>{isListening ? (tr("Đang nghe")) : tr("Trả lời [Giọng nói]")}</span>
             </button>
 
             {/* Start Challenge Button */}
             <button
               type="button"
               onClick={() => startChallengeSession()}
-              title={isVi ? 'Bắt đầu câu hỏi thử thách' : 'Start challenge question'}
+              title={tr("Bắt đầu câu hỏi thử thách")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
             >
               <Play className="w-3.5 h-3.5 fill-white" />
-              <span>{isVi ? 'Bắt đầu' : 'Start'}</span>
+              <span>{tr("Bắt đầu")}</span>
             </button>
           <button
             type="button"
@@ -1724,7 +1852,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
             className="sm:ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white font-semibold transition-all cursor-pointer active:scale-95"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>{isVi ? 'Đặt lại' : 'Reset'}</span>
+            <span>{tr("Đặt lại")}</span>
           </button>
         </div>
 
@@ -1738,7 +1866,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   ? `🎙️ Giọng nói sẵn sàng (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Bấm Bắt đầu rồi đọc số hoặc tọa độ`
                   : `🎙️ Voice ready (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Press Start then speak number or coordinate`
                 : voiceTranscript
-                ? `${isVi ? 'Đang nghe:' : 'Heard:'} "${voiceTranscript}"`
+                ? `${tr("Đang nghe:")} "${voiceTranscript}"`
                 : isVi
                 ? `🎙️ Đang nghe (${highlightFound ? 'Đánh dấu đã tìm' : 'Không đánh dấu'}): Đọc số tìm được hoặc tọa độ (VD: "A1", "B3")`
                 : `🎙️ Listening (${highlightFound ? 'Mark Found' : 'No Mark Found'}): Speak found number or coordinate (e.g. "A1", "B3")`}
@@ -1765,7 +1893,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
           <div className="p-2 rounded-xl bg-violet-500/15 border border-violet-500/40 flex items-center justify-center gap-2 text-xs font-bold text-violet-300 animate-in fade-in duration-150 relative z-10">
             <RotateCcw className="w-3.5 h-3.5 text-violet-400 animate-spin" />
             <span>
-              {isVi ? 'Bảng vừa được xáo trộn lại!' : 'Board reshuffled!'}
+              {tr("Bảng vừa được xáo trộn lại!")}
             </span>
           </div>
         )}
@@ -1779,7 +1907,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
               onClick={startListening}
               className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold shrink-0 cursor-pointer"
             >
-              {isVi ? 'Thử lại' : 'Retry'}
+              {tr("Thử lại")}
             </button>
           </div>
         )}
@@ -1793,7 +1921,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
 
             <div className="space-y-1">
               <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-                {isVi ? 'Hoàn Thành Thử Thách Cấp Độ Khó!' : 'Difficulty Challenge Completed!'}
+                {tr("Hoàn Thành Thử Thách Cấp Độ Khó!")}
               </h3>
               <p className="text-xs sm:text-sm text-slate-300">
                 {isVi
@@ -1837,7 +1965,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 className="px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-violet-500/25 active:scale-95 transition-all cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>{isVi ? 'Thử Thách Lại' : 'Try Again'}</span>
+                <span>{tr("Thử Thách Lại")}</span>
               </button>
 
               <button
@@ -1849,7 +1977,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 }}
                 className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm border border-slate-700 active:scale-95 transition-all cursor-pointer"
               >
-                <span>{isVi ? 'Về Luyện Tập' : 'Practice Page'}</span>
+                <span>{tr("Về Luyện Tập")}</span>
               </button>
             </div>
           </div>
@@ -1863,7 +1991,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 <div className="flex flex-wrap items-center gap-1 bg-slate-950/85 p-1 rounded-xl border border-slate-800 max-w-full">
                   <span className="text-[11px] font-semibold text-slate-400 px-1.5 flex items-center gap-1">
                     <Zap className="w-3 h-3 text-violet-400" />
-                    <span>{isVi ? 'Cấp độ:' : 'Difficulty:'}</span>
+                    <span>{tr("Cấp độ:")}</span>
                   </span>
                   {DIFFICULTY_LEVELS.map((lvl) => (
                     <button
@@ -1889,7 +2017,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 {difficulty !== 'pro-plus' && (
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800/90 shrink-0">
                     <span className="text-xs text-slate-400 font-semibold">
-                      {isVi ? 'Hoàn thành:' : 'Passed:'}
+                      {tr("Hoàn thành:")}
                     </span>
                     <span className="text-sm sm:text-base font-black text-emerald-400 font-mono">
                       {passedCount}/{TOTAL_ROUNDS}
@@ -1910,13 +2038,9 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                             ? `Quan sát ${timeLimit}s → Trả lời ${answerTimeLimit}s`
                             : `Observe ${timeLimit}s → Answer ${answerTimeLimit}s`
                           : proPlusPhase === 'observing'
-                          ? isVi
-                            ? 'Đang quay — Hãy ghi nhớ 3 vòng!'
-                            : 'Spinning — Memorize all 3 rings!'
+                          ? tr("Đang quay — Hãy ghi nhớ 3 vòng!")
                           : proPlusPhase === 'answering'
-                          ? isVi
-                            ? 'Nhập các số vào Vòng 1, 2, 3!'
-                            : 'Enter numbers for Rings 1, 2, 3!'
+                          ? tr("Nhập các số vào Vòng 1, 2, 3!")
                           : isVi
                           ? `Kết quả: ${proPlusResult?.totalCorrect ?? 0}/${totalNumbers} số đúng`
                           : `Score: ${proPlusResult?.totalCorrect ?? 0}/${totalNumbers} correct`}
@@ -1930,7 +2054,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                           onClick={() => beginProPlusAnswering(answerTimeLimit)}
                           className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
                         >
-                          {isVi ? 'Trả lời ngay' : 'Answer Now'}
+                          {tr("Trả lời ngay")}
                         </button>
                       )}
                       <div
@@ -1946,9 +2070,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   <div className="p-3 rounded-2xl bg-slate-950/85 border border-slate-800/90 space-y-2.5">
                     <div className="flex items-center justify-between text-[11px] text-slate-400">
                       <span className="font-semibold text-slate-300">
-                        {isVi
-                          ? 'Bấm vào Vòng 1, 2, 3 để chọn nhanh hoặc nhập số'
-                          : 'Click Ring 1, 2, 3 to quick-pick or type numbers'}
+                        {tr("Bấm vào Vòng 1, 2, 3 để chọn nhanh hoặc nhập số")}
                       </span>
                     </div>
 
@@ -2001,8 +2123,8 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                             </label>
                             <span className="font-mono text-[11px] text-slate-400">
                               {ringEval
-                                ? `${ringEval.correct.length}/${ringCount} ${isVi ? 'đúng' : 'correct'}`
-                                : `${parsedCount}/${ringCount} ${isVi ? 'số' : 'nums'}`}
+                                ? `${ringEval.correct.length}/${ringCount} ${tr("đúng")}`
+                                : `${parsedCount}/${ringCount} ${tr("số [Số nhiều]")}`}
                             </span>
                           </div>
 
@@ -2142,7 +2264,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                                         }}
                                         className="text-sky-300 hover:text-sky-200 font-semibold cursor-pointer"
                                       >
-                                        {isVi ? 'Chọn lại' : 'Reset'}
+                                        {tr("Chọn lại")}
                                       </button>
                                     ) : (
                                       parsedCount > 0 && (
@@ -2161,7 +2283,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                                           }}
                                           className="text-rose-300 hover:text-rose-200 font-semibold cursor-pointer"
                                         >
-                                          {isVi ? 'Xóa' : 'Clear'}
+                                          {tr("Xóa")}
                                         </button>
                                       )
                                     )}
@@ -2260,7 +2382,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                   <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-2xl bg-slate-950/85 border border-violet-500/30">
                     <div className="flex items-center gap-2 text-xs sm:text-sm">
                       <span className="text-slate-400 font-semibold">
-                        {isVi ? 'Số cần tìm:' : 'Target:'}
+                        {tr("Số cần tìm:")}
                       </span>
                       <span className="text-base sm:text-lg font-black text-violet-400 font-mono">
                         {roundOutcome === 'passed' ? '✓' : nextTarget}
@@ -2681,21 +2803,21 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                       onClick={() => handleColorAnswer('green', false)}
                       className="flex-1 min-h-[56px] rounded-2xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center"
                     >
-                      {isVi ? 'Xanh' : 'Green'}
+                      {tr("Xanh")}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleColorAnswer('yellow', false)}
                       className="flex-1 min-h-[56px] rounded-2xl bg-amber-500 hover:bg-amber-400 border border-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center"
                     >
-                      {isVi ? 'Vàng' : 'Yellow'}
+                      {tr("Vàng")}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleColorAnswer('purple', false)}
                       className="flex-1 min-h-[56px] rounded-2xl bg-violet-600 hover:bg-violet-500 border border-violet-400 text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shadow-md flex items-center justify-center"
                     >
-                      {isVi ? 'Tím' : 'Purple'}
+                      {tr("Tím")}
                     </button>
                   </div>
                 )}
@@ -2713,7 +2835,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                       className="w-full h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-95 text-xs sm:text-sm"
                     >
                       <Send className="w-4 h-4" />
-                      <span>{isVi ? 'Nộp bài & Kiểm tra' : 'Submit & Check'}</span>
+                      <span>{tr("Nộp bài & Kiểm tra")}</span>
                     </button>
                   )}
 
@@ -2745,7 +2867,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                         className="w-full h-12 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-95 text-xs sm:text-sm"
                       >
                         <RotateCcw className="w-4 h-4" />
-                        <span>{isVi ? 'Chơi lại' : 'Try Again'}</span>
+                        <span>{tr("Chơi lại")}</span>
                       </button>
                     </div>
                   )}
@@ -2754,9 +2876,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                 <>
                   {difficulty === 'pro' && status === 'running' && (
                     <div className="md:hidden px-3 py-2 rounded-xl bg-slate-950/85 border border-violet-500/30 text-[11px] font-semibold text-slate-300 text-center">
-                      {isVi
-                        ? 'Có màu nền → Chọn MÀU bên cạnh bảng • Không nền → Bấm hoặc nói SỐ'
-                        : 'Colored bg → Tap COLOR beside grid • No bg → Tap or speak NUMBER'}
+                      {tr("Có màu nền → Chọn MÀU bên cạnh bảng • Không nền → Bấm hoặc nói SỐ")}
                     </div>
                   )}
 
@@ -2775,9 +2895,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                         <>
                           <MicOff className="w-4 h-4 text-white shrink-0" />
                           <span className="truncate">
-                            {isVi
-                              ? 'Đang nghe giọng nói... (Bấm để dừng)'
-                              : 'Listening Voice... (Click to stop)'}
+                            {tr("Đang nghe giọng nói... (Bấm để dừng)")}
                           </span>
                         </>
                       ) : (
@@ -2823,9 +2941,7 @@ export const SchulteTableDifficultyChallengePage: React.FC<
                       >
                         <span>
                           {currentRound >= TOTAL_ROUNDS
-                            ? isVi
-                              ? 'Xem Tổng Kết'
-                              : 'View Results'
+                            ? tr("Xem Tổng Kết")
                             : isVi
                             ? `Vòng tiếp theo (${currentRound + 1}/${TOTAL_ROUNDS})`
                             : `Next Round (${currentRound + 1}/${TOTAL_ROUNDS})`}

@@ -10,7 +10,7 @@ import {
   Check,
 } from 'lucide-react';
 import { TabType } from '../../types/tab';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/Translations';
 import {
   ALL_CARDS_META,
   CardVisibilityId,
@@ -34,7 +34,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
   onClose,
   initialTab = 'mental-math',
 }) => {
-  const { language } = useLanguage();
+  const { language, tr } = useLanguage();
   const isVi = language === 'vi';
   const { visibility } = useCardVisibility();
 
@@ -110,7 +110,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
       ) : (
         <EyeOff className="w-3.5 h-3.5 text-slate-500 shrink-0" />
       )}
-      <span>{isOn ? (isVi ? 'Đang hiện' : 'Shown') : isVi ? 'Đang ẩn' : 'Hidden'}</span>
+      <span>{isOn ? (tr("Đang hiện")) : tr("Đang ẩn")}</span>
     </button>
   );
 
@@ -137,12 +137,10 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                 id="card-visibility-modal-title"
                 className="text-base sm:text-lg font-extrabold text-white tracking-tight"
               >
-                {isVi ? 'Ẩn / Hiện Card theo Tab' : 'Show / Hide Cards by Tab'}
+                {tr("Ẩn / Hiện Card theo Tab")}
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                {isVi
-                  ? 'Chỉnh chi tiết từng card (bao gồm card con) hoặc bật/tắt hàng loạt theo Tab.'
-                  : 'Configure individual cards (including sub-cards) or bulk toggle per Tab.'}
+                {tr("Chỉnh chi tiết từng card (bao gồm card con) hoặc bật/tắt hàng loạt theo Tab.")}
               </p>
             </div>
           </div>
@@ -150,7 +148,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label={isVi ? 'Đóng' : 'Close'}
+            aria-label={tr("Đóng")}
             className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" />
@@ -170,7 +168,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                   : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
               }`}
             >
-              <span>{isVi ? 'Tất cả Tab' : 'All Tabs'}</span>
+              <span>{tr("Tất cả Tab")}</span>
               <span
                 className={`font-mono text-[11px] tabular-nums ${
                   selectedTab === 'all' ? 'text-slate-800' : 'text-slate-400'
@@ -210,11 +208,11 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
           {/* Bulk Controls ("Tất cả card") */}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <span className="text-xs text-slate-400 font-medium tabular-nums">
-              {isVi ? 'Đang hiện:' : 'Visible:'}{' '}
+              {tr("Đang hiện:")}{' '}
               <strong className="text-white font-mono">
                 {activeScopeStats.visibleCount}/{activeScopeStats.totalCount}
               </strong>{' '}
-              {isVi ? 'card' : 'cards'}
+              {tr("card")}
             </span>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -226,12 +224,8 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                 <Eye className="w-3.5 h-3.5" />
                 <span>
                   {selectedTab === 'all'
-                    ? isVi
-                      ? 'Hiện tất cả Card'
-                      : 'Show All Cards'
-                    : isVi
-                    ? 'Hiện tất cả Tab này'
-                    : 'Show All in Tab'}
+                    ? tr("Hiện tất cả Card")
+                    : tr("Hiện tất cả Tab này")}
                 </span>
               </button>
 
@@ -243,12 +237,8 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                 <EyeOff className="w-3.5 h-3.5" />
                 <span>
                   {selectedTab === 'all'
-                    ? isVi
-                      ? 'Ẩn tất cả Card'
-                      : 'Hide All Cards'
-                    : isVi
-                    ? 'Ẩn tất cả Tab này'
-                    : 'Hide All in Tab'}
+                    ? tr("Ẩn tất cả Card")
+                    : tr("Ẩn tất cả Tab này")}
                 </span>
               </button>
 
@@ -264,7 +254,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>{isVi ? 'Mặc định' : 'Reset'}</span>
+                <span>{tr("Mặc định")}</span>
               </button>
             </div>
           </div>
@@ -300,14 +290,14 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                         onClick={() => setTabCardsVisibility(tabMeta.id, true, true)}
                         className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-medium text-emerald-300 cursor-pointer whitespace-nowrap"
                       >
-                        {isVi ? 'Hiện hết' : 'Show all'}
+                        {tr("Hiện hết")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setTabCardsVisibility(tabMeta.id, false, true)}
                         className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-medium text-rose-300 cursor-pointer whitespace-nowrap"
                       >
-                        {isVi ? 'Ẩn hết' : 'Hide all'}
+                        {tr("Ẩn hết")}
                       </button>
                     </div>
                   )}
@@ -342,12 +332,8 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                                 onClick={() => toggleParentExpand(card.id)}
                                 aria-label={
                                   isExpanded
-                                    ? isVi
-                                      ? 'Thu gọn card con'
-                                      : 'Collapse sub-cards'
-                                    : isVi
-                                    ? 'Mở rộng card con'
-                                    : 'Expand sub-cards'
+                                    ? tr("Thu gọn card con")
+                                    : tr("Mở rộng card con")
                                 }
                                 className="p-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white cursor-pointer shrink-0"
                               >
@@ -371,7 +357,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                                 {hasChildren && (
                                   <span className="text-[11px] font-mono text-slate-400 tabular-nums">
                                     ({visibleChildCount}/{childCards.length}{' '}
-                                    {isVi ? 'con' : 'sub'})
+                                    {tr("con")})
                                   </span>
                                 )}
                               </div>
@@ -396,12 +382,8 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                             <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 pb-1">
                               <span>
                                 {!isCardOn
-                                  ? isVi
-                                    ? 'Lưu ý: Card cha đang ẩn nên các card con cũng không hiển thị ở màn hình chính.'
-                                    : 'Note: Parent card is hidden, so sub-cards are hidden from the main screen.'
-                                  : isVi
-                                  ? 'Tùy chỉnh chi tiết từng card con:'
-                                  : 'Customize individual sub-cards:'}
+                                  ? tr("Lưu ý: Card cha đang ẩn nên các card con cũng không hiển thị ở màn hình chính.")
+                                  : tr("Tùy chỉnh chi tiết từng card con:")}
                               </span>
                               <div className="flex items-center gap-2 shrink-0">
                                 <button
@@ -409,7 +391,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                                   onClick={() => setChildCardsVisibility(card.id, true)}
                                   className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer whitespace-nowrap"
                                 >
-                                  {isVi ? 'Hiện con' : 'Show sub'}
+                                  {tr("Hiện con")}
                                 </button>
                                 <span className="text-slate-700">/</span>
                                 <button
@@ -417,7 +399,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
                                   onClick={() => setChildCardsVisibility(card.id, false)}
                                   className="text-rose-400 hover:text-rose-300 font-semibold cursor-pointer whitespace-nowrap"
                                 >
-                                  {isVi ? 'Ẩn con' : 'Hide sub'}
+                                  {tr("Ẩn con")}
                                 </button>
                               </div>
                             </div>
@@ -468,9 +450,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
         {/* Footer */}
         <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 border-t border-slate-800/90 bg-slate-900/50">
           <span className="text-[11px] sm:text-xs text-slate-400">
-            {isVi
-              ? 'Thay đổi được tự động lưu và áp dụng ngay lập tức.'
-              : 'Changes are saved and applied immediately.'}
+            {tr("Thay đổi được tự động lưu và áp dụng ngay lập tức.")}
           </span>
 
           <button
@@ -479,7 +459,7 @@ export const CardVisibilityModal: React.FC<CardVisibilityModalProps> = ({
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs sm:text-sm transition-all cursor-pointer active:scale-95 shrink-0"
           >
             <Check className="w-4 h-4" />
-            <span>{isVi ? 'Xong' : 'Done'}</span>
+            <span>{tr("Xong")}</span>
           </button>
         </div>
       </div>

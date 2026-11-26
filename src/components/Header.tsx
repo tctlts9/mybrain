@@ -1,11 +1,15 @@
 import React from 'react';
 import { TabType } from '../types/tab';
 import { Brain, Compass, Zap, Eye } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
-import { isCardVisibilityButtonVisible } from '../config/buttonVisibility';
+import { useLanguage } from '../context/Translations';
+import {
+  SHOW_LANGUAGE_BUTTON,
+  isCardVisibilityButtonVisible,
+} from '../config/buttonVisibility';
+import { isTabVisible } from '../config/pageVisibility';
 
 interface HeaderProps {
-  activeTab: TabType;
+  activeTab: TabType | null;
   onTabChange: (tab: TabType) => void;
   onOpenCardVisibility?: () => void;
 }
@@ -15,7 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   onTabChange,
   onOpenCardVisibility,
 }) => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, tr } = useLanguage();
 
   const toggleLanguage = () => {
     setLanguage(language === 'vi' ? 'en' : 'vi');
@@ -67,97 +71,105 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Navigation Tabs for Desktop */}
           <nav className="hidden md:flex items-center gap-2">
             {/* Tab 1: Mental Math */}
-            <button
-              onClick={() => onTabChange('mental-math')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'mental-math'
-                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm shadow-amber-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
-              }`}
-            >
-              <Brain className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 ${activeTab === 'mental-math' ? 'animate-pulse' : ''}`} />
-              <span>{t.tabMentalMath}</span>
-            </button>
+            {isTabVisible('mental-math') && (
+              <button
+                onClick={() => onTabChange('mental-math')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'mental-math'
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40 shadow-sm shadow-amber-500/10'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                }`}
+              >
+                <Brain className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 ${activeTab === 'mental-math' ? 'animate-pulse' : ''}`} />
+                <span>{t.tabMentalMath}</span>
+              </button>
+            )}
 
             {/* Tab 2: Hành trình ký ức Loci */}
-            <button
-              onClick={() => onTabChange('loci-journey')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'loci-journey'
-                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
-              }`}
-            >
-              <Compass className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 ${activeTab === 'loci-journey' ? 'animate-pulse' : ''}`} />
-              <span>{t.tabLociJourney}</span>
-            </button>
+            {isTabVisible('loci-journey') && (
+              <button
+                onClick={() => onTabChange('loci-journey')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'loci-journey'
+                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                }`}
+              >
+                <Compass className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 ${activeTab === 'loci-journey' ? 'animate-pulse' : ''}`} />
+                <span>{t.tabLociJourney}</span>
+              </button>
+            )}
 
             {/* Tab 3: Brain Training */}
-            <button
-              onClick={() => onTabChange('brain-training')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'brain-training'
-                  ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40 shadow-sm shadow-sky-500/10'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
-              }`}
-            >
-              <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 ${activeTab === 'brain-training' ? 'animate-pulse' : ''}`} />
-              <span>{t.tabBrainTraining}</span>
-            </button>
+            {isTabVisible('brain-training') && (
+              <button
+                onClick={() => onTabChange('brain-training')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'brain-training'
+                    ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40 shadow-sm shadow-sky-500/10'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+                }`}
+              >
+                <Zap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 ${activeTab === 'brain-training' ? 'animate-pulse' : ''}`} />
+                <span>{t.tabBrainTraining}</span>
+              </button>
+            )}
           </nav>
 
           {/* Right Action: Active Tab Badge (Thể hiện trên header) & Clean Language Toggle */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Active Tab Badge (Ẩn trên Web và Tablet vì đã có menu ở giữa) */}
-            <div className="md:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 shadow-sm">
-              <span className="text-slate-500 font-normal hidden xs:inline">Tab:</span>
-              {activeTab === 'mental-math' ? (
-                <span className="text-amber-400 font-semibold flex items-center gap-1">
-                  <Brain className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{t.tabMentalMath}</span>
-                </span>
-              ) : activeTab === 'loci-journey' ? (
-                <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                  <Compass className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{t.tabLociJourney}</span>
-                </span>
-              ) : (
-                <span className="text-sky-400 font-semibold flex items-center gap-1">
-                  <Zap className="w-3.5 h-3.5 text-sky-400" />
-                  <span>{t.tabBrainTraining}</span>
-                </span>
-              )}
-            </div>
+            {activeTab && (
+              <div className="md:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 shadow-sm">
+                <span className="text-slate-500 font-normal hidden xs:inline">Tab:</span>
+                {activeTab === 'mental-math' ? (
+                  <span className="text-amber-400 font-semibold flex items-center gap-1">
+                    <Brain className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{t.tabMentalMath}</span>
+                  </span>
+                ) : activeTab === 'loci-journey' ? (
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <Compass className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{t.tabLociJourney}</span>
+                  </span>
+                ) : (
+                  <span className="text-sky-400 font-semibold flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-sky-400" />
+                    <span>{t.tabBrainTraining}</span>
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Show / Hide Cards Button */}
-            {onOpenCardVisibility && isCardVisibilityButtonVisible(activeTab) && (
+            {onOpenCardVisibility && activeTab && isCardVisibilityButtonVisible(activeTab) && (
               <button
                 type="button"
                 onClick={onOpenCardVisibility}
                 title={
-                  language === 'vi'
-                    ? 'Ẩn / Hiện Card theo Tab (chỉnh chi tiết và tất cả card)'
-                    : 'Show / Hide Cards by Tab (individual & all cards)'
+                  tr("Ẩn / Hiện Card theo Tab (chỉnh chi tiết và tất cả card)")
                 }
-                aria-label={language === 'vi' ? 'Ẩn / Hiện Card' : 'Show / Hide Cards'}
+                aria-label={tr("Ẩn / Hiện Card")}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 text-xs font-semibold text-slate-200 hover:text-amber-300 transition-all cursor-pointer shadow-sm active:scale-95 whitespace-nowrap shrink-0"
               >
                 <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                 <span className="hidden sm:inline">
-                  {language === 'vi' ? 'Ẩn/Hiện Card' : 'Cards'}
+                  {tr("Ẩn/Hiện Card")}
                 </span>
               </button>
             )}
 
             {/* Language Toggle (VI / EN) */}
-            <button
-              onClick={toggleLanguage}
-              title={language === 'vi' ? 'Chuyển sang English' : 'Switch to Tiếng Việt'}
-              aria-label="Toggle Language (VI/EN)"
-              className="px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all cursor-pointer shadow-sm active:scale-95 tracking-wider shrink-0"
-            >
-              {language === 'vi' ? 'VI' : 'EN'}
-            </button>
+            {SHOW_LANGUAGE_BUTTON && (
+              <button
+                onClick={toggleLanguage}
+                title={tr("Chuyển sang English")}
+                aria-label="Toggle Language (VI/EN)"
+                className="px-2.5 py-1 sm:px-3 sm:py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all cursor-pointer shadow-sm active:scale-95 tracking-wider shrink-0"
+              >
+                {tr("VI")}
+              </button>
+            )}
           </div>
         </div>
       </div>

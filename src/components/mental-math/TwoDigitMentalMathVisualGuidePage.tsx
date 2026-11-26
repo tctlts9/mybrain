@@ -1,6 +1,16 @@
+/**
+ * ============================================================================
+ * FILE: TwoDigitMentalMathVisualGuidePage.tsx — TRANG HƯỚNG DẪN TRỰC QUAN (NHÂN 2 CHỮ SỐ)
+ * ============================================================================
+ * Công việc của file:
+ * 1. Hiển thị thanh điều hướng trên cùng (nút Quay lại Luyện tập + nút Thử thách theo buttonVisibility.ts).
+ * 2. Nhúng component TwoDigitMentalMathGuideCarousel minh họa các kỹ thuật nhân 2 chữ số (chữ số đầu giống nhau, cuối giống nhau, nhân chéo...).
+ * 3. Hiển thị thanh footer dưới cùng để chuyển nhanh sang Thử thách hoặc quay lại Luyện tập.
+ * ============================================================================
+ */
 import React from 'react';
 import { ArrowLeft, BookOpen, Zap } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage } from '../../context/Translations';
 import { TwoDigitMentalMathGuideCarousel } from './TwoDigitMentalMathGuideCarousel';
 import { isChallengeButtonVisible } from '../../config/buttonVisibility';
 
@@ -13,19 +23,19 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
   onBack,
   onOpenChallenge,
 }) => {
-  const { language } = useLanguage();
+  const { language, tr } = useLanguage();
   const isVi = language === 'vi';
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300 pb-6">
-      {/* Top Navigation Bar: Back button, Challenge button & Breadcrumbs */}
+      {/* Thanh điều hướng trên cùng: Nút Quay lại, nút Thử thách & Breadcrumb */}
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-900">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <ArrowLeft className="w-4 h-4 text-yellow-400" />
-          <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Practice'}</span>
+          <span>{tr("Quay lại Luyện tập")}</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -34,33 +44,31 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
               type="button"
               onClick={onOpenChallenge}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
-              title={isVi ? 'Thử thách Tính nhẩm (2s - 12s)' : 'Mental Math Challenge (2s - 12s)'}
+              title={tr("Thử thách Tính nhẩm (2s - 12s)")}
             >
               <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-              <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
+              <span>{tr("Thử Thách Tính Nhẩm")}</span>
             </button>
           )}
 
           <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
-            <span>{isVi ? 'Tính Nhẩm' : 'Mental Math'}</span>
+            <span>{tr("Tính Nhẩm")}</span>
             <span className="text-slate-600">/</span>
             <span className="text-cyan-400 font-semibold flex items-center gap-1">
               <BookOpen className="w-3 h-3 text-cyan-400" />
-              <span>{isVi ? 'Hướng Dẫn Trực Quan' : 'Visual Guide'}</span>
+              <span>{tr("Hướng Dẫn Trực Quan")}</span>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Main Visual Guide Carousel Component */}
+      {/* Khung Carousel trình bày các slide hướng dẫn trực quan Nhân 2 chữ số */}
       <TwoDigitMentalMathGuideCarousel />
 
-      {/* Bottom Action Footer */}
+      {/* Thanh hành động chân trang: Chuyển sang Thử thách hoặc Quay lại Luyện tập */}
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl border border-slate-800 bg-slate-900/60">
         <p className="text-xs text-slate-400 text-center sm:text-left">
-          {isVi
-            ? 'Đã nắm vững phương pháp? Hãy quay lại chế độ Luyện tập hoặc tham gia Thử Thách Tính Nhẩm 2s - 12s.'
-            : 'Ready to test your speed? Return to Training mode or challenge yourself with 2s - 12s blitz.'}
+          {tr("Đã nắm vững phương pháp? Hãy quay lại chế độ Luyện tập hoặc tham gia Thử Thách Tính Nhẩm 2s - 12s.")}
         </p>
 
         <div className="flex items-center gap-2">
@@ -71,14 +79,14 @@ export const TwoDigitMentalMathVisualGuidePage: React.FC<VisualGuidePageProps> =
               className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95"
             >
               <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-              <span>{isVi ? 'Thử Thách Tính Nhẩm' : 'Mental Math Challenge'}</span>
+              <span>{tr("Thử Thách Tính Nhẩm")}</span>
             </button>
           )}
           <button
             onClick={onBack}
             className="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-yellow-500/20 transition-all cursor-pointer active:scale-95"
           >
-            <span>{isVi ? 'Quay lại Luyện tập' : 'Back to Training'}</span>
+            <span>{tr("Quay lại Luyện tập [Hướng dẫn]")}</span>
           </button>
         </div>
       </div>

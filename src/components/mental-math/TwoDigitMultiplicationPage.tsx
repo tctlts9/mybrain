@@ -33,6 +33,7 @@ import {
   X,
   Check,
   Hand,
+  BookOpen,
 } from 'lucide-react';
 import { useLanguage, biLabel, translateText } from '../../context/Translations';
 import {
@@ -1182,7 +1183,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   onBack,
   onOpenChallenge,
   onOpenHardChallenge,
-  onOpenVisualGuide: _onOpenVisualGuide,
+  onOpenVisualGuide,
   initialTopic,
 }) => {
   const { language, tr } = useLanguage();
@@ -1193,6 +1194,7 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
   const [question, setQuestion] = useState<Question>({ a: 35, b: 11, answer: 385 });
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState<boolean>(false);
 
   // Thông báo kết quả qua loa & Giọng nói
   const [isSpeakerEnabled, setIsSpeakerEnabled] = useState<boolean>(true);
@@ -1652,15 +1654,26 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
 
         <div className="flex flex-wrap items-center justify-end gap-2">
           {isVisualGuideButtonVisible('TwoDigitMultiplicationPage') && (
-            <button
-              type="button"
-              onClick={() => downloadGuidePdf('Guide.pdf')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title={tr("Tải hướng dẫn định dạng PDF")}
-            >
-              <Download className="w-3.5 h-3.5 text-cyan-400" />
-              <span>{tr("Download PDF")}</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setIsGuideModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                title={tr("Xem nhanh hướng dẫn toàn bộ Web App", "Quick guide for the entire Web App")}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{tr("Hướng dẫn")}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadGuidePdf('Guide.pdf')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                title={tr("Tải hướng dẫn định dạng PDF")}
+              >
+                <Download className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{tr("Download PDF")}</span>
+              </button>
+            </>
           )}
 
           {isChallengeButtonVisible('TwoDigitMultiplicationPage') && onOpenChallenge && (
@@ -1712,17 +1725,28 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {/* Button: Download Guide PDF */}
+            {/* Button: Guide & Download Guide PDF */}
             {isVisualGuideButtonVisible('TwoDigitMultiplicationPage') && (
-              <button
-                type="button"
-                onClick={() => downloadGuidePdf('Guide.pdf')}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer active:scale-95 text-xs"
-                title={tr("Tải hướng dẫn định dạng PDF")}
-              >
-                <Download className="w-3.5 h-3.5 text-slate-950" />
-                <span>{tr("Download PDF")}</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsGuideModalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 hover:text-white font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer active:scale-95 text-xs"
+                  title={tr("Xem nhanh hướng dẫn toàn bộ Web App", "Quick guide for the entire Web App")}
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{tr("Hướng dẫn")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadGuidePdf('Guide.pdf')}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer active:scale-95 text-xs"
+                  title={tr("Tải hướng dẫn định dạng PDF")}
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-950" />
+                  <span>{tr("Download PDF")}</span>
+                </button>
+              </>
             )}
 
             {/* Button: Mental Math Challenge */}
@@ -2147,6 +2171,81 @@ export const TwoDigitMultiplicationPage: React.FC<TwoDigitMultiplicationPageProp
           </form>
         </div>
       </div>
+
+      {/* Inline Quick Guide Modal coded directly in Page */}
+      {isGuideModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setIsGuideModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-800 bg-slate-950/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/35 flex items-center justify-center text-cyan-400">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    {tr("Hướng dẫn:")} {tr("Phép nhân 2 chữ số")}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {tr("Xem nhanh mẹo tính nhẩm & tài liệu hướng dẫn Web App")}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGuideModalOpen(false)}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
+                title={tr("Đóng")}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 text-xs sm:text-sm">
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+                <div className="font-bold text-amber-300 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <span>{tr("Phương pháp tính nhẩm nhanh")}</span>
+                </div>
+                <p className="text-slate-300 leading-relaxed text-xs">
+                  {tr("Nhân chéo 3 bước: hàng đơn vị, nhân chéo cộng dồn hàng chục và nhân hàng chục.")}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                {onOpenVisualGuide && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGuideModalOpen(false);
+                      onOpenVisualGuide();
+                    }}
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-200 font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-xs"
+                  >
+                    <BookOpen className="w-4 h-4 text-amber-400" />
+                    <span>{tr("Xem Hướng Dẫn Trực Quan (Từng bước)")}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => downloadGuidePdf('Guide.pdf')}
+                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 text-cyan-200 font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-xs"
+                >
+                  <Download className="w-4 h-4 text-cyan-400" />
+                  <span>{tr("Tải tài liệu Guide.pdf toàn Web App")}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

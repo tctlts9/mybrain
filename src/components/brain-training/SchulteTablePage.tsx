@@ -29,6 +29,8 @@ import {
   AlertTriangle,
   Gauge,
   Download,
+  BookOpen,
+  X,
 } from 'lucide-react';
 import { useLanguage } from '../../context/Translations';
 import {
@@ -99,6 +101,7 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
   const [highlightFound, setHighlightFound] = useState<boolean>(true);
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
   const [isNewRecord, setIsNewRecord] = useState<boolean>(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState<boolean>(false);
 
   // --- State đọc số cần tìm (TTS) & nhận diện giọng nói (Microphone) ---
   const [isSpeakingTarget, setIsSpeakingTarget] = useState<boolean>(false);
@@ -519,15 +522,26 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
 
         <div className="flex flex-wrap items-center justify-end gap-2">
           {isVisualGuideButtonVisible('SchulteTablePage') && (
-            <button
-              type="button"
-              onClick={() => downloadGuidePdf('Guide.pdf')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
-              title={tr("Tải hướng dẫn định dạng PDF")}
-            >
-              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
-              <span>{tr("Download PDF")}</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setIsGuideModalOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                title={tr("Xem nhanh hướng dẫn toàn bộ Web App", "Quick guide for the entire Web App")}
+              >
+                <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                <span>{tr("Hướng dẫn")}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadGuidePdf('Guide.pdf')}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                title={tr("Tải hướng dẫn định dạng PDF")}
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                <span>{tr("Download PDF")}</span>
+              </button>
+            </>
           )}
 
           {isChallengeButtonVisible('SchulteTablePage') && onOpenChallenge && (
@@ -1000,6 +1014,69 @@ export const SchulteTablePage: React.FC<SchulteTablePageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Inline Schulte Quick Guide Modal coded directly in Page */}
+      {isGuideModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setIsGuideModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-800 bg-slate-950/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/15 border border-sky-500/35 flex items-center justify-center text-sky-400">
+                  <Eye className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    {tr("Hướng dẫn Bảng Schulte (Brain Training)")}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    {tr("Kỹ thuật mở rộng tầm nhìn ngoại vi & phản xạ thị giác")}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGuideModalOpen(false)}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
+                title={tr("Đóng")}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5 text-xs sm:text-sm">
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+                <div className="font-bold text-sky-300 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-sky-400" />
+                  <span>{tr("Quy tắc luyện tập")}</span>
+                </div>
+                <ul className="text-slate-300 leading-relaxed text-xs list-disc pl-4 space-y-1.5">
+                  <li>{tr("Nhìn cố định vào tâm bảng (chấm tròn đỏ), không đảo mắt liên tục.")}</li>
+                  <li>{tr("Dùng tầm nhìn ngoại vi mở rộng dần để định vị các số tiếp theo.")}</li>
+                  <li>{tr("Hỗ trợ trả lời bằng Giọng nói: đọc số hoặc tọa độ ô (VD: A1, B3, C4).")}</li>
+                  <li>{tr("Chọn các cấp độ 3x3 đến 6x6 và đảo chiều Tăng/Giảm dần để tăng độ khó.")}</li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => downloadGuidePdf('Guide.pdf')}
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 text-cyan-200 font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-xs"
+              >
+                <Download className="w-4 h-4 text-cyan-400" />
+                <span>{tr("Tải tài liệu Guide.pdf toàn Web App")}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

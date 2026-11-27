@@ -97,22 +97,19 @@ type ReflexOperation =
   | 'percentage';
 type DailyReflexMode = 'dailyMix' | 'fastFour' | 'advanced' | 'custom';
 
-import cardBg from '../../assets/images/TwoDigitBg.jpg';
-import card11Bg from '../../assets/images/MultiplyBy11Bg.jpg';
-import card1DigitBg from '../../assets/images/MultiplyWith1DigitBg.jpg';
-//import cardMultiplyBg from '../../assets/images/mental_math_multiplication.jpg';
+import cardBg from '../../assets/images/Mental Math/TwoDigitBg.jpg';
+import card11Bg from '../../assets/images/Mental Math/MultiplyBy11Bg.jpg';
+import card1DigitBg from '../../assets/images/Mental Math/MultiplyWith1DigitBg.jpg';
 import cardMultiplyBg from '../../assets/images/Mental Math/Bg1_Multiplication.jpg';
-//import cardDivideBg from '../../assets/images/mental_math_division.jpg';
 import cardDivideBg from '../../assets/images/Mental Math/Bg1_Division.jpg';
-//import cardAddBg from '../../assets/images/mental_math_addition.jpg';
 import cardAddBg from '../../assets/images/Mental Math/Bg1_Addition.jpg';
 import cardSubtractBg from '../../assets/images/Mental Math/Bg1_Subtraction.jpg';
 import cardSqrtBg from '../../assets/images/Mental Math/Bg1_SquareRoot.jpg';
 import cardPowerBg from '../../assets/images/Mental Math/Bg1_Exponentiation.jpg';
 import cardPercentBg from '../../assets/images/Mental Math/Bg1_Percentage.jpg';
-import cardPercentBasicBg from '../../assets/images/percentage_basic.jpg';
-import cardPercentChangeBg from '../../assets/images/percentage_change.jpg';
-import cardPercentReverseBg from '../../assets/images/percentage_reverse.jpg';
+import cardPercentBasicBg from '../../assets/images/Mental Math/percentage_basic.jpg';
+import cardPercentChangeBg from '../../assets/images/Mental Math/percentage_change.jpg';
+import cardPercentReverseBg from '../../assets/images/Mental Math/percentage_reverse.jpg';
 
 // ============================================================================
 // PHẦN A: CẤU HÌNH TIMER (MỐC GIÂY) CHO CÁC TRANG THỬ THÁCH TRONG TAB MENTAL MATH

@@ -578,6 +578,7 @@ export const PHRASE_TRANSLATIONS: Record<string, PhraseTranslation> = {
   "Giới hạn:": { vi: "Giới hạn:", en: "Limit:" },
   "Gợi ý:": { vi: "Gợi ý:", en: "Method:" },
   "Gửi qua Gmail": { vi: "Gửi qua Gmail", en: "Send via Gmail" },
+  "Guide": { vi: "Hướng dẫn", en: "Guide" },
   "Hành trình ký ức Loci": { vi: "Hành trình ký ức Loci", en: "Memory Palace" },
   "Hệ số căn tùy chọn:": { vi: "Hệ số căn tùy chọn:", en: "Custom root:" },
   "Hệ số tùy chỉnh": { vi: "Hệ số tùy chỉnh", en: "Custom factor" },
@@ -988,6 +989,7 @@ export const PHRASE_TRANSLATIONS: Record<string, PhraseTranslation> = {
   "Tùy chọn (Chữ số & Phép tính)": { vi: "Tùy chọn (Chữ số & Phép tính)", en: "Custom (Digits & Operations)" },
   "Tùy chọn dãy số nhân liên tiếp giống các cuộc thi Siêu trí tuệ": { vi: "Tùy chọn dãy số nhân liên tiếp giống các cuộc thi Siêu trí tuệ", en: "Super-Brain sequential multiplication challenge" },
   "Tùy chọn độ dài chữ số, phép tính và số đích danh tùy ý": { vi: "Tùy chọn độ dài chữ số, phép tính và số đích danh tùy ý", en: "Custom digit length, operation, and second operand" },
+  "Xem nhanh hướng dẫn toàn bộ Web App": { vi: "Xem nhanh hướng dẫn toàn bộ Web App", en: "Quick guide for the entire Web App" },
 };
 
 export function translateText(

@@ -17,15 +17,15 @@ import { useLanguage, translateText } from '../../context/Translations';
 // Kiểu chế độ Tỷ lệ phần trăm (code trực tiếp trong component)
 type PercentageMode = 'basic' | 'change' | 'reverse';
 
-import basicStep1Img from '../../assets/images/percentage_basic.jpg';
-import basicStep2Img from '../../assets/images/percentage_basic.jpg';
-import basicStep3Img from '../../assets/images/percentage_basic.jpg';
-import changeStep1Img from '../../assets/images/percentage_change.jpg';
-import changeStep2Img from '../../assets/images/percentage_change.jpg';
-import changeStep3Img from '../../assets/images/percentage_change.jpg';
-import reverseStep1Img from '../../assets/images/percentage_reverse.jpg';
-import reverseStep2Img from '../../assets/images/percentage_reverse.jpg';
-import reverseStep3Img from '../../assets/images/percentage_reverse.jpg';
+import basicStep1Img from '../../assets/images/Mental Math/percentage_basic.jpg';
+import basicStep2Img from '../../assets/images/Mental Math/percentage_basic.jpg';
+import basicStep3Img from '../../assets/images/Mental Math/percentage_basic.jpg';
+import changeStep1Img from '../../assets/images/Mental Math/percentage_change.jpg';
+import changeStep2Img from '../../assets/images/Mental Math/percentage_change.jpg';
+import changeStep3Img from '../../assets/images/Mental Math/percentage_change.jpg';
+import reverseStep1Img from '../../assets/images/Mental Math/percentage_reverse.jpg';
+import reverseStep2Img from '../../assets/images/Mental Math/percentage_reverse.jpg';
+import reverseStep3Img from '../../assets/images/Mental Math/percentage_reverse.jpg';
 import { downloadGuidePdf } from '../../utils/guidePdfDownload';
 
 interface Slide {

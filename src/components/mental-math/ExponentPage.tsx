@@ -1545,8 +1545,8 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-3 sm:space-y-4 animate-in fade-in duration-300">
-      {/* Thanh điều hướng trên cùng: Quay lại + Hướng dẫn + Thử thách + Thử thách khó */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
+      {/* Thanh điều hướng trên cùng: Quay lại + 5 nút (Hướng dẫn, Download PDF, Thử thách, Thử thách khó, Kết quả) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-900">
         <button
           type="button"
           onClick={() => {
@@ -1554,31 +1554,31 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
             stopListening();
             onBack();
           }}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-yellow-500/40 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
         >
           <ArrowLeft className="w-4 h-4 text-yellow-400" />
           <span>{tr("Quay lại")}</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {isVisualGuideButtonVisible('ExponentPage') && (
             <>
               <button
                 type="button"
                 onClick={() => setIsGuideModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs whitespace-nowrap"
                 title={tr("Xem nhanh hướng dẫn toàn bộ Web App", "Quick guide for the entire Web App")}
               >
-                <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                 <span>{tr("Hướng dẫn")}</span>
               </button>
               <button
                 type="button"
                 onClick={() => downloadGuidePdf('Guide.pdf')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-500/15 hover:from-cyan-500/25 hover:to-blue-500/25 border border-cyan-500/35 hover:border-cyan-400 text-cyan-300 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs whitespace-nowrap"
                 title={tr("Tải hướng dẫn định dạng PDF")}
               >
-                <Download className="w-3.5 h-3.5 text-cyan-400" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                 <span>{tr("Download PDF")}</span>
               </button>
             </>
@@ -1592,10 +1592,10 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 stopListening();
                 onOpenChallenge(selectedTopic);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-amber-500/20 whitespace-nowrap"
               title={tr("Thử thách tính nhẩm tốc độ cao")}
             >
-              <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950 text-slate-950" />
               <span>{tr("Thử thách")}</span>
             </button>
           )}
@@ -1608,21 +1608,43 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
                 stopListening();
                 onOpenHardChallenge(selectedTopic);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-md shadow-violet-500/25 whitespace-nowrap"
               title={tr("Thử thách cấp độ khó")}
             >
-              <Gauge className="w-3.5 h-3.5 text-white" />
+              <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
               <span>{tr("Thử thách")}</span>
             </button>
           )}
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
-            <span>{tr("Tính Nhẩm")}</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-yellow-400 font-semibold">
-              {isVi ? meta.titleVi : meta.titleEn}
+          <button
+            type="button"
+            onClick={() => {
+              const next = !isSpeakerEnabled;
+              setIsSpeakerEnabled(next);
+              if (next) playSpeakerChime('correct');
+            }}
+            className={`px-3.5 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 text-xs sm:text-sm font-semibold whitespace-nowrap ${
+              isSpeakerEnabled
+                ? 'bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-xs ring-1 ring-sky-400/20'
+                : 'bg-slate-950/70 text-slate-500 border-slate-800'
+            }`}
+            title={
+              isSpeakerEnabled
+                ? tr("Đang bật thông báo kết quả (Bấm để tắt)")
+                : tr("Đang tắt thông báo kết quả (Bấm để bật)")
+            }
+          >
+            {isSpeakerEnabled ? (
+              <Volume2 className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
+            ) : (
+              <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
+            )}
+            <span>
+              {isSpeakerEnabled
+                ? tr("Kết quả: Bật")
+                : tr("Kết quả: Tắt")}
             </span>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -1639,128 +1661,42 @@ export const ExponentPage: React.FC<ExponentPageProps> = ({
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            {isVisualGuideButtonVisible('ExponentPage') && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsGuideModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 hover:border-cyan-400 text-cyan-300 hover:text-white font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer active:scale-95 text-xs"
-                  title={tr("Xem nhanh hướng dẫn toàn bộ Web App", "Quick guide for the entire Web App")}
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{tr("Hướng dẫn")}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => downloadGuidePdf('Guide.pdf')}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-cyan-500/20 transition-all cursor-pointer active:scale-95 text-xs"
-                  title={tr("Tải hướng dẫn định dạng PDF")}
-                >
-                  <Download className="w-3.5 h-3.5 text-slate-950" />
-                  <span>{tr("Download PDF")}</span>
-                </button>
-              </>
-            )}
-
-            {isChallengeButtonVisible('ExponentPage') && onOpenChallenge && (
+          {showAutoNextButton && (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => {
-                  stopCurrentSpeech();
-                  stopListening();
-                  onOpenChallenge(selectedTopic);
-                }}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95 text-xs"
+                onClick={() => setIsAutoNextModalOpen(true)}
+                title={
+                  isVi
+                    ? `Tùy chỉnh sau bao nhiêu giây đổi qua câu hỏi khác (Hiện tại: ${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                    : `Customize auto-switch delay to next question (Current: ${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                }
+                aria-label={
+                  isVi
+                    ? `Tùy chỉnh đổi câu (${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                    : `Auto-switch delay (${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
+                }
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0 ${
+                  autoNextConfig.source !== 'default'
+                    ? 'bg-cyan-500/15 border-cyan-500/45 text-cyan-200 hover:bg-cyan-500/25'
+                    : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 hover:bg-slate-900'
+                }`}
               >
-                <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                <span>{tr("Thử thách")}</span>
+                <TimerReset className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="hidden sm:inline">{tr("Đổi câu:")}</span>
+                <span className="font-mono tabular-nums text-cyan-300">
+                  {formatAutoNextDelay(autoNextConfig.delaySec, isVi)}
+                </span>
               </button>
-            )}
 
-            {isDifficultLevelChallengeButtonVisible('ExponentPage') && onOpenHardChallenge && (
-              <button
-                type="button"
-                onClick={() => {
-                  stopCurrentSpeech();
-                  stopListening();
-                  onOpenHardChallenge(selectedTopic);
-                }}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 hover:from-violet-400 hover:to-fuchsia-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-violet-500/25 transition-all cursor-pointer active:scale-95 text-xs"
-                title={tr("Thử thách cấp độ khó")}
-              >
-                <Gauge className="w-3.5 h-3.5 text-white" />
-                <span>{tr("Thử thách")}</span>
-              </button>
-            )}
-
-            {showAutoNextButton && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsAutoNextModalOpen(true)}
-                  title={
-                    isVi
-                      ? `Tùy chỉnh sau bao nhiêu giây đổi qua câu hỏi khác (Hiện tại: ${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
-                      : `Customize auto-switch delay to next question (Current: ${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
-                  }
-                  aria-label={
-                    isVi
-                      ? `Tùy chỉnh đổi câu (${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
-                      : `Auto-switch delay (${formatAutoNextDelay(autoNextConfig.delaySec, isVi)})`
-                  }
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0 ${
-                    autoNextConfig.source !== 'default'
-                      ? 'bg-cyan-500/15 border-cyan-500/45 text-cyan-200 hover:bg-cyan-500/25'
-                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:text-white hover:border-cyan-500/40 hover:bg-slate-900'
-                  }`}
-                >
-                  <TimerReset className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="hidden sm:inline">{tr("Đổi câu:")}</span>
-                  <span className="font-mono tabular-nums text-cyan-300">
-                    {formatAutoNextDelay(autoNextConfig.delaySec, isVi)}
-                  </span>
-                </button>
-
-                <MentalMathAutoNextModal
-                  isOpen={isAutoNextModalOpen}
-                  onClose={() => setIsAutoNextModalOpen(false)}
-                  initialScope="page"
-                  initialPageKey={"ExponentPage"}
-                />
-              </>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                const next = !isSpeakerEnabled;
-                setIsSpeakerEnabled(next);
-                if (next) playSpeakerChime('correct');
-              }}
-              className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
-                isSpeakerEnabled
-                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40 shadow-xs ring-1 ring-yellow-400/20'
-                  : 'bg-slate-950/70 text-slate-500 border-slate-800'
-              }`}
-              title={
-                isSpeakerEnabled
-                  ? tr("Đang bật thông báo kết quả (Bấm để tắt)")
-                  : tr("Đang tắt thông báo kết quả (Bấm để bật)")
-              }
-            >
-              {isSpeakerEnabled ? (
-                <Volume2 className={`w-3.5 h-3.5 text-yellow-400 ${isSpeaking ? 'animate-bounce' : ''}`} />
-              ) : (
-                <VolumeX className="w-3.5 h-3.5 text-slate-500" />
-              )}
-              <span className="font-semibold">
-                {isSpeakerEnabled
-                  ? tr("Kết quả: Bật")
-                  : tr("Kết quả: Tắt")}
-              </span>
-            </button>
-          </div>
+              <MentalMathAutoNextModal
+                isOpen={isAutoNextModalOpen}
+                onClose={() => setIsAutoNextModalOpen(false)}
+                initialScope="page"
+                initialPageKey={"ExponentPage"}
+              />
+            </div>
+          )}
         </div>
 
         {/* Thanh chọn chủ đề luyện tập Lũy thừa */}

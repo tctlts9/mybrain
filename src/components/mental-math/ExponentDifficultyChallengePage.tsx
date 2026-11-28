@@ -46,6 +46,13 @@ import {
   stopCurrentSpeech,
   parseVoiceNumber,
 } from '../../utils/MentalMathVoice';
+import {
+  SEQUENCE_DIGIT_PROFILE_OPTIONS,
+  type SequenceDigitProfile,
+  getSequenceDigitBounds,
+  getSequenceProfileDescVi,
+  resolveSequenceDigitLengths,
+} from '../../utils/sequenceDigitProfiles';
 import { ExponentTopic, EXPONENT_TOPICS } from './ExponentPage';
 
 // ============================================================================
@@ -291,7 +298,6 @@ interface DifficultyBigQuestion {
   operations?: ('+' | '−')[];
 }
 
-type SequenceDigitProfile = '2D' | '3D' | '2D3D' | '4D' | '3D4D';
 type SequenceDisplayMode = 'flash' | 'all';
 
 const MIN_SEQUENCE_COUNT = 2;
@@ -300,47 +306,14 @@ const MAX_SEQUENCE_COUNT = 100;
 const randSeqInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
 
-const getSequenceDigitBounds = (digits: 2 | 3 | 4): [number, number] => {
-  if (digits === 2) return [10, 99];
-  if (digits === 3) return [100, 999];
-  return [1000, 9999];
-};
-
 function generateExponentSequenceQuestion(
   rawCount: number,
   profile: SequenceDigitProfile,
   includeSubtraction: boolean = false
 ): DifficultyBigQuestion {
   const count = Math.min(MAX_SEQUENCE_COUNT, Math.max(MIN_SEQUENCE_COUNT, rawCount));
-  const digitLengths: (2 | 3 | 4)[] = [];
-
-  for (let i = 0; i < count; i++) {
-    let digitLen: 2 | 3 | 4 = 2;
-    if (profile === '2D') digitLen = 2;
-    else if (profile === '3D') digitLen = 3;
-    else if (profile === '4D') digitLen = 4;
-    else if (profile === '2D3D') digitLen = i % 2 === 0 ? 2 : 3;
-    else if (profile === '3D4D') digitLen = i % 2 === 0 ? 3 : 4;
-    digitLengths.push(digitLen);
-  }
-
-  if (profile === '2D3D' || profile === '3D4D') {
-    for (let i = digitLengths.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [digitLengths[i], digitLengths[j]] = [digitLengths[j], digitLengths[i]];
-    }
-    if (includeSubtraction && count === 2 && digitLengths[0] < digitLengths[1]) {
-      [digitLengths[0], digitLengths[1]] = [digitLengths[1], digitLengths[0]];
-    }
-  }
-
-  const profileDescVi: Record<SequenceDigitProfile, string> = {
-    '2D': '2 chữ số',
-    '3D': '3 chữ số',
-    '2D3D': '2 & 3 chữ số',
-    '4D': '4 chữ số',
-    '3D4D': '3 & 4 chữ số',
-  };
+  const digitLengths = resolveSequenceDigitLengths(count, profile, includeSubtraction);
+  const profileDesc = getSequenceProfileDescVi(profile);
 
   const seqTerms: { base: string; exp: number }[] = [];
   const operations: ('+' | '−')[] = [];
@@ -383,8 +356,11 @@ function generateExponentSequenceQuestion(
     if (op === '−') {
       const maxAllowedSq = runningSum - 1n;
       let maxBaseSub = maxVal;
-      while (BigInt(maxBaseSub) ** 2n > maxAllowedSq && maxBaseSub > minVal) {
-        maxBaseSub = Math.floor(Math.sqrt(Number(maxAllowedSq)));
+      if (BigInt(maxBaseSub) ** 2n > maxAllowedSq) {
+        maxBaseSub = Math.min(maxVal, Math.floor(Math.sqrt(Number(maxAllowedSq))));
+        while (BigInt(maxBaseSub) ** 2n > maxAllowedSq && maxBaseSub >= minVal) {
+          maxBaseSub--;
+        }
       }
       if (maxBaseSub < minVal || BigInt(maxBaseSub) ** 2n > maxAllowedSq) {
         op = '+';
@@ -424,8 +400,8 @@ function generateExponentSequenceQuestion(
     operations,
     answer: runningSum.toString(),
     hintVi: includeSubtraction
-      ? `Tính cộng trừ lũy thừa lần lượt ${count} số (${profileDescVi[profile]}) từ trái sang phải.`
-      : `Cộng dồn lũy thừa lần lượt ${count} số (${profileDescVi[profile]}) từ trái sang phải.`,
+      ? `Tính cộng trừ lũy thừa lần lượt ${count} số (${profileDesc}) từ trái sang phải.`
+      : `Cộng dồn lũy thừa lần lượt ${count} số (${profileDesc}) từ trái sang phải.`,
     hintEn: includeSubtraction
       ? `Calculate exponent sequence (+ / −) across all ${count} terms (${profile}).`
       : `Accumulate the sum of powers across all ${count} terms (${profile}).`,
@@ -2915,11 +2891,11 @@ export const ExponentDifficultyChallengePage: React.FC<ExponentDifficultyChallen
                     }}
                     className="px-2 py-0.5 rounded-lg bg-slate-950 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-xs font-semibold text-cyan-200 cursor-pointer disabled:opacity-60"
                   >
-                    <option value="2D">{tr("2D · 2 chữ số")}</option>
-                    <option value="3D">{tr("3D · 3 chữ số")}</option>
-                    <option value="2D3D">{tr("2D3D · 2 chữ số và 3 chữ số")}</option>
-                    <option value="4D">{tr("4D · 4 chữ số")}</option>
-                    <option value="3D4D">{tr("3D4D · 3 chữ số và 4 chữ số")}</option>
+                    {SEQUENCE_DIGIT_PROFILE_OPTIONS.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {isVi ? opt.labelVi : opt.labelEn}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

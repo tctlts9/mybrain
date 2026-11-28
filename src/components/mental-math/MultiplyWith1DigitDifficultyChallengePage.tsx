@@ -47,6 +47,12 @@ import {
   stopCurrentSpeech,
   parseVoiceNumber,
 } from '../../utils/MentalMathVoice';
+import {
+  SEQUENCE_DIGIT_PROFILE_OPTIONS,
+  type SequenceDigitProfile,
+  getSequenceDigitBounds,
+  resolveSequenceDigitLengths,
+} from '../../utils/sequenceDigitProfiles';
 
 // ============================================================================
 // PHẦN A: CẤU HÌNH & HOOK AUTO-NEXT (TỰ ĐỘNG CHUYỂN CÂU KHI XONG CÂU HỎI)
@@ -1269,7 +1275,6 @@ interface Question {
   operations?: ('×' | '÷')[];
 }
 
-type SequenceDigitProfile = '2D' | '3D' | '2D3D' | '4D' | '3D4D';
 type SequenceDisplayMode = 'flash' | 'all';
 
 type TimeLimit = number;
@@ -1289,12 +1294,6 @@ const MAX_SEQUENCE_COUNT = 100;
 const randMulSeqInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
 
-const getMulSequenceDigitBounds = (digits: 2 | 3 | 4): [number, number] => {
-  if (digits === 2) return [10, 99];
-  if (digits === 3) return [100, 999];
-  return [1000, 9999];
-};
-
 const findExactDivisorsForMulSeq = (
   val: bigint,
   minD: number,
@@ -1306,8 +1305,9 @@ const findExactDivisorsForMulSeq = (
   if (capD < minD) return [];
   const span = capD - minD + 1;
   const startOffset = randMulSeqInt(0, span - 1);
+  const maxSteps = Math.min(span, 120000);
   const found: number[] = [];
-  for (let k = 0; k < span && found.length < 24; k++) {
+  for (let k = 0; k < maxSteps && found.length < 24; k++) {
     const d = minD + ((startOffset + k) % span);
     if (avoidVal && String(d) === avoidVal) continue;
     if (val % BigInt(d) === 0n) {
@@ -1329,31 +1329,11 @@ function generateMultiplicationSequenceQuestion(
   includeDivision: boolean = false
 ): Question {
   const count = Math.min(MAX_SEQUENCE_COUNT, Math.max(MIN_SEQUENCE_COUNT, rawCount));
-  const digitLengths: (2 | 3 | 4)[] = [];
-
-  for (let i = 0; i < count; i++) {
-    let digitLen: 2 | 3 | 4 = 2;
-    if (profile === '2D') digitLen = 2;
-    else if (profile === '3D') digitLen = 3;
-    else if (profile === '4D') digitLen = 4;
-    else if (profile === '2D3D') digitLen = i % 2 === 0 ? 2 : 3;
-    else if (profile === '3D4D') digitLen = i % 2 === 0 ? 3 : 4;
-    digitLengths.push(digitLen);
-  }
-
-  if (profile === '2D3D' || profile === '3D4D') {
-    for (let i = digitLengths.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [digitLengths[i], digitLengths[j]] = [digitLengths[j], digitLengths[i]];
-    }
-    if (includeDivision && count === 2 && digitLengths[0] < digitLengths[1]) {
-      [digitLengths[0], digitLengths[1]] = [digitLengths[1], digitLengths[0]];
-    }
-  }
+  const digitLengths = resolveSequenceDigitLengths(count, profile, includeDivision);
 
   if (includeDivision && count === 2) {
-    const [firstMin, firstMax] = getMulSequenceDigitBounds(digitLengths[0]);
-    const [secondMin, secondMax] = getMulSequenceDigitBounds(digitLengths[1]);
+    const [firstMin, firstMax] = getSequenceDigitBounds(digitLengths[0]);
+    const [secondMin, secondMax] = getSequenceDigitBounds(digitLengths[1]);
     if (firstMax >= secondMin * 2 && Math.random() < 0.6) {
       const maxQ = Math.floor(firstMax / secondMin);
       const qVal = randMulSeqInt(2, Math.max(2, maxQ));
@@ -1380,7 +1360,7 @@ function generateMultiplicationSequenceQuestion(
   let mulAfterFirstCount = 0;
 
   for (let i = 0; i < count; i++) {
-    const [minVal, maxVal] = getMulSequenceDigitBounds(digitLengths[i]);
+    const [minVal, maxVal] = getSequenceDigitBounds(digitLengths[i]);
     if (i === 0) {
       const firstNum = randMulSeqInt(minVal, maxVal);
       numbers.push(String(firstNum));
@@ -3251,11 +3231,11 @@ export const MultiplyWith1DigitDifficultyChallengePage: React.FC<MultiplyWith1Di
                       }}
                       className="px-2 py-0.5 rounded-lg bg-slate-950 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-xs font-semibold text-cyan-200 cursor-pointer disabled:opacity-60"
                     >
-                      <option value="2D">{tr("2D · 2 chữ số")}</option>
-                      <option value="3D">{tr("3D · 3 chữ số")}</option>
-                      <option value="2D3D">{tr("2D3D · 2 chữ số và 3 chữ số")}</option>
-                      <option value="4D">{tr("4D · 4 chữ số")}</option>
-                      <option value="3D4D">{tr("3D4D · 3 chữ số và 4 chữ số")}</option>
+                      {SEQUENCE_DIGIT_PROFILE_OPTIONS.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {isVi ? opt.labelVi : opt.labelEn}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

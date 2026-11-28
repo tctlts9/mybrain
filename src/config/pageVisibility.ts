@@ -120,10 +120,11 @@ export const PAGE_VISIBILITY = {
   PercentageVisualGuidePage_reverse: true,
   DailyReflexVisualGuidePage: true,
 
-  // --- Tab Brain Training: Bảng Schulte ---
+  // --- Tab Brain Training: Bảng Schulte & Cross Math ---
   SchulteTablePage: true,
   SchulteTableChallengePage: true,
   SchulteTableDifficultyChallengePage: true,
+  CrossMathPage: true,
 } as const;
 
 export type PageVisibilityKey = keyof typeof PAGE_VISIBILITY;
@@ -264,6 +265,7 @@ const PAGE_META_MAP: Record<
     tab: 'brain-training',
     group: 'difficulty-challenge',
   },
+  CrossMathPage: { tab: 'brain-training', group: 'practice' },
 };
 
 const isPageGroupVisible = (group: PageGroup): boolean => {

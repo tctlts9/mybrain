@@ -46,6 +46,12 @@ import {
   stopCurrentSpeech,
   parseVoiceNumber,
 } from '../../utils/MentalMathVoice';
+import {
+  SEQUENCE_DIGIT_PROFILE_OPTIONS,
+  type SequenceDigitProfile,
+  getPercentageSequenceStartBounds,
+  getSequenceProfileDescVi,
+} from '../../utils/sequenceDigitProfiles';
 
 // ============================================================================
 // BỘ DỮ LIỆU TỶ LỆ % & HÀM SINH ĐỀ SỐ LỚN BIGINT TÙY CHỌN (CODE TRỰC TIẾP TRONG PAGE)
@@ -137,7 +143,6 @@ interface CustomPercentageQuestion {
   seqItems?: { value: string; op?: '+' | '−'; isPercent: boolean }[];
 }
 
-type SequenceDigitProfile = '2D' | '3D' | '2D3D' | '4D' | '3D4D';
 type SequenceDisplayMode = 'flash' | 'all';
 
 const MIN_SEQUENCE_COUNT = 2;
@@ -541,24 +546,7 @@ function generatePercentageSequenceQuestion(
   includeDecrease: boolean = false
 ): CustomPercentageQuestion {
   const count = Math.min(MAX_SEQUENCE_COUNT, Math.max(MIN_SEQUENCE_COUNT, rawCount));
-  const initialDigits: 2 | 3 | 4 =
-    profile === '2D'
-      ? 2
-      : profile === '3D'
-      ? 3
-      : profile === '4D'
-      ? 4
-      : profile === '2D3D'
-      ? Math.random() < 0.5
-        ? 2
-        : 3
-      : Math.random() < 0.5
-      ? 3
-      : 4;
-
-  const startMin = initialDigits === 2 ? 20 : initialDigits === 3 ? 100 : 1000;
-  const startMax = initialDigits === 2 ? 99 : initialDigits === 3 ? 999 : 9999;
-  const startStep = initialDigits === 2 ? 20 : 100;
+  const { startMin, startMax, startStep } = getPercentageSequenceStartBounds(profile);
   const minMult = Math.ceil(startMin / startStep);
   const maxMult = Math.floor(startMax / startStep);
   const startVal = randPctSeqInt(minMult, Math.max(minMult, maxMult)) * startStep;
@@ -666,13 +654,7 @@ function generatePercentageSequenceQuestion(
     )
     .join(' ');
 
-  const profileDescVi: Record<SequenceDigitProfile, string> = {
-    '2D': '2 chữ số',
-    '3D': '3 chữ số',
-    '2D3D': '2 & 3 chữ số',
-    '4D': '4 chữ số',
-    '3D4D': '3 & 4 chữ số',
-  };
+  const profileDesc = getSequenceProfileDescVi(profile);
 
   return {
     mode,
@@ -690,8 +672,8 @@ function generatePercentageSequenceQuestion(
     spokenEn,
     answerStr: runningBig.toString(),
     hintVi: includeDecrease
-      ? `Tính tăng/giảm phần trăm lần lượt ${count} bước (khởi đầu ${profileDescVi[profile]}) ⇒ ${formatBigIntStr(runningBig.toString())}`
-      : `Tính tăng phần trăm liên tiếp ${count} bước (khởi đầu ${profileDescVi[profile]}) ⇒ ${formatBigIntStr(runningBig.toString())}`,
+      ? `Tính tăng/giảm phần trăm lần lượt ${count} bước (khởi đầu ${profileDesc}) ⇒ ${formatBigIntStr(runningBig.toString())}`
+      : `Tính tăng phần trăm liên tiếp ${count} bước (khởi đầu ${profileDesc}) ⇒ ${formatBigIntStr(runningBig.toString())}`,
     hintEn: includeDecrease
       ? `Apply sequential (+ / − %) changes across ${count} steps (${profile}) ⇒ ${formatBigIntStr(runningBig.toString())}`
       : `Apply sequential (+%) increases across ${count} steps (${profile}) ⇒ ${formatBigIntStr(runningBig.toString())}`,
@@ -3146,11 +3128,11 @@ export const PercentageDifficultyChallengePage: React.FC<PercentageDifficultyCha
                     }}
                     className="px-2 py-0.5 rounded-lg bg-slate-950 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-xs font-semibold text-cyan-200 cursor-pointer disabled:opacity-60"
                   >
-                    <option value="2D">{tr("2D · 2 chữ số")}</option>
-                    <option value="3D">{tr("3D · 3 chữ số")}</option>
-                    <option value="2D3D">{tr("2D3D · 2 chữ số và 3 chữ số")}</option>
-                    <option value="4D">{tr("4D · 4 chữ số")}</option>
-                    <option value="3D4D">{tr("3D4D · 3 chữ số và 4 chữ số")}</option>
+                    {SEQUENCE_DIGIT_PROFILE_OPTIONS.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {isVi ? opt.labelVi : opt.labelEn}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

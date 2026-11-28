@@ -40,7 +40,8 @@ export type CardVisibilityId =
   // Tab: Loci Journey
   | 'loci:memory-palace'
   // Tab: Brain Training
-  | 'bt:schulte-table';
+  | 'bt:schulte-table'
+  | 'bt:cross-math';
 
 // 2. CẤU HÌNH CHI TIẾT TỪNG CARD (true = HIỆN | false = ẨN)
 // ----------------------------------------------------------------------------
@@ -71,6 +72,7 @@ export const CARD_VISIBILITY: Record<CardVisibilityId, boolean> = {
 
   // --- Tab Rèn luyện não bộ ---
   'bt:schulte-table': true,
+  'bt:cross-math': true,
 };
 
 // Giữ alias tương thích với các component đang dùng DEFAULT_CARD_VISIBILITY
@@ -212,6 +214,12 @@ export const ALL_CARDS_META: CardMetadata[] = [
     ...biLabel("Bảng Schulte 5x5"),
     ...biDesc("Luyện tập phản xạ mắt & tập trung"),
   },
+  {
+    id: 'bt:cross-math',
+    tab: 'brain-training',
+    ...biLabel("Cross Math - Toán Ô Chữ"),
+    ...biDesc("Ghép số vào ô trống tạo phép tính đúng"),
+  },
 ];
 
 const CARD_TAB_MAP: Record<CardVisibilityId, TabType> = {
@@ -232,6 +240,7 @@ const CARD_TAB_MAP: Record<CardVisibilityId, TabType> = {
   'mm:percentage-reverse': 'mental-math',
   'loci:memory-palace': 'loci-journey',
   'bt:schulte-table': 'brain-training',
+  'bt:cross-math': 'brain-training',
 };
 
 export const isTabMasterCardVisible = (tab: TabType): boolean => {

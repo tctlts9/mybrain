@@ -142,9 +142,10 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentageDifficultyChallengePage_reverse: AutoNextOnlyPageVisibility;
   DailyReflexDifficultyChallengePage: AutoNextOnlyPageVisibility;
 
-  // Tab Brain Training - Bảng Schulte
+  // Tab Brain Training - Bảng Schulte & Cross Math
   SchulteTablePage: PracticePageVisibility;
   SchulteTableChallengePage: ChallengePageVisibility;
+  CrossMathPage: { visualGuide: boolean };
 } = {
   // --- Tab Mental Math: Trang Luyện tập ---
   TwoDigitMultiplicationPage: { visualGuide: true, challenge: true, difficultLevelChallenge: true, autoNext: true },
@@ -207,9 +208,10 @@ export const PAGE_BUTTON_VISIBILITY: {
   PercentageDifficultyChallengePage_reverse: { autoNext: true },
   DailyReflexDifficultyChallengePage: { autoNext: true },
 
-  // --- Tab Brain Training: Bảng Schulte ---
+  // --- Tab Brain Training: Bảng Schulte & Cross Math ---
   SchulteTablePage: { visualGuide: true, challenge: true, difficultLevelChallenge: true },
   SchulteTableChallengePage: { difficultLevelChallenge: true },
+  CrossMathPage: { visualGuide: true },
 };
 
 export type VisualGuideButtonPageKey = {

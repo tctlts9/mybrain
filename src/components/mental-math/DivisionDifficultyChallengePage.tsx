@@ -46,6 +46,13 @@ import {
   stopCurrentSpeech,
   parseVoiceNumber,
 } from '../../utils/MentalMathVoice';
+import {
+  SEQUENCE_DIGIT_PROFILE_OPTIONS,
+  type SequenceDigitProfile,
+  getSequenceDigitBounds,
+  getSequenceProfileDescVi,
+  resolveSequenceDigitLengths,
+} from '../../utils/sequenceDigitProfiles';
 import { DivisionTopic, DIVISION_TOPICS } from './DivisionPage';
 
 // ============================================================================
@@ -317,7 +324,6 @@ interface DifficultyBigQuestion {
   operations?: ('÷' | '×')[];
 }
 
-type SequenceDigitProfile = '2D' | '3D' | '2D3D' | '4D' | '3D4D';
 type SequenceDisplayMode = 'flash' | 'all';
 
 const MIN_SEQUENCE_COUNT = 2;
@@ -326,20 +332,19 @@ const MAX_SEQUENCE_COUNT = 100;
 const randSeqInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
 
-const getSequenceDigitBounds = (digits: 2 | 3 | 4): [number, number] => {
-  if (digits === 2) return [10, 99];
-  if (digits === 3) return [100, 999];
-  return [1000, 9999];
-};
-
 const findExactDivisorsInRange = (val: bigint, minD: number, maxD: number): number[] => {
   if (val <= 1n || maxD < 2) return [];
   const res: number[] = [];
+  const startD = Math.max(2, minD);
   const cap = Number(val < BigInt(maxD) ? val : BigInt(maxD));
-  for (let d = Math.max(2, minD); d <= cap; d++) {
+  if (cap < startD) return [];
+  const span = cap - startD + 1;
+  const maxSteps = Math.min(span, 120000);
+  const startOffset = randSeqInt(0, span - 1);
+  for (let k = 0; k < maxSteps && res.length < 64; k++) {
+    const d = startD + ((startOffset + k) % span);
     if (val % BigInt(d) === 0n) {
       res.push(d);
-      if (res.length >= 64) break;
     }
   }
   return res;
@@ -351,32 +356,8 @@ function generateDivisionSequenceQuestion(
   includeMultiply: boolean = false
 ): DifficultyBigQuestion {
   const count = Math.min(MAX_SEQUENCE_COUNT, Math.max(MIN_SEQUENCE_COUNT, rawCount));
-  const digitLengths: (2 | 3 | 4)[] = [];
-
-  for (let i = 0; i < count; i++) {
-    let digitLen: 2 | 3 | 4 = 2;
-    if (profile === '2D') digitLen = 2;
-    else if (profile === '3D') digitLen = 3;
-    else if (profile === '4D') digitLen = 4;
-    else if (profile === '2D3D') digitLen = i % 2 === 0 ? 2 : 3;
-    else if (profile === '3D4D') digitLen = i % 2 === 0 ? 3 : 4;
-    digitLengths.push(digitLen);
-  }
-
-  if (profile === '2D3D' || profile === '3D4D') {
-    for (let i = digitLengths.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [digitLengths[i], digitLengths[j]] = [digitLengths[j], digitLengths[i]];
-    }
-  }
-
-  const profileDescVi: Record<SequenceDigitProfile, string> = {
-    '2D': '2 chữ số',
-    '3D': '3 chữ số',
-    '2D3D': '2 & 3 chữ số',
-    '4D': '4 chữ số',
-    '3D4D': '3 & 4 chữ số',
-  };
+  const digitLengths = resolveSequenceDigitLengths(count, profile, false);
+  const profileDesc = getSequenceProfileDescVi(profile);
 
   if (!includeMultiply) {
     const divisors: number[] = [];
@@ -405,7 +386,7 @@ function generateDivisionSequenceQuestion(
       numbers,
       operations,
       answer: String(finalAns),
-      hintVi: `Chia liên tiếp ${count} số (${profileDescVi[profile]}) từ trái sang phải.`,
+      hintVi: `Chia liên tiếp ${count} số (${profileDesc}) từ trái sang phải.`,
       hintEn: `Divide all ${count} numbers (${profile}) sequentially from left to right.`,
     };
   }
@@ -479,7 +460,7 @@ function generateDivisionSequenceQuestion(
     numbers,
     operations,
     answer: runningVal.toString(),
-    hintVi: `Tính chia nhân lần lượt ${count} số (${profileDescVi[profile]}) từ trái sang phải.`,
+    hintVi: `Tính chia nhân lần lượt ${count} số (${profileDesc}) từ trái sang phải.`,
     hintEn: `Calculate sequentially (÷ / ×) across all ${count} numbers (${profile}).`,
   };
 }
@@ -2959,11 +2940,11 @@ export const DivisionDifficultyChallengePage: React.FC<DivisionDifficultyChallen
                     }}
                     className="px-2 py-0.5 rounded-lg bg-slate-950 border border-cyan-500/40 focus:border-cyan-300 focus:outline-none text-xs font-semibold text-cyan-200 cursor-pointer disabled:opacity-60"
                   >
-                    <option value="2D">{tr("2D · 2 chữ số")}</option>
-                    <option value="3D">{tr("3D · 3 chữ số")}</option>
-                    <option value="2D3D">{tr("2D3D · 2 chữ số và 3 chữ số")}</option>
-                    <option value="4D">{tr("4D · 4 chữ số")}</option>
-                    <option value="3D4D">{tr("3D4D · 3 chữ số và 4 chữ số")}</option>
+                    {SEQUENCE_DIGIT_PROFILE_OPTIONS.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {isVi ? opt.labelVi : opt.labelEn}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

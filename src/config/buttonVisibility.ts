@@ -211,7 +211,7 @@ export const PAGE_BUTTON_VISIBILITY: {
   // --- Tab Brain Training: Bảng Schulte & Cross Math ---
   SchulteTablePage: { visualGuide: true, challenge: true, difficultLevelChallenge: true },
   SchulteTableChallengePage: { difficultLevelChallenge: true },
-  CrossMathPage: { visualGuide: true },
+  CrossMathPage: { visualGuide: false },
 };
 
 export type VisualGuideButtonPageKey = {

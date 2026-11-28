@@ -34,7 +34,6 @@ import {
   PlusSquare,
   Trash2,
   AlertCircle,
-  Move,
 } from 'lucide-react';
 import { useLanguage } from '../../context/Translations';
 import { playSpeakerChime } from '../../utils/MentalMathVoice';
@@ -129,7 +128,11 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
   const [puzzle, setPuzzle] = useState<CrossMathPuzzle>(() =>
     generateCrossMathPuzzle('medium')
   );
-  const [placements, setPlacements] = useState<Record<string, CrossMathTrayTile>>({});
+  const [boardState, setBoardState] = useState<{
+    placements: Record<string, CrossMathTrayTile>;
+    order: string[];
+  }>({ placements: {}, order: [] });
+  const placements = boardState.placements;
   const [selectedTrayTileId, setSelectedTrayTileId] = useState<string | null>(null);
   const [selectedSlotKey, setSelectedSlotKey] = useState<string | null>(null);
   const [dragOverSlotKey, setDragOverSlotKey] = useState<string | null>(null);
@@ -223,7 +226,7 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
       countedWrongEqsRef.current.clear();
       setDifficulty(targetDiff);
       setPuzzle(generateCrossMathPuzzle(targetDiff));
-      setPlacements({});
+      setBoardState({ placements: {}, order: [] });
       setSelectedTrayTileId(null);
       setSelectedSlotKey(null);
       setDragOverSlotKey(null);
@@ -237,12 +240,23 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
     [difficulty, stopTimer]
   );
 
-  const clearPlacedTiles = useCallback(() => {
-    if (status === 'completed') return;
-    setPlacements({});
-    setSelectedTrayTileId(null);
+  // Recall the most recently placed number back to the tray one step at a time (LIFO)
+  const recallLastPlacedTile = useCallback(() => {
+    if (status === 'completed' || status === 'paused') return;
+    setBoardState((prev) => {
+      const nextOrder = prev.order.filter((k) => Boolean(prev.placements[k]));
+      const lastKey =
+        nextOrder[nextOrder.length - 1] ?? Object.keys(prev.placements).pop();
+      if (!lastKey || !prev.placements[lastKey]) return prev;
+
+      const nextPlacements = { ...prev.placements };
+      delete nextPlacements[lastKey];
+      return {
+        placements: nextPlacements,
+        order: nextOrder.filter((k) => k !== lastKey),
+      };
+    });
     setSelectedSlotKey(null);
-    countedWrongEqsRef.current.clear();
   }, [status]);
 
   const togglePause = useCallback(() => {
@@ -411,16 +425,22 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
       if (!tile) return;
 
       ensureRunning();
-      setPlacements((prev) => {
-        const next = { ...prev };
+      setBoardState((prev) => {
+        const nextPlacements = { ...prev.placements };
+        const removedKeys = new Set<string>();
         // Remove tile if it happened to be in another slot
-        Object.keys(next).forEach((k) => {
-          if (next[k].id === tileId) {
-            delete next[k];
+        Object.keys(nextPlacements).forEach((k) => {
+          if (nextPlacements[k].id === tileId) {
+            delete nextPlacements[k];
+            removedKeys.add(k);
           }
         });
-        next[targetSlotKey] = tile;
-        return next;
+        nextPlacements[targetSlotKey] = tile;
+        const nextOrder = prev.order.filter(
+          (k) => k !== targetSlotKey && !removedKeys.has(k)
+        );
+        nextOrder.push(targetSlotKey);
+        return { placements: nextPlacements, order: nextOrder };
       });
       if (isSoundOn) playSpeakerChime('correct');
       setSelectedTrayTileId(null);
@@ -434,18 +454,23 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
     (fromSlotKey: string, toSlotKey: string) => {
       if (status === 'completed' || fromSlotKey === toSlotKey) return;
       ensureRunning();
-      setPlacements((prev) => {
-        const fromTile = prev[fromSlotKey];
+      setBoardState((prev) => {
+        const fromTile = prev.placements[fromSlotKey];
         if (!fromTile) return prev;
-        const toTile = prev[toSlotKey];
-        const next = { ...prev };
-        next[toSlotKey] = fromTile;
+        const toTile = prev.placements[toSlotKey];
+        const nextPlacements = { ...prev.placements };
+        nextPlacements[toSlotKey] = fromTile;
+        const nextOrder = prev.order.filter(
+          (k) => k !== fromSlotKey && k !== toSlotKey
+        );
         if (toTile) {
-          next[fromSlotKey] = toTile;
+          nextPlacements[fromSlotKey] = toTile;
+          nextOrder.push(fromSlotKey, toSlotKey);
         } else {
-          delete next[fromSlotKey];
+          delete nextPlacements[fromSlotKey];
+          nextOrder.push(toSlotKey);
         }
-        return next;
+        return { placements: nextPlacements, order: nextOrder };
       });
       if (isSoundOn) playSpeakerChime('correct');
       setSelectedTrayTileId(null);
@@ -458,11 +483,14 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
   const removeTileFromSlot = useCallback(
     (slotKey: string) => {
       if (status === 'completed') return;
-      setPlacements((prev) => {
-        if (!prev[slotKey]) return prev;
-        const next = { ...prev };
-        delete next[slotKey];
-        return next;
+      setBoardState((prev) => {
+        if (!prev.placements[slotKey]) return prev;
+        const nextPlacements = { ...prev.placements };
+        delete nextPlacements[slotKey];
+        return {
+          placements: nextPlacements,
+          order: prev.order.filter((k) => k !== slotKey),
+        };
       });
       setSelectedSlotKey(null);
     },
@@ -687,12 +715,12 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
 
   const maxBoardWidthPx =
     puzzle.cols <= 7
-      ? 400
+      ? 420
       : puzzle.cols <= 9
-      ? 470
+      ? 510
       : puzzle.cols <= 11
-      ? 540
-      : 600;
+      ? 600
+      : 700;
 
   const filteredHistory = useMemo(() => {
     const list =
@@ -759,6 +787,15 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
 
           <button
             type="button"
+            onClick={() => startNewGame(difficulty)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/60 hover:border-cyan-300 text-cyan-200 hover:text-white text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95 shadow-xs whitespace-nowrap"
+          >
+            <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />
+            <span>{tr('Ván mới', 'New Puzzle')}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsSoundOn((prev) => !prev)}
             className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 text-xs whitespace-nowrap ${
               isSoundOn
@@ -772,7 +809,7 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
               <VolumeX className="w-3.5 h-3.5 text-slate-500" />
             )}
             <span className="font-semibold">
-              {isSoundOn ? tr('Âm thanh: Bật') : tr('Âm thanh: Tắt')}
+              {isSoundOn ? tr('Bật', 'On') : tr('Tắt', 'Off')}
             </span>
           </button>
         </div>
@@ -781,22 +818,17 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
       {/* Main Cross Math Arena Card */}
       <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-emerald-950/25 p-3.5 sm:p-5 shadow-2xl relative overflow-hidden space-y-3.5">
         {/* Header & Difficulty Selector */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-          <div className="flex items-start sm:items-center gap-2.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-800/80">
+          <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/35 shrink-0">
               <PlusSquare className="w-5 h-5 text-emerald-400" />
             </div>
-            <div>
-              <h2 className="font-extrabold text-white text-base sm:text-xl leading-snug tracking-tight">
-                {tr(
-                  'Cross Math — Toán Ô Chữ Logic',
-                  'Cross Math — Arithmetic Crossword'
-                )}
-              </h2>
-              <p className="text-[11px] sm:text-xs text-slate-200 font-medium">
-                {isVi ? diffMeta.descVi : diffMeta.descEn}
-              </p>
-            </div>
+            <h2 className="font-extrabold text-white text-base sm:text-xl leading-snug tracking-tight">
+              {tr(
+                'Cross Math — Toán Ô Chữ Logic',
+                'Cross Math—Arithmetic Crossword'
+              )}
+            </h2>
           </div>
 
           {/* 5 Difficulty Levels Segmented Selector */}
@@ -822,122 +854,95 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
         </div>
 
         {/* Action & Options Row */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <button
-            type="button"
-            onClick={() => setInstantCheck((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
-              instantCheck
-                ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400/60'
-                : 'bg-slate-950/85 text-slate-200 border-slate-700 hover:text-white'
-            }`}
-          >
-            <CheckCircle2
-              className={`w-3.5 h-3.5 ${
-                instantCheck ? 'text-emerald-300' : 'text-slate-400'
-              }`}
-            />
-            <span>
-              {tr('Kiểm tra tức thì', 'Instant Check')}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleHint}
-            disabled={status === 'completed' || status === 'paused'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/60 text-amber-200 font-semibold transition-all cursor-pointer active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed whitespace-nowrap"
-          >
-            <Lightbulb className="w-3.5 h-3.5 text-amber-300" />
-            <span>
-              {tr('Gợi ý', 'Hint')} ({hintsUsed})
-            </span>
-          </button>
-
-          {(status === 'running' || status === 'paused') && (
+        {/* Action & Inline Time/Best Row */}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={togglePause}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/60 text-sky-200 font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+              onClick={() => setInstantCheck((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
+                instantCheck
+                  ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400/60'
+                  : 'bg-slate-950/85 text-slate-200 border-slate-700 hover:text-white'
+              }`}
             >
-              {status === 'paused' ? (
-                <>
-                  <Play className="w-3.5 h-3.5 text-sky-300 fill-sky-300" />
-                  <span>{tr('Tiếp tục', 'Resume')}</span>
-                </>
-              ) : (
-                <>
-                  <Pause className="w-3.5 h-3.5 text-sky-300" />
-                  <span>{tr('Tạm dừng', 'Pause')}</span>
-                </>
-              )}
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={clearPlacedTiles}
-            disabled={placedCount === 0 || status === 'completed'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/85 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 text-slate-100 font-semibold transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
-          >
-            <Eraser className="w-3.5 h-3.5 text-slate-300" />
-            <span>{tr('Xóa ô đã điền', 'Clear Placed')}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => startNewGame(difficulty)}
-            className="sm:ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/60 text-cyan-200 font-bold transition-all cursor-pointer active:scale-95 whitespace-nowrap"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>{tr('Ván mới', 'New Puzzle')}</span>
-          </button>
-        </div>
-
-        {/* Live Metrics Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/85 border border-slate-800 text-center">
-            <span className="text-[11px] sm:text-xs text-slate-200 font-semibold flex items-center justify-center gap-1">
-              <Timer className="w-3.5 h-3.5 text-sky-300" />
-              <span>{tr('Thời gian')}</span>
-            </span>
-            <span className="text-base sm:text-xl font-extrabold text-sky-300 font-sans tabular-nums">
-              {formatDurationClock(elapsedMs)}
-            </span>
-          </div>
-
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/85 border border-slate-800 text-center">
-            <span className="text-[11px] sm:text-xs text-slate-200 font-semibold block">
-              {tr('Ô trống đã điền', 'Filled Slots')}
-            </span>
-            <span className="text-base sm:text-xl font-extrabold text-emerald-300 font-sans tabular-nums">
-              {placedCount}
-              <span className="text-slate-500">/</span>
-              <span className="text-white">{puzzle.totalSlots}</span>
-            </span>
-          </div>
-
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/85 border border-slate-800 text-center">
-            <span className="text-[11px] sm:text-xs text-slate-200 font-semibold block">
-              {tr('Phép tính đúng', 'Valid Equations')}
-            </span>
-            <span className="text-base sm:text-xl font-extrabold font-sans tabular-nums">
-              <span className="text-cyan-200">{validEqCount}</span>
-              <span className="text-slate-500">/</span>
-              <span className="text-white">{puzzle.equations.length}</span>
-            </span>
-          </div>
-
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-slate-950/85 border border-slate-800 text-center">
-            <span className="text-[11px] sm:text-xs text-slate-200 font-semibold flex items-center justify-center gap-1">
-              <Trophy className="w-3.5 h-3.5 text-yellow-300" />
+              <CheckCircle2
+                className={`w-3.5 h-3.5 ${
+                  instantCheck ? 'text-emerald-300' : 'text-slate-400'
+                }`}
+              />
               <span>
-                {isVi ? `Kỷ lục (${diffMeta.labelVi})` : `Best (${diffMeta.labelEn})`}
+                {tr('Kiểm tra', 'Check')}
               </span>
-            </span>
-            <span className="text-base sm:text-xl font-extrabold text-yellow-300 font-sans tabular-nums">
-              {currentBestMs !== null ? formatDurationClock(currentBestMs) : '--'}
-            </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleHint}
+              disabled={status === 'completed' || status === 'paused'}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/60 text-amber-200 font-semibold transition-all cursor-pointer active:scale-95 disabled:opacity-45 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              <Lightbulb className="w-3.5 h-3.5 text-amber-300" />
+              <span>
+                {tr('Gợi ý', 'Hint')} ({hintsUsed})
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={recallLastPlacedTile}
+              disabled={placedCount === 0 || status === 'completed' || status === 'paused'}
+              title={tr(
+                'Thu hồi từng số vừa trả lời theo thứ tự ngược lại',
+                'Recall the most recently placed number step by step'
+              )}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/85 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 text-slate-100 font-semibold transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              <Eraser className="w-3.5 h-3.5 text-slate-300" />
+              <span>{tr('Thu hồi', 'Clear Placed')}</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800 whitespace-nowrap">
+              <Timer className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+              <span className="text-slate-300 font-semibold">
+                {tr('', ':')}
+              </span>
+              <span className="text-sky-300 font-extrabold font-sans tabular-nums">
+                {formatDurationClock(elapsedMs)}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950/85 border border-slate-800 whitespace-nowrap">
+              <Trophy className="w-3.5 h-3.5 text-yellow-300 shrink-0" />
+              <span className="text-slate-300 font-semibold">
+                {tr('', '')}
+              </span>
+              <span className="text-yellow-300 font-extrabold font-sans tabular-nums">
+                {currentBestMs !== null ? formatDurationClock(currentBestMs) : '--'}
+              </span>
+            </div>
+
+            {(status === 'running' || status === 'paused') && (
+              <button
+                type="button"
+                onClick={togglePause}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/60 text-sky-200 font-semibold transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+              >
+                {status === 'paused' ? (
+                  <>
+                    <Play className="w-3.5 h-3.5 text-sky-300 fill-sky-300" />
+                    <span>{tr('Tiếp tục', 'Resume')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-3.5 h-3.5 text-sky-300" />
+                    <span>{tr('Tạm dừng', 'Pause')}</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -998,9 +1003,9 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
-            {/* Cross Math Board Frame (Left / Main) */}
-            <div className="lg:col-span-8 relative rounded-2xl sm:rounded-3xl bg-slate-950/90 border border-slate-800 p-2.5 sm:p-4 flex flex-col items-center justify-center overflow-x-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
+            {/* Cross Math Board Frame (Left / Main — Extra Space for Puzzle Grid) */}
+            <div className="lg:col-span-9 relative rounded-2xl sm:rounded-3xl bg-slate-950/90 border border-slate-800 p-2.5 sm:p-4 flex flex-col items-center justify-center overflow-x-auto">
               {/* Pause Overlay */}
               {status === 'paused' && (
                 <div className="absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-4 rounded-2xl sm:rounded-3xl">
@@ -1183,7 +1188,7 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
               </div>
             </div>
 
-            {/* Result Number Tile Tray Panel (Side panel on Desktop Web, Clear Bottom Panel on Mobile) */}
+            {/* Compact Square Answer Number Tray (5 per row) */}
             <div
               data-tray-drop="true"
               onDragOver={(e) => {
@@ -1197,51 +1202,14 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
                 }
                 setDragPayload(null);
               }}
-              className="lg:col-span-4 lg:sticky lg:top-4 rounded-2xl sm:rounded-3xl bg-slate-950/95 border-2 border-sky-400/55 p-3.5 sm:p-4 shadow-xl space-y-3"
+              className="lg:col-span-3 lg:sticky lg:top-4 rounded-2xl bg-slate-950/90 border border-slate-800 p-2.5 sm:p-3 shadow-xl"
             >
-              {/* Tray Header */}
-              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/60 flex items-center justify-center text-sky-300 shrink-0">
-                    <Move className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-white truncate">
-                    {tr('Kho số kéo vào ô trả lời', 'Numbers to Drag & Place')}
-                  </span>
-                </div>
-                <span className="text-xs font-sans font-extrabold tabular-nums text-sky-300 shrink-0 whitespace-nowrap">
-                  {tr('Còn:', 'Left:')} {availableTrayTiles.length}
-                </span>
-              </div>
-
-              {/* Active Selection / Interaction Hint */}
-              <p className="text-[11px] sm:text-xs font-medium leading-relaxed text-slate-200 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2">
-                {selectedTrayTileId
-                  ? tr(
-                      'Đang chọn số — Chạm vào ô trống nét đứt trên bảng để đặt vào.',
-                      'Number selected — Tap a dashed empty slot on the board to place it.'
-                    )
-                  : selectedSlotKey
-                  ? tr(
-                      'Đang chọn ô trống — Chạm vào một số bên dưới để điền ngay.',
-                      'Slot selected — Tap a number tile below to fill it.'
-                    )
-                  : tr(
-                      'Kéo số thả vào ô trống (hoặc chạm số rồi chạm ô). Chạm ô đã điền để trả số về kho.',
-                      'Drag & drop numbers into empty slots (or tap tile then slot). Tap a filled slot to return it.'
-                    )}
-              </p>
-
-              {/* Draggable Bright Number Tiles */}
               {availableTrayTiles.length === 0 ? (
-                <div className="py-4 text-center text-xs sm:text-sm font-semibold text-slate-200">
-                  {tr(
-                    'Tất cả các số đã được đặt lên bảng. Kiểm tra lại các phép tính chưa khớp để hoàn thành!',
-                    'All numbers are placed on the board. Check any mismatched equations to complete!'
-                  )}
+                <div className="py-2 text-center text-xs font-semibold text-slate-300">
+                  {tr('Đã đặt hết số', 'All placed')}
                 </div>
               ) : (
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+                <div className="grid grid-cols-5 gap-1.5 max-w-[235px] mx-auto">
                   {availableTrayTiles.map((tile) => {
                     const isSelected = selectedTrayTileId === tile.id;
                     return (
@@ -1269,10 +1237,10 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
                           if (suppressNextClickRef.current) return;
                           handleTrayTileClick(tile.id);
                         }}
-                        className={`touch-none min-w-[52px] sm:min-w-[58px] h-12 sm:h-13 px-3 rounded-xl border-2 font-sans font-black text-lg sm:text-xl tabular-nums flex items-center justify-center transition-all duration-150 cursor-grab active:cursor-grabbing active:scale-95 select-none ${
+                        className={`touch-none w-full aspect-square px-0.5 rounded-lg border-[1.5px] font-sans font-extrabold text-xs sm:text-sm tabular-nums flex items-center justify-center transition-all duration-150 cursor-grab active:cursor-grabbing active:scale-95 select-none ${
                           isSelected
                             ? 'bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 text-slate-950 border-white ring-2 ring-cyan-200 shadow-lg shadow-cyan-400/45 -translate-y-0.5'
-                            : 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-500 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-400 border-sky-200 hover:border-white text-white shadow-md shadow-sky-500/30'
+                            : 'bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-500 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-400 border-sky-200 hover:border-white text-white shadow-sm shadow-sky-500/30'
                         }`}
                       >
                         {tile.value}
@@ -1281,22 +1249,6 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
                   })}
                 </div>
               )}
-
-              {/* Subtle Color Legend for Clarity */}
-              <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-medium text-slate-200">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-xs bg-[#F7D774] border border-[#FCEFB8]" />
-                  <span>{tr('Cho trước & dấu', 'Given & ops')}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-xs border border-dashed border-sky-300 bg-slate-900" />
-                  <span>{tr('Ô trống', 'Empty slot')}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-xs bg-sky-500 border border-sky-200" />
-                  <span>{tr('Số trả lời', 'Answer tile')}</span>
-                </span>
-              </div>
             </div>
           </div>
         )}
@@ -1309,7 +1261,7 @@ export const CrossMathPage: React.FC<CrossMathPageProps> = ({ onBack }) => {
               left: `${touchGhost.x}px`,
               top: `${touchGhost.y}px`,
             }}
-            className="fixed z-50 -translate-x-1/2 -translate-y-1/2 pointer-events-none min-w-[54px] h-12 px-3 rounded-xl border-2 border-white bg-gradient-to-br from-sky-400 via-blue-500 to-cyan-400 text-white font-sans font-black text-xl tabular-nums flex items-center justify-center shadow-2xl shadow-sky-500/50 scale-110"
+            className="fixed z-50 -translate-x-1/2 -translate-y-1/2 pointer-events-none w-11 h-11 rounded-lg border-2 border-white bg-gradient-to-br from-sky-400 via-blue-500 to-cyan-400 text-white font-sans font-extrabold text-sm tabular-nums flex items-center justify-center shadow-2xl shadow-sky-500/50 scale-110"
           >
             {touchGhost.value}
           </div>
